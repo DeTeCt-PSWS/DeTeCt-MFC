@@ -1,0 +1,198 @@
+-------------------
+Authors: 	LC: Luis Calderon (up to v0.8.0)
+		MD: Marc Delcroix (from  v1.0.0)
+
+libfits.dll based on WCS tools library
+By Jessica Mink, jmink@cfa.harvard.edu Harvard-Smithsonian Center for Astrophysics
+Copyright (C) 1996-2011 Smithsonian Astrophysical Observatory, Cambridge, MA, USA
+Used under GNU Lesser General Public License v2 or later
+-------------------
+Versions history:
+
+Updates suggested but delayed :
+			- choose folder
+			- display duration of files processed
+			- GUI
+			- PCA method for detecting impacts (cf. http://www.ssec.wisc.edu/meetings/21st_saturn/program/Posters/Poster%202/8.%20Strycker_poster_SatSciConf2014.pdf)
+			- read Frame timestamp for end time of real number of frames in FireCapture log
+Next version (to be done):
+			- check alignment procedure
+				- bug Torsten Mellenthin
+				- bigger ROI option
+			- save images around detection
+			- median filtering for detection image (Nick Haigh) - void medianBlur(InputArray src, OutputArray dst, int ksize)
+2.0.5 (MD): New functions:
+			- new detect_scan.bat for permanently scanning a directory for new files to process
+	  Changes:
+			- FITS from OpenSkyImager (0.8.13): handling of DATE keyword, handling of generic *_0001.fit* in batch
+			- openCV 2.4.13
+	  Bugs corrected:
+			- FITS handling of DATE-OBS keyword
+			- Usage of dark file in root directory (Oleg Zaharcuic)
+			- Handling of End time missing in FireCapture log in case of interrupted autorun
+			- Incorrect handling of Local Time in FireCapture log (Oleg Zaharcuic)
+2.0.4 (MD): Bugs corrected:
+			- Genika: Mid/end time calculation at day change
+			- Firecapture: Date format for old (2011) versions
+2.0.3 (MD): Bugs corrected:
+			- Dark handling (negative values)
+2.0.2 (MD): Changes:
+			- Static version not requiring redistribuable DLLs and shorter
+2.0.1 (MD): New functions:
+			- PLx capture: support for filename longer than capture's filename (X.Dupont)
+	  Changes:
+			- MS Visual Studio 2013 IDE
+	  Bugs corrected:
+			- handling of MMM option in Firecapture date format (A.Coffelt)
+			- date from file system info
+2.0 (MD): New functions:
+			- reactivation of impact detection, renamed "rating", "brightness increase", ...
+			- implementation of FireCapture time format reading from .ini 
+			- support of Firecapture 2.4 beta6, Genika 2.7.2.0, SharpCap 2.1.1050.0, PLXCapture 2.3.2.5
+	  Changes:
+			- MSVS optimized non debug compiled version in gcc replacement
+			- Graphic library openCV 2.4.10
+			- individual log file renamed .txt
+	  Bugs corrected:
+			- duration from log
+			- files without head in filename
+			- datation for FITS files
+1.2.2 (MD): New functions:
+			- implementation of all FireCapture time formats
+			- calculation of end/start time if duration and start/end time available
+			- calculation of UT if LT and UT available from SER/FITS
+			- calculation of duration for avi files from frame/fps info
+			- full datation for FITS/FILE
+			- file/fits syntax with ignored trailer after index (head+nb+trailer.ext) or index at the end of filename (head+nb.ext)
+			- ignore "_pipp" suffix for searching acquisition logfiles
+			- -bayer option for debayering raw videos (not needed for impact detections)
+			Changes:
+			- change name of individual dtc_max frame
+			- optimized compilation (20% faster)
+			- latest ffmpeg dll
+			Bugs corrected:
+			- avi files generating black dtc_max images
+			- FireCapture LocalTime date format and UniversalTime date format
+			- dtc_batch: use of darkfile with directoryname with space
+			- Review of all memory allocations/common functions/file/fits functions
+			- Securisation of string functions
+			- Compilation with MSVC debug to correct many warnings and bugs
+1.2.1 (MD): New functions:
+			- dtc_batch: opens automaticaly dtc.log and explorer in Impact_detection directory at the end of processing
+			- supports Genika 2.1.4.6-2.3.3
+			Bugs corrected:
+			- dtc_batch: directoryname with space
+1.2.0 (MD): New functions:
+			- -dfile option for using an existing dark file (bmp, jpg, tiff format, ... ) ; use DARKFILE variable value in dtc_batch.bat to set the name
+            - dtc_batch: only dtc_max.jpg images in Impact_detection directory for faster examination, details in separate directory
+			- dtc_batch: no impact detection test (ADUdtconly option by default) for clearer DeTeCt project interpretation
+			- videotest option for testing reading of input file
+			Changes:
+			- set pointers to NULL after free/cvRelease
+			Bugs corrected:
+			- Image/Mat Releases when options relevant
+			- "program stopped working" window at the end of the execution
+1.1.3 (MD): New functions:
+			- Handling of generic filenames for FITS
+			- TIMESTMP FITS keyword
+			- Handling of :
+				- Windows bitmaps - *.bmp, *.dib
+				- JPEG files - *.jpeg, *.jpg, *.jpe
+				- JPEG 2000 files - *.jp2
+				- Portable Network Graphics - *.png
+				- Portable image format - *.pbm, *.pgm, *.ppm
+				- Sun rasters - *.sr, *.ras
+				- TIFF files - *.tiff, *.tif
+			Changes:
+			Bugs corrected:
+			- calculation of filename extension length
+			- FITs time type
+			- detect_impact ord[0]->point->frame
+1.1.2 (MD): New functions:
+			- Genika Trigger log support for datation
+			- -ignore option to ignore missing FITS or SER frames (datation adjusted), activated in dtc_batch.bat
+			Changes:
+			- message if #frames < minframes
+			- # of impacts detected by classic algorithm in dtc.log
+			Bugs corrected:
+			- detect_impact with 0 sized list
+1.1.1 (MD): New functions:
+			- Genika v2 log support for datation
+			Changes:
+			- estimation of fps if missing in date info
+			- only first FPS taken into account in FireCapture log
+			Bugs corrected:
+			- datation display in log
+1.1.0 (MD): New functions:
+			- FITS format support
+			- -minframes option for stopping process if #frames<=minframes (value is 3 per default in code, 32 in batch)
+			- mid time logged (3rd column) and logged dates with winjupos format (YYYY/MM/DD HH:MM.T) allowing copy/paste
+			- -dateonly mode (date log but no processing)
+			Changes:
+			- ADUdtcdetail: normalized mean image saved for better visualization
+			- estimation of fps if missing in log file
+			- calculation of duration/start time from file info when fps available
+			- robustness for detection with accurate fps usage if available
+			- verbose printing format for better readibility and export usage in spreadsheet software
+			- dtc_batch: filename generated countains directory scanned for better reading
+			Bugs corrected:
+			- error after AVI processings (proper images/matrices/videostreams creations/initializations/releases)
+			- flush streams before exit (logs now complete, less errors)
+			- allframes option bug in mean image calculation
+			- startime handling in file info datation
+1.0.8 (MD): Changes:
+			- Correct usage of starttime information in SER for PLxCapture
+1.0.7 (MD): Changes:
+			- Ignores date file information in case of WinJupos derotated file (because modification date>acquisition date)
+			- Correct usage of timestamps information in SER depending on how acquisition software implements datation in SER
+1.0.6 (MD): Bugs corrected:
+			- Robustness tests on duration and on fps calculation for SER files ( fixing error on WinJupos derotated SER files)
+			dtc_batch: correction of bug with filenames, quotes and antislash
+1.0.5 (MD): New functions:
+			- PLx-capture log file support
+1.0.4 (MD): Bugs corrected:
+			- bug cvSum corrected (rewrite of the function)
+1.0.3 (MD): New functions:
+			- option ADUdtcframes to save all individual max frames
+			Changes:		                                                
+			- malloc/free and unused variables cleaning
+1.0.2 (MD): New functions:
+			- Usage of log files of											
+				Lucam Recorder
+				Firecapture
+				Genika
+				Avi felopaul
+				Genicap														
+			- detect_impact returns number of impacts detected
+1.0.1 (MD): New functions:
+            - Datation module from file info
+            - Usage of datation fields in ser header/trailer
+1.0.0 (MD): Bugs corrected:
+            - Release of cvMat in main loop of dtc
+            - dtcReduceMatToROI recoded for ROI centered out of frame
+  			- cvSum deactivated                                                 
+		    New functions:
+            - debug option
+            - nsf ADUdtcdetail
+			- ADUdtc/ADUdtcdetail (not published because only 10% faster)
+			Changes:                                                        
+            - ADUdtc by default saves stretched image for better detection
+		    Unsuccessfull test on OpenCV 2.4.[0-3] (failed on some avis)  
+0.8.0 (LC): Initial version, all coded by Luis                              
+			Ser files support
+            Some bugs corrected                                             
+0.7.0 (LC): Added "deteccion image" (Marc Delcroix method)                 
+0.6.0 (LC): First release                                   
+-------------------------------------------------------------
+v1.x.x and above tested under windows only (MD)
+
+You need OpenCV Library.
+Linux:
+	OpenCV2.1 and OpenCV2.3 tested (v0.8.0)
+Windows:
+	OpenCV - see history
+Modify Makefiles in order to use correct paths.
+
+GCC under Linux or MinGW under Windows is suggested. But you can use
+whichever compiler you want. Simply change things according to your
+needs.

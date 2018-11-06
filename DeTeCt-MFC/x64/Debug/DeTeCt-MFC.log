@@ -1,0 +1,77 @@
+﻿  dtcgui.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtc.h(19): warning C4005: 'DETECT_TARGET' : macro redefinition
+          c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtc.h(15) : see previous definition of 'DETECT_TARGET'
+dtcgui.cpp(291): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+dtcgui.cpp(366): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+dtcgui.cpp(382): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+dtcgui.cpp(224): warning C4100: 'fps' : unreferenced formal parameter
+dtcgui.cpp(231): warning C4101: 'mini' : unreferenced local variable
+dtcgui.cpp(232): warning C4101: 'hfin' : unreferenced local variable
+dtcgui.cpp(232): warning C4101: 'mfin' : unreferenced local variable
+dtcgui.cpp(231): warning C4101: 'hini' : unreferenced local variable
+dtcgui.cpp(231): warning C4101: 'sini' : unreferenced local variable
+dtcgui.cpp(232): warning C4101: 'sfin' : unreferenced local variable
+dtcgui.cpp(275): warning C4101: 'item' : unreferenced local variable
+dtcgui.cpp(332): warning C4189: 'prev' : local variable is initialized but not referenced
+dtcgui.cpp(622): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+dtcgui.cpp(578): warning C4189: 'stdDev' : local variable is initialized but not referenced
+dtcgui.cpp(511): warning C4101: 'mini' : unreferenced local variable
+dtcgui.cpp(507): warning C4101: 'n' : unreferenced local variable
+dtcgui.cpp(512): warning C4101: 'hfin' : unreferenced local variable
+dtcgui.cpp(512): warning C4101: 'mfin' : unreferenced local variable
+dtcgui.cpp(507): warning C4101: 'maxC' : unreferenced local variable
+dtcgui.cpp(509): warning C4101: 'maxFrame' : unreferenced local variable
+dtcgui.cpp(509): warning C4101: 'minFrame' : unreferenced local variable
+dtcgui.cpp(511): warning C4101: 'hini' : unreferenced local variable
+dtcgui.cpp(510): warning C4101: 'ivalFrame' : unreferenced local variable
+dtcgui.cpp(578): warning C4189: 'minStdDev' : local variable is initialized but not referenced
+dtcgui.cpp(511): warning C4101: 'sini' : unreferenced local variable
+dtcgui.cpp(507): warning C4101: 'minC' : unreferenced local variable
+dtcgui.cpp(512): warning C4101: 'sfin' : unreferenced local variable
+dtcgui.cpp(576): warning C4189: 'max' : local variable is initialized but not referenced
+dtcgui.cpp(515): warning C4101: 'frame_distance' : unreferenced local variable
+dtcgui.cpp(690): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+dtcgui.cpp(729): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+dtcgui.cpp(675): warning C4100: 'impact' : unreferenced formal parameter
+dtcgui.cpp(678): warning C4101: 'previous' : unreferenced local variable
+dtcgui.cpp(679): warning C4101: 'impactList' : unreferenced local variable
+dtcgui.cpp(684): warning C4101: 'tmp' : unreferenced local variable
+dtcgui.cpp(685): warning C4101: 'tmpSrc' : unreferenced local variable
+dtcgui.cpp(683): warning C4101: 'c' : unreferenced local variable
+dtcgui.cpp(684): warning C4101: 'ord' : unreferenced local variable
+dtcgui.cpp(802): warning C4267: 'initializing' : conversion from 'size_t' to 'int', possible loss of data
+dtcgui.cpp(1008): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+dtcgui.cpp(1012): warning C4267: '=' : conversion from 'size_t' to 'int', possible loss of data
+dtcgui.cpp(1018): warning C4244: 'argument' : conversion from 'int' to 'short', possible loss of data
+dtcgui.cpp(1221): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+dtcgui.cpp(1460): warning C4018: '<=' : signed/unsigned mismatch
+dtcgui.cpp(1480): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+dtcgui.cpp(1489): warning C4244: 'argument' : conversion from 'double' to 'const unsigned char', possible loss of data
+dtcgui.cpp(1490): warning C4244: 'argument' : conversion from 'int' to 'const unsigned char', possible loss of data
+dtcgui.cpp(1491): warning C4244: 'argument' : conversion from 'int' to 'const unsigned char', possible loss of data
+dtcgui.cpp(1492): warning C4244: 'argument' : conversion from 'int' to 'unsigned char', possible loss of data
+dtcgui.cpp(1493): warning C4244: 'argument' : conversion from 'int' to 'const unsigned char', possible loss of data
+dtcgui.cpp(1553): warning C4244: 'initializing' : conversion from 'const double' to 'int', possible loss of data
+dtcgui.cpp(804): warning C4101: 'progress' : unreferenced local variable
+dtcgui.cpp(803): warning C4189: 'file_number' : local variable is initialized but not referenced
+dtcgui.cpp(802): warning C4189: 'number_of_files' : local variable is initialized but not referenced
+dtcgui.cpp(765): warning C4101: 'buffer' : unreferenced local variable
+dtcgui.cpp(950): warning C4189: 'start_process_time' : local variable is initialized but not referenced
+dtcgui.cpp(951): warning C4189: 'end_process_time' : local variable is initialized but not referenced
+dtcgui.cpp(816): warning C4189: 'previous_percentage' : local variable is initialized but not referenced
+dtcgui.cpp(904): warning C4101: 'orig_height' : unreferenced local variable
+dtcgui.cpp(929): warning C4101: 'maxLum2' : unreferenced local variable
+dtcgui.cpp(903): warning C4101: 'orig_width' : unreferenced local variable
+dtcgui.cpp(930): warning C4101: 'minLummax' : unreferenced local variable
+dtcgui.cpp(931): warning C4101: 'maxLummax' : unreferenced local variable
+dtcgui.cpp(991): warning C4101: 'progressDialog' : unreferenced local variable
+dtcgui.cpp(1575): warning C4189: 'maxDtcImg' : local variable is initialized but not referenced
+dtcgui.cpp(1579): warning C4189: 'meanMaxB' : local variable is initialized but not referenced
+dtcgui.cpp(1402): warning C4189: 'sum' : local variable is initialized but not referenced
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtcgui.cpp(1973): warning C4715: 'detect' : not all control paths return a value
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtcgui.cpp(1759): warning C4701: potentially uninitialized local variable 'outdtc' used
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtcgui.cpp(1313): warning C4701: potentially uninitialized local variable 'firstFrameMean' used
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtcgui.cpp(1396): warning C4701: potentially uninitialized local variable 'totalMean' used
+LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/OPT:ICF' specification
+  DeTeCt-MFC.vcxproj -> C:\Users\Jon\Documents\Visual Studio 2015\Projects\DeTeCt-MFC\x64\Debug\DeTeCt3.1.x64.exe

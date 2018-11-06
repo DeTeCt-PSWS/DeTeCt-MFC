@@ -1,0 +1,55 @@
+﻿  dtcgui.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+dtcgui.cpp(291): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+dtcgui.cpp(335): warning C4018: '<' : signed/unsigned mismatch
+dtcgui.cpp(363): warning C4018: '<' : signed/unsigned mismatch
+dtcgui.cpp(365): warning C4018: '>' : signed/unsigned mismatch
+dtcgui.cpp(231): warning C4101: 'mini' : unreferenced local variable
+dtcgui.cpp(232): warning C4101: 'hfin' : unreferenced local variable
+dtcgui.cpp(232): warning C4101: 'mfin' : unreferenced local variable
+dtcgui.cpp(231): warning C4101: 'hini' : unreferenced local variable
+dtcgui.cpp(231): warning C4101: 'sini' : unreferenced local variable
+dtcgui.cpp(232): warning C4101: 'sfin' : unreferenced local variable
+dtcgui.cpp(275): warning C4101: 'item' : unreferenced local variable
+dtcgui.cpp(626): warning C4018: '>' : signed/unsigned mismatch
+dtcgui.cpp(511): warning C4101: 'mini' : unreferenced local variable
+dtcgui.cpp(507): warning C4101: 'n' : unreferenced local variable
+dtcgui.cpp(512): warning C4101: 'hfin' : unreferenced local variable
+dtcgui.cpp(512): warning C4101: 'mfin' : unreferenced local variable
+dtcgui.cpp(507): warning C4101: 'maxC' : unreferenced local variable
+dtcgui.cpp(509): warning C4101: 'maxFrame' : unreferenced local variable
+dtcgui.cpp(509): warning C4101: 'minFrame' : unreferenced local variable
+dtcgui.cpp(511): warning C4101: 'hini' : unreferenced local variable
+dtcgui.cpp(510): warning C4101: 'ivalFrame' : unreferenced local variable
+dtcgui.cpp(511): warning C4101: 'sini' : unreferenced local variable
+dtcgui.cpp(507): warning C4101: 'minC' : unreferenced local variable
+dtcgui.cpp(512): warning C4101: 'sfin' : unreferenced local variable
+dtcgui.cpp(515): warning C4101: 'frame_distance' : unreferenced local variable
+dtcgui.cpp(688): warning C4244: 'initializing' : conversion from 'double' to 'int', possible loss of data
+dtcgui.cpp(724): warning C4018: '<' : signed/unsigned mismatch
+dtcgui.cpp(727): warning C4244: '=' : conversion from 'double' to 'int', possible loss of data
+dtcgui.cpp(676): warning C4101: 'previous' : unreferenced local variable
+dtcgui.cpp(677): warning C4101: 'impactList' : unreferenced local variable
+dtcgui.cpp(682): warning C4101: 'tmp' : unreferenced local variable
+dtcgui.cpp(683): warning C4101: 'tmpSrc' : unreferenced local variable
+dtcgui.cpp(681): warning C4101: 'c' : unreferenced local variable
+dtcgui.cpp(682): warning C4101: 'ord' : unreferenced local variable
+dtcgui.cpp(1223): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+dtcgui.cpp(1474): warning C4018: '<=' : signed/unsigned mismatch
+dtcgui.cpp(1494): warning C4244: 'argument' : conversion from 'double' to 'float', possible loss of data
+dtcgui.cpp(1503): warning C4244: 'argument' : conversion from 'double' to 'const unsigned char', possible loss of data
+dtcgui.cpp(1569): warning C4244: 'initializing' : conversion from 'const double' to 'int', possible loss of data
+dtcgui.cpp(1325): warning C4102: 'cv' : unreferenced label
+dtcgui.cpp(802): warning C4101: 'progress' : unreferenced local variable
+dtcgui.cpp(763): warning C4101: 'buffer' : unreferenced local variable
+dtcgui.cpp(902): warning C4101: 'orig_height' : unreferenced local variable
+dtcgui.cpp(927): warning C4101: 'maxLum2' : unreferenced local variable
+dtcgui.cpp(901): warning C4101: 'orig_width' : unreferenced local variable
+dtcgui.cpp(928): warning C4101: 'minLummax' : unreferenced local variable
+dtcgui.cpp(929): warning C4101: 'maxLummax' : unreferenced local variable
+dtcgui.cpp(990): warning C4101: 'progressDialog' : unreferenced local variable
+  Generating code
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtcas3.cpp(559): warning C4715: 'detect' : not all control paths return a value
+c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\dtcgui.cpp(1997): warning C4715: 'detect' : not all control paths return a value
+  Finished generating code
+  DeTeCt-MFC.vcxproj -> C:\Users\Jon\documents\visual studio 2015\Projects\DeTeCt-MFC\Win32\Release\DeTeCt3.1.Win32.exe
