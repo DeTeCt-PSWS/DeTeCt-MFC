@@ -1,42 +1,43 @@
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect3.1.x64.pch
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\vc120.pdb
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\vc120.idb
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\stdafx.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\cmdline.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\common.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\datation.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\dtc.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\filefmt.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\fitsfile_dtc.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\fitsfmt.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\hget.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\hput.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\iget.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\imio.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\stub.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\img.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\max.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\serfmt.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\wrapper.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\datation2.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfcdlg.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detectthread.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\dtcas3.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\filefmt2.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\dtcgui.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\img2.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\ini.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\sendemaildlg.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\wrapper2.obj
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\x64\debug\detect3.1.x64.exe
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.res
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\cl.command.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\cl.read.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\cl.write.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\link.command.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\link.read.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\link.write.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\rc.command.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\rc.read.1.tlog
-c:\users\jon\documents\visual studio 2015\projects\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\rc.write.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect3.1.x64.pch
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\vc141.pdb
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\vc141.idb
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\stdafx.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\dtc.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\common.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\filefmt.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\datation.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\iget.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\fitsfmt.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\cmdline.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\hput.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\wrapper.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\hget.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\serfmt.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\fitsfile_dtc.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\imio.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\max.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\stub.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\img.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\datation2.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\dtcgui.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfcdlg.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detectthread.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\img2.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\filefmt2.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\ini.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\dtcas3.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\wrapper2.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\sendemaildlg.obj
+g:\work\impact\detect-psws\detect-mfc\x64\debug\detect3.1.x64.exe
+g:\work\impact\detect-psws\detect-mfc\x64\debug\detect3.1.x64.pdb
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.res
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\cl.command.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\cl.read.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\cl.write.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\link.command.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\link.read.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\link.write.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\rc.command.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\rc.read.1.tlog
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\debug\detect-mfc.tlog\rc.write.1.tlog

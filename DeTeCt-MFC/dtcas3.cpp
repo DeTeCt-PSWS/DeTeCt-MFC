@@ -8,6 +8,14 @@ bool starts_with(const std::string& s1, const std::string& s2) {
 	return s2.size() <= s1.size() && s1.compare(0, s2.size(), s2) == 0;
 }
 
+bool replace(std::string& str, const std::string& from, const std::string& to) {
+	size_t start_pos = str.find(from);
+	if (start_pos == std::string::npos)
+		return false;
+	str.replace(start_pos, from.length(), to);
+	return true;
+}
+
 std::vector<std::string> read_txt(std::string path) {
 	std::ifstream file(path);
 	std::string line;
@@ -18,13 +26,13 @@ std::vector<std::string> read_txt(std::string path) {
 	return lines;
 }
 
-void read_config_file(std::string path, std::string *filename, std::vector<cv::Point> *cm_list) {
-	std::ifstream file(path, std::ios::in);
-	std::string line;
+void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list) {
+//	std::ifstream file(path, std::ios::in);
+//	std::string line;
 	std::vector<std::string> lines;
 	float x, y;
-	while (std::getline(file, line)) {
-		if (starts_with(line, "  file")) {
+//	while (std::getline(file, line)) {
+	if (starts_with(line, "  file")) {
 			line = line.substr(line.find_first_of("e") + 1, line.length());
 			while (line.find(' ') != std::string::npos) {
 				line.erase(line.find(' '), 1);
@@ -34,16 +42,19 @@ void read_config_file(std::string path, std::string *filename, std::vector<cv::P
 		else if (starts_with(line, " f ")) {
 			lines.push_back(line);
 			line = line.substr(line.find_first_of("f") + 1, line.length());
+			// replace comma by point
+			while (line.find(',') != std::string::npos) {
+				replace(line,",",".");
+			}
 			std::istringstream ss(line);
 			ss >> x >> y;
-			cm_list->push_back(cv::Point(x, y));
+			cm_list->push_back(cv::Point(round(x), round(y)));
 		}
-	}
+//	}
 }
 
 int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 	clock_t begin, end;
-	int progress = 100;
 	cv::setUseOptimized(true);
 	try {
 		opts.filename = strdup(filename.c_str());
@@ -605,8 +616,10 @@ void detect_autostakkert(std::string path) {
 	opts.hROI = 0;
 	std::vector<cv::Point> cm_list;
 	std::string filename;
-	for (std::string file : read_txt(path)) {
-		read_config_file(file, &filename, &cm_list);
+	for (std::string line : read_txt(path)) {
+		read_autostakkert_config_line(line, &filename, &cm_list);
+	}
+	if (filename.length() > 0) {
 		std::cout << filename << std::endl;
 		detect(filename, cm_list, opts);
 	}

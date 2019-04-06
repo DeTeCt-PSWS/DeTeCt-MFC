@@ -6,17 +6,15 @@
 
 #define PROGNAME  "detect"
 #define LONGNAME  "jovian impact DeTeCtion"
-#define VERSION_NB   "3.1.0beta"
-#define VERSION_DATE "(Jan.22,2018)"
+#define VERSION_NB   "3.1.1beta"
+#define VERSION_DATE "(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
 
-#if defined _WIN32
-#define DETECT_TARGET "x86"
-#endif
-
 #if defined _WIN64
-#define DETECT_TARGET "x64"
+	#define DETECT_TARGET "x64"
+#elif defined  _WIN32
+	#define DETECT_TARGET "x86"
 #endif
 
 #define FULL_PROGNAME PROGNAME " v" VERSION_NB "_" DETECT_TARGET "(" __DATE__ ")"

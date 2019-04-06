@@ -77,9 +77,7 @@ void fprint_jd_wj(std::ofstream *stream, const double jd)
  **************************************************************************************************/
 void dtcWriteWholeLog(std::string location, const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print)
 {
-	FILE *dtclogfile;
 	std::string dtclogfilename(dtcexename);
-	const char *pext;
 
 	location.append("DeTeCt.log");
 
@@ -345,7 +343,7 @@ void dtcWriteLog(std::string location, LogInfo video_info) {
 }
 
 /**********************************************************************************************//**
- * @fn	std::stringstream getDateTime()
+ * @fn	std::stringstream getRunTime()
  *
  * @brief	Gets the date and time for the interface messages.
  *
@@ -368,11 +366,11 @@ std::stringstream getRunTime() {
 *
 * @brief	Gets the date and time for the interface messages.
 *
-* @author	Jon
+* @author	Jon/Marc
 * @date	2017-05-12
 *
-* @return	The date and time in ISO format.
-																								**************************************************************************************************/
+* @return	The date and time for logging
+**************************************************************************************************/
 std::stringstream getDateTime() {
 	auto now = std::chrono::system_clock::now();
 	auto now_time_t = std::chrono::system_clock::to_time_t(now);

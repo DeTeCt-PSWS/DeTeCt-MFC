@@ -1274,7 +1274,7 @@ cv::Mat dtcGetGrayMat(cv::Mat frame, DtcCapture *capture)
 		gray.release();
 		gray = NULL;
 		exit(EXIT_FAILURE);
-		return cv::Mat();
+//		return cv::Mat();
 	}
 	frame_to_gray.release();
 	frame_to_gray = NULL;
@@ -1327,7 +1327,7 @@ cv::Mat dtcGetGrayMat(cv::Mat *frame, DtcCapture *capture)
 		gray.release();
 		gray = NULL;
 		exit(EXIT_FAILURE);
-		return cv::Mat();
+//		return cv::Mat();
 	}
 	frame_to_gray.release();
 	frame_to_gray = NULL;
@@ -1372,7 +1372,6 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore, int ign) {
 	int error = 0;
 	cv::Rect win, roi = cv::Rect(0, 0, 0, 0);
 	cv::Mat gray;
-	cv::Mat* grayPtr;
 	cv::Mat frame;
 
 	unsigned long nframe;
@@ -1418,7 +1417,6 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore, int ign) {
  **************************************************************************************************/
 
 cv::Rect dtcGetFrameROIcCM(cv::Mat frame, cv::Point cm, const int ignore, int ign) {
-	int error = 0;
 	cv::Rect win, roi = cv::Rect(0, 0, 0, 0);
 	if (!frame.data) return roi;
 	win = dtcGetGrayImageROIcCM(frame, cm, opts.medSize, opts.facSize, opts.secSize);

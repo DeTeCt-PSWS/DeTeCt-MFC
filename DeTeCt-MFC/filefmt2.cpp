@@ -219,7 +219,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
 			exit(EXIT_FAILURE);
 		}
-		if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%d, ImageBytes=%d\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
+		if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
 		if (fc->FrameCount>1) {
 			/* Reads information from last file */
 			fileGet_filename(filename_tmp, fc, fc->LastFileIdx);
@@ -330,11 +330,11 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 				}
 				free(header);
 				if (!ignore) {
-					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %d)\n", fc->frame, fc->header_size);
+					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %zd)\n", fc->frame, fc->header_size);
 					exit(EXIT_FAILURE);
 				}
 				else {
-					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %d)\n", fc->frame, fc->header_size);
+					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %zd)\n", fc->frame, fc->header_size);
 					(*perror) = 1;
 					return fc->image;
 				}
@@ -352,7 +352,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 					}
 					else {
 						fc->ValidFrameCount--;
-						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%d missing till frame #%d)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 						(*perror) = 1;
 						return fc->image;
 					}
@@ -371,7 +371,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 			}
 			else {
 				fc->ValidFrameCount--;
-				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%d missing till frame #%d)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 				(*perror) = 1;
 				fc->image = old_image;
 				return fc->image;
@@ -446,11 +446,11 @@ cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
 				}
 				free(header);
 				if (!ignore) {
-					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %d)\n", fc->frame, fc->header_size);
+					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %zd)\n", fc->frame, fc->header_size);
 					exit(EXIT_FAILURE);
 				}
 				else {
-					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %d)\n", fc->frame, fc->header_size);
+					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %zd)\n", fc->frame, fc->header_size);
 					(*perror) = 1;
 					return fc->image;
 				}
@@ -468,7 +468,7 @@ cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
 					}
 					else {
 						fc->ValidFrameCount--;
-						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%d missing till frame #%d)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 						(*perror) = 1;
 						return fc->image;
 					}
@@ -487,7 +487,7 @@ cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
 			}
 			else {
 				fc->ValidFrameCount--;
-				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%d missing till frame #%d)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 				(*perror) = 1;
 				fc->image = old_image;
 				return fc->image;

@@ -131,7 +131,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 		sc->ImageBytes = sc->header.ImageWidth * sc->header.ImageHeight * sc->BytesPerPixel;
 
 		if (opts.debug) {
-			fprintf(stderr, "serCaptureFromFile: BytesPerPixel = %d ; depth = %d\n", sc->BytesPerPixel, depth);
+			fprintf(stderr, "serCaptureFromFile: BytesPerPixel = %zd ; depth = %d\n", sc->BytesPerPixel, depth);
 		}
 
 		/*	sc->image = cvCreateImageHeader(cvSize(sc->header.ImageWidth, sc->header.ImageHeight),
@@ -142,7 +142,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 		assert(sc->image->imageData != NULL);
 		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created image data %d\n",sc->image->imageData); }*/
 		if (opts.debug) {
-			fprintf(stderr, "serCaptureFromFile: Width, Height, depth, nchannels %d,%d,%d,%d\n",
+			fprintf(stderr, "serCaptureFromFile: Width, Height, depth, nchannels %zd,%zd,%d,%d\n",
 				sc->header.ImageWidth, sc->header.ImageHeight, depth, sc->nChannels);
 		}
 		sc->image = cvCreateImage(cvSize(sc->header.ImageWidth, sc->header.ImageHeight), depth, sc->nChannels);
@@ -276,16 +276,16 @@ IplImage *serQueryFrame(SerCapture *sc, const int ignore, int *perror)
 		return NULL;
 	}
 	sc->frame++;
-				if (opts.debug) { fprintf(stderr, "serQueryFrame: Reading frame #%d\n", sc->frame); }
+				if (opts.debug) { fprintf(stderr, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
 	if (!(bytesR = serImageRead(sc->image->imageData, sizeof (char), sc->ImageBytes, sc->fh)))
 	{
 		sc->ValidFrameCount=sc->frame-1;
 		if (!ignore) {
-			fprintf(stderr, "ERROR in serQueryFrame reading frame #%d\n", sc->frame);
+			fprintf(stderr, "ERROR in serQueryFrame reading frame #%zd\n", sc->frame);
 			exit(EXIT_FAILURE);
 		} else {
 			(*perror)=1;
-			fprintf(stderr, "WARNING in serQueryFrame: ignoring error reading frame #%d and above (%d missing till frame #%d)\n", sc->frame, sc->header.FrameCount-sc->ValidFrameCount, sc->header.FrameCount);
+			fprintf(stderr, "WARNING in serQueryFrame: ignoring error reading frame #%zd and above (%zd missing till frame #%zd)\n", sc->frame, sc->header.FrameCount-sc->ValidFrameCount, sc->header.FrameCount);
 		}
 	}
 	return sc->image;
@@ -323,7 +323,7 @@ void serReleaseCapture(SerCapture *sc)
 	}
 /*											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
 free(sc->image->imageData);*/
-											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %d size image %d\n", (int) (sc->image), sizeof(*sc->image)); }
+											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %d size image %zd\n", (int) (sc->image), sizeof(*sc->image)); }
 	cvReleaseImage(&sc->image);
 	sc->image=NULL;
 /*											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image header %d\n", (int) (sc->image)); }
@@ -514,8 +514,6 @@ size_t serFrameRead(SerCapture* sc) {
 	uint8_t* read_ptr8, *read_ptr8_mono;
 	uint16_t* read_ptr, *read_ptr_mono;
 
-	char buffer[1000];
-
 	if (read_values == sc->ImageBytes) {
 
 		if (sc->current_frame == 0 && sc->header.PixelDepth > 8) {
@@ -692,16 +690,16 @@ void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
 		return NULL;
 	}
 	sc->frame++;
-	if (opts.debug) { fprintf(stderr, "serQueryFrame: Reading frame #%d\n", sc->frame); }
+	if (opts.debug) { fprintf(stderr, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
 	if (!(bytesR = serFrameRead(sc)))
 	{
 		sc->ValidFrameCount = sc->frame - 1;
 		if (!ignore) {
-			fprintf(stderr, "ERROR in serQueryFrame reading frame #%d\n", sc->frame);
+			fprintf(stderr, "ERROR in serQueryFrame reading frame #%zd\n", sc->frame);
 			exit(EXIT_FAILURE);
 		} else {
 			(*perror) = 1;
-			fprintf(stderr, "WARNING in serQueryFrame: ignoring error reading frame #%d and above (%d missing till frame #%d)\n", sc->frame, sc->header.FrameCount - sc->ValidFrameCount, sc->header.FrameCount);
+			fprintf(stderr, "WARNING in serQueryFrame: ignoring error reading frame #%zd and above (%zd missing till frame #%zd)\n", sc->frame, sc->header.FrameCount - sc->ValidFrameCount, sc->header.FrameCount);
 		}
 	}
 	sc->current_frame++;

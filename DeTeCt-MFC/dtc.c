@@ -152,7 +152,6 @@ int main(int argc, char** argv)
 		IplImage *pOVdImg = NULL;
 		IplImage *pADUdtcImg = NULL;
 		IplImage *pADUavgImg = NULL;
-		IplImage *pADUdarkImg = NULL;
 
 		CvMat *pGryMat = NULL;
 		CvMat *pRefMat = NULL;

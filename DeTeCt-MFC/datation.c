@@ -517,7 +517,7 @@ void dtcCorrectDatation(DtcCapture *capture, double *pstart_time, double *pend_t
 				if (capture->u.sercapture->ValidFrameCount<capture->u.sercapture->FrameCount) {
 					(*pduration)=(*pduration)*capture->u.sercapture->ValidFrameCount/capture->u.sercapture->FrameCount;
 					(*pend_time)=(*pstart_time)+(*pduration)/ONE_DAY_SEC;
-					sprintf(comment2,", %d frame",capture->u.sercapture->FrameCount-capture->u.sercapture->ValidFrameCount);
+					sprintf(comment2,", %zd frame",capture->u.sercapture->FrameCount-capture->u.sercapture->ValidFrameCount);
 					strcat(comment,comment2);
 					if ((capture->u.sercapture->FrameCount-capture->u.sercapture->ValidFrameCount)>1) {
 						strcat(comment,"s");
@@ -851,7 +851,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 		strcpy(logfilename_dir, ".\\");
 		strcpy(logfilename_short, logfilename_rac);
 	}
-										if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Len filename %s=%d\n", filename ,strlen(filename));}
+										if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Len filename %s=%zd\n", filename ,strlen(filename));}
 /* Firecapture log */	
 	strcpy(logfilename, logfilename_rac);
 	strncat(logfilename, ".txt", strlen(".txt"));

@@ -231,8 +231,6 @@ int impact_detect(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 	int x0, y0;
 	int minFrame, maxFrame;
 	int ivalFrame, lastivalFrame;
-	long hini, mini, sini;
-	long hfin, mfin, sfin;
 	double maxMeanValue;
 	double d;
 	ITEM **ord, **tmp;
@@ -275,7 +273,6 @@ int impact_detect(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 	//y0 = dtcMax->point->y;
 	dtc->MaxFrame = ord[0]->point->frame;
 
-	ITEM* item;
 	/*for (n = 0, d = 0.0; n < list->size && d <= radius; n++) {
 		d = sqrt(pow(ord[n]->point->x - x0, 2) + pow(ord[n]->point->y - y0, 2));
 	}*/
@@ -332,7 +329,6 @@ int impact_detect(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 		//DBOUT("Size : " << pot_impact.size() << "\n");
 		int zero_frames = 0;
 		if (pot_impact.size() > 0) {
-			ITEM* prev = pot_impact.front();
 			int i;
 			ITEM* it;
 			for (i = 1, it = pot_impact[i]; i < pot_impact.size(); i++) {
@@ -509,15 +505,12 @@ int impact_detect(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, int fps, double radius,
 	double incrLum, int incrFrame)
 {
-	int c, n, minC, maxC;
+	int c;
 	int x0, y0;
-	int minFrame, maxFrame;
-	int ivalFrame, lastivalFrame;
-	long hini, mini, sini;
-	long hfin, mfin, sfin;
+	int lastivalFrame;
 	double maxMeanValue;
 	double d;
-	long frame_distance;
+/*	long frame_distance; */
 	ITEM **ord, **tmp;
 	ITEM *tmpSrc;
 	int nb_impact;
@@ -579,9 +572,11 @@ int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 	int impact_frame_num = incrFrame;
 	std::deque<ITEM*> potential_impact;
 	ITEM* impactBrightest = nullptr;
-	ITEM* max = ord[0];
 	ITEM* brightest = nullptr;
-	double maxMean = 0.0, minStdDev = DBL_MAX, stdDev = 0.0;
+	double maxMean = 0.0;
+	
+	/*double minStdDev = DBL_MAX;
+	double stdDev = 0.0; */
 	qsort(ord, list->size, sizeof(ITEM *), framecmp);
 	for (int i = 0; i < list->size; i++) {
 		if (i >= impact_frame_num) {
@@ -679,24 +674,26 @@ int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
  * @return	An int.
  **************************************************************************************************/
 
+
 int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector<ITEM*> candidateFrames, int fps, double radius,
 	double timeImpact)
 {
-	ITEM *current, *previous, *first;
-	LIST *impactList; // for multiple impacts
+	ITEM *current, *first;
 	std::vector<ITEM*> impactVec, candidateOriginal;
 	double d;
 
-	int c, brightness_delta, frame_difference;
-	ITEM **ord, **tmp;
-	ITEM *tmpSrc;
+	int brightness_delta, frame_difference;
+
 
 	if (candidates->size <= 1)
 		return 0;
 
 	int frame_delta = std::ceil(fps * timeImpact) + 10;
 
-	/*if (!(ord = (ITEM **)calloc(candidates->size, sizeof(ITEM *))))	{
+	/*ITEM *tmpSrc;
+	ITEM **tmp;
+	ITEM **ord;
+	if (!(ord = (ITEM **)calloc(candidates->size, sizeof(ITEM *))))	{
 		fprintf(stderr, "ERROR in detect_impact: get_max_list: cannot reserve memory\n");
 		OutputDebugString(L"ERROR in detect_impact: get_max_list: cannot reserve memory\n");
 		exit(EXIT_FAILURE);
@@ -769,7 +766,6 @@ int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector
 int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folder_path) {
 	clock_t begin, end;
 	cv::setUseOptimized(true);
-	TCHAR buffer[1000];
 	std::string logcation(scan_folder_path);
 	std::string logcation2(scan_folder_path);
 	std::string start_time = getRunTime().str().c_str();
@@ -806,10 +802,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	output_log_file = output_log_file.append(L"\\Impact_detection_run@").append(wstart_time).append(L"\\output.log");
 	std::wofstream output_log(output_log_file.c_str(), std::ios_base::app);
 
-	int number_of_files = file_list.size();
-	int file_number = 1;
-	float progress;
-
 	std::vector<LogInfo> logs;
 	std::vector<LPCTSTR> logMessages;
 	std::vector<std::string> log_messages;
@@ -820,7 +812,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 
 	for (std::string filename : file_list) {
 
-		double previous_percentage = 0.0;
 		opts.filename = strdup(filename.c_str());
 		std::string outputFolder = filename.substr(0, filename.find_last_of("\\") + 1);
 		outputFolder = outputFolder.replace(0, scan_folder_path.length() + 1, "");
@@ -907,9 +898,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 		cv::Mat pADUavgImg;
 		cv::Mat pADUdarkImg;
 
-		int orig_width;
-		int orig_height;
-
 		int y_shift = 10;
 		int x_shift = 10;
 
@@ -917,7 +905,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 		std::vector<double> maxList;
 
 		int N = 0;
-		double totalMean;
+		double totalMean =0;
 
 		cv::Point brightestPointOfImpact;
 
@@ -933,9 +921,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 
 		double minLum = 0;
 		double maxLum = 0;
-		double maxLum2;
-		double minLummax;
-		double maxLummax;
 
 		int nframe = 0;
 		int framecount = 0;
@@ -954,8 +939,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 		init_string(ofilenamediffmean);
 		init_string(ofilenamenorm);
 
-		time_t start_process_time = 0;
-		time_t end_process_time = 0;
 		char comment[MAX_STRING];
 		double duration;
 
@@ -990,13 +973,14 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 		double firstFrameMean;
 		double currentFrameMean;
 
+		int tempCols = 0;
+		int tempRows = 0;
+
 		try {
 			/*********************************INITIALIZATION******************************************/
 
 			double video_duration = 0.0;
 			begin = clock();
-
-			ProgressDialog* progressDialog;
 
 			std::vector<long> frames;
 
@@ -1026,12 +1010,12 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			CDeTeCtMFCDlg::getProgress()->SetRange(0, nframe);
 			CDeTeCtMFCDlg::getProgress()->SetPos(0);
 			if ((nframe > 0) && (nframe < opts.minframes)) {
-				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"ERROR: only " +
+				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"INFO: only " +
 					(CString)std::to_string(nframe).c_str() + L" frames (minimum is " +
 					(CString)std::to_string(opts.minframes).c_str() + L"), stopping processing");
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 				CDeTeCtMFCDlg::getLog()->RedrawWindow();
-				output_log << getDateTime().str().c_str() << "ERROR: only " << nframe << " frames (minimum is " << opts.minframes
+				output_log << getDateTime().str().c_str() << "INFO: only " << nframe << " frames (minimum is " << opts.minframes
 					<< "), stopping processing" << "\n";
 				output_log.flush();
 				message = "-------------- " + short_filename + " end --------------";
@@ -1042,7 +1026,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				CDeTeCtMFCDlg::getLog()->RedrawWindow();
 				dtcReleaseCapture(pCapture);
 				pCapture = NULL;
-				logmessage = "ERROR: only " + std::to_string(nframe) + " frames (minimum is " + std::to_string(opts.minframes) + 
+				logmessage = "INFO: only " + std::to_string(nframe) + " frames (minimum is " + std::to_string(opts.minframes) + 
 					"), stopping processing\n";
 				log_messages.push_back(short_filename + ":");
 				log_messages.push_back("    " + logmessage);
@@ -1268,8 +1252,8 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 
 							//DBOUT("tempROIMat size: " << tempROIMat.cols << "x" << tempROIMat.rows << "\n");
 
-							int tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
-							int tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
+							tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
+							tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
 								
 							tempROIMat.copyTo(pROIMat(cv::Rect(tempCols, tempRows,
 								tempROIMat.cols, tempROIMat.rows)));
@@ -1291,25 +1275,27 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 							//if ((roi.x + roi.width > pFirstFrameROI.cols) )
 							//tempGryMat = cv::Mat::zeros(roi.size(), pGryMat.type());
 							tempGryMat.setTo(cv::Scalar::all(0));
-							
 							if (pROI.width + pROI.x > pGryMat.cols) pROI.width = pGryMat.cols - pROI.x;
 							if (pROI.height + pROI.y > pGryMat.rows) pROI.height = pGryMat.rows - pROI.y;
 							pGryMat = dtcReduceMatToROI(pGryMat, pROI);
-
 							tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
 							tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
-							pGryMat.copyTo(tempGryMat(cv::Rect(tempCols, tempRows,
-								pGryMat.cols, pGryMat.rows)));
-		
-							//DBOUT("tempGryMat size: " << tempGryMat.cols << "x" << tempGryMat.rows << "\n");
+//DBOUT("Frame          : " << nframe << "\n");
+//DBOUT("x y            : " << tempCols << " " << tempRows << "\n");
+//DBOUT("tempGryMat size: " << tempGryMat.cols << "x" << tempGryMat.rows << "\n");
+//DBOUT("pGryMat size   : " << pGryMat.cols << "x" << pGryMat.rows << "\n");
+//DBOUT("----------------\n");
 
-							//DBOUT("pGryMat size: " << pGryMat.cols << "x" << pGryMat.rows << "\n");
+/*** Following added to avoid writing outside of matrix size - algorithm correctness to be checked ? ***/
+							tempCols = MIN(tempCols, tempGryMat.cols - pGryMat.cols);
+							tempRows = MIN(tempRows, tempGryMat.rows - pGryMat.rows);
 
+							pGryMat.copyTo(tempGryMat(cv::Rect(tempCols, tempRows, pGryMat.cols, pGryMat.rows)));
+							
 							tempGryMat.copyTo(pGryMat);
 
-							//DBOUT("pGryMat final size: " << pGryMat.cols << "x" << pGryMat.rows << "\n");
-							//DBOUT("pFirstFrameROIMat size: " << pFirstFrameROIMat.cols << "x" << pFirstFrameROIMat.rows << "\n");
-
+//DBOUT("pGryMat final size: " << pGryMat.cols << "x" << pGryMat.rows << "\n");
+//DBOUT("pFirstFrameROIMat size: " << pFirstFrameROIMat.cols << "x" << pFirstFrameROIMat.rows << "\n");
 						
 							double similarity = dtcGetSimilarity(pFirstFrameROIMat, pGryMat)[0];			
 
@@ -1329,7 +1315,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 							
 							double maxDifVal = 0;
 
-							cv:minMaxLoc(pDifMat, NULL, &maxDifVal, NULL, NULL);
+							cv::minMaxLoc(pDifMat, NULL, &maxDifVal, NULL, NULL);
 							//DBOUT("Max of Dif mat: " << maxDifVal << "\n");
 
 							//cv::imshow("Median blurred dif mask", ifDif);
@@ -1417,7 +1403,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 								N++;
 								xList.push_back(x);
 							}
-							double sum = cv::sum(pDifMat)[0];
 	
 							/*ADUdtc algorithm******************************************/
 							cv::add(pADUavgMat, pGryMat, pADUavgMat);
@@ -1595,7 +1580,6 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			ITEM* maxDtcImp = create_item(create_point(0, 0, 0, 0)); // Algorithm
 			
 			bMat = cv::Mat(cv::Size(1, nframe), CV_8UC1, maxPtB.data());
-			double meanMaxB = cv::mean(bMat)[0];
 			//cv::medianBlur(bMat, bMat, 3);
 			//maxPtB = bMat.data;
 
@@ -1719,7 +1703,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				cv::medianBlur(pADUdtcMat, pSmoADUdtcMat, 3);
 				cv::minMaxLoc(pSmoADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
 				pSmoADUdtcMat.release();
-				ITEM* maxDtcImg = create_item(create_point(0, 0, maxPoint.x, maxPoint.y));
+				(ITEM*) (maxDtcImg) = create_item(create_point(0, 0, maxPoint.x, maxPoint.y));
 				cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
 				/*Max-mean normalized image*/
 				pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
@@ -1740,6 +1724,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				cv::imwrite(max_mean_folder_path_filename, pADUdtcImg, img_save_params);
 
 				pADUdtcMat.convertTo(impactFrame, CV_8U);
+				//double maxLum2;
 				//cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum2, &minPoint, &maxPoint);
 				/*Max-mean non normalized image*/
 				if (opts.detail) {

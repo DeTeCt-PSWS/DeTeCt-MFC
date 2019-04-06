@@ -66,6 +66,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 		AllocConsole();
 		freopen("CONOUT$", "w", stdout);
 		std::cout << "Autostakkert mode" << std::endl;
+
 		CString filePath = commandParametres.GetAt(2);
 		std::wstring wfile(filePath);
 		std::string file(wfile.begin(), wfile.end());
@@ -73,7 +74,8 @@ BOOL CDeTeCtMFCApp::InitInstance()
 		while (file.find('\n') != std::string::npos) {
 			file.erase(file.find('\n'), 2);
 		}
-		std::cout << file << std::endl;
+		std::cout << "file to be processed : " << file << std::endl;
+Sleep(5000); 
 		clock_t start = clock();
 		detect_autostakkert(file);
 		clock_t end = clock();

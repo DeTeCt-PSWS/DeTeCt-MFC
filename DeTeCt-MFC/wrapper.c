@@ -62,8 +62,9 @@ DtcCapture *dtcCaptureFromFile(const char *fname, int *pframecount)
 		}
 		else {
 			capt->type = CAPTURE_CV;
-			if (!(capt->u.capture = cvCaptureFromFile(fname, CV_CAP_OPENNI_GRAY_IMAGE))) {
-				free(capt);
+//			if (!(capt->u.capture = cvCaptureFromFile(fname, CV_CAP_OPENNI_GRAY_IMAGE))) {
+			if (!(capt->u.capture = cvCaptureFromFile(fname))) {
+			free(capt);
 				capt = NULL;
 				fprintf(stderr, "ERROR in dtcCaptureFromFile opening file %s\n", fname);
 				exit(EXIT_FAILURE);

@@ -22,11 +22,11 @@ char *mid(const char *src, size_t start, size_t length, char *dst)
 /*    size_t len = min( dstlen - 1, length);*/
  
 	if (start>=MAX_STRING) {
-		fprintf(stderr,"ERROR in mid: incorrect start %d\n",start);
+		fprintf(stderr,"ERROR in mid: incorrect start %zd\n",start);
 		exit(EXIT_FAILURE);
 	}
 	if ((start+length>=MAX_STRING)) {
-		fprintf(stderr,"ERROR in mid: incorrect length %d\n",start+length);
+		fprintf(stderr,"ERROR in mid: incorrect length %zd\n",start+length);
 		exit(EXIT_FAILURE);
 	}
     strncpy(dst, src + start, length);
@@ -40,7 +40,7 @@ char *mid(const char *src, size_t start, size_t length, char *dst)
 char *left(const char *src, size_t length, char *dst)
 {
 	if (length>=MAX_STRING) {
-		fprintf(stderr,"ERROR in left: incorrect length %d\n",length);
+		fprintf(stderr,"ERROR in left: incorrect length %zd\n",length);
 		exit(EXIT_FAILURE);
 	}
 	if (length<strlen(src)) {
@@ -55,7 +55,7 @@ char *left(const char *src, size_t length, char *dst)
 char *right(const char *src, size_t length, char *dst)
 {
 	if (length>=MAX_STRING) {
-		fprintf(stderr,"ERROR in right: incorrect length %d\n",length);
+		fprintf(stderr,"ERROR in right: incorrect length %zd\n",length);
 		exit(EXIT_FAILURE);
 	}
 	if (length<strlen(src)) {
@@ -130,7 +130,7 @@ char *lcase(char *src, char *dst)
 	len = strlen(src);
 
 	if (len>=MAX_STRING) {
-		fprintf(stderr,"ERROR in lcase: incorrect length %d\n",strlen(src));
+		fprintf(stderr,"ERROR in lcase: incorrect length %zd\n",strlen(src));
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < len; i++) {
@@ -145,7 +145,7 @@ char *ucase(char *src, char *dst)
 	len = strlen(src);
 	
 	if (len>=MAX_STRING) {
-		fprintf(stderr,"ERROR in ucase: incorrect length %d\n",strlen(src));
+		fprintf(stderr,"ERROR in ucase: incorrect length %zd\n",strlen(src));
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < len; i++) {
