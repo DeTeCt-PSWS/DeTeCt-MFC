@@ -2,7 +2,7 @@
 #ifndef __IMG2_H__
 #define __IMG2_H__
 
-
+#include <opencv/cv.h>
 #include <opencv2\imgproc\imgproc.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
@@ -12,20 +12,19 @@ extern "C" {
 	#include "wrapper.h"
 }
 
-#include "img.h"
 #include "wrapper2.h"
 
 #define KR	0.299
 #define KG	0.587
 #define KB	0.114
 
-	/*struct _DtcImageVals {
+	struct _DtcImageVals {
 		double lum;
 		double minlum;
 		double maxlum;
 	};
 
-	typedef struct _DtcImageVals DtcImageVals;*/
+	typedef struct _DtcImageVals DtcImageVals;
 
 	/**********************************************************************************************//**
 	 * @struct	_Image

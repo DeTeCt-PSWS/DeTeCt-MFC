@@ -18,17 +18,17 @@
 #include "dtcgui.hpp"
 #include "afxwin.h"
 
-
 #include <strsafe.h>
 
 /** @brief	Options for the algorithm */
 OPTS opts;
+extern CDeTeCtMFCDlg dlg;
 
 void StreamDeTeCtOSversions(std::wstringstream *ss)
 {
 	std::string os_version = "";
 
-	(*ss) << FULL_PROGNAME;
+	(*ss) << full_version.c_str();
 	(*ss) << " running on ";
 	GetOSversion(&os_version);
 	(*ss) << os_version.c_str() << " OS";
@@ -100,14 +100,18 @@ void GetOSversion(std::string *pos_version)
  * @param [in,out]	file_list	If non-null, list of files.
  **************************************************************************************************/
 
-void read_files(std::string folder, std::vector<std::string> *file_list) {
+void read_files(std::string folder, std::vector<std::string> *file_list, std::vector<std::string> *acquisition_file_list) {
 	DIR *directory;
 	struct dirent *entry;
+	std::string file;
+	std::string acquisition_file;
+
 	//        std::vector<std::string> non_supported_ext = { "bat", "exe", "log", "txt", "Jpg", "jpg", "Png", "png", "Tif", "tif",
 	// "Bmp", "bmp", "Fit", "fit"};
 	std::vector<std::string> supported_videoext = { "m4v", "avi", "ser", "wmv" };
 	std::vector<std::string> supported_fileext = { "bmp", "jpg", "jpeg", "jp2", "dib", "png", "p?m", "sr", "ras", "tif",
 		"tiff", "fit", "fits" };
+	std::vector<std::string> supported_otherext = { "as3" };
 	// Syntax files:
 	// F0.* *0000_*.* *_000000.*  *_000001.* *_00000.* *_00001.* *_0000.* *_0001.* *_0.tif nb1.*
 	// supported 0/1 number inside filename
@@ -116,6 +120,7 @@ void read_files(std::string folder, std::vector<std::string> *file_list) {
 	// supported 0/1 number syntax for full filename
 	std::vector<std::string> supported_fullfilename_number = { "0000.", "0001.", "00000.", "00001.", "000000.", 
 		"000001.", "F0.", "nb1." };
+
 	// ignored dtc own files
 	std::vector<std::string> not_supported_suffix = { DTC_MAX_MEAN1_SUFFIX, DTC_MAX_MEAN2_SUFFIX, DTC_MEAN_SUFFIX, 
 		DTC_DIFF_MEAN_SUFFIX, VIDEOTEST_SUFFIX, DTC_MAX_SUFFIX, MEAN_SUFFIX, DTC_SUFFIX };
@@ -128,7 +133,7 @@ void read_files(std::string folder, std::vector<std::string> *file_list) {
 	do {
 		if (entry->d_type == DT_DIR) {
 			if (!strcmp(entry->d_name, ".") == 0 && !strcmp(entry->d_name, "..") == 0)
-				read_files(folder + "\\" + entry->d_name, file_list);
+				read_files(folder + "\\" + entry->d_name, file_list, acquisition_file_list);
 		}
 		else {
 			std::string file(entry->d_name);
@@ -136,8 +141,8 @@ void read_files(std::string folder, std::vector<std::string> *file_list) {
 			std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
 			if (std::find(supported_videoext.begin(), supported_videoext.end(), extension) != supported_videoext.end()) {
 				file_list->push_back(folder + "\\" + entry->d_name);
-			}
-			else if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) {
+				acquisition_file_list->push_back(folder + "\\" + entry->d_name);
+			} else if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) {
 				int found = false;
 				for (std::string filename_number : supported_filename_number) {
 					if (file.find(filename_number) != std::string::npos) {
@@ -152,11 +157,47 @@ void read_files(std::string folder, std::vector<std::string> *file_list) {
 						if (file.find(filename_number) == 0) found = true;
 					}
 				}
-				if (found) file_list->push_back(folder + "\\" + entry->d_name);
+				if (found) {
+					file_list->push_back(folder + "\\" + entry->d_name);
+					acquisition_file_list->push_back(folder + "\\" + entry->d_name);
+				}
+			}
+			else if (std::find(supported_otherext.begin(), supported_otherext.end(), extension) != supported_otherext.end()) {
+				file_list->push_back(folder + "\\" + entry->d_name);
+				if (extension.compare(autostakkert_extension) == 0) {
+					std::vector<cv::Point> cm_list;
+
+					read_autostakkert_file(folder + "\\" + file, &acquisition_file, &cm_list);
+					acquisition_file_list->push_back(acquisition_file);
+				}
+				else {
+					acquisition_file_list->push_back(folder + "\\" + entry->d_name);
+				}
 			}
 		}
 	} while (entry = readdir(directory));
 	closedir(directory);
+//Remove duplicates from as3 (keeping as3)
+	file_list->begin();
+	acquisition_file_list->begin();
+	for (int i = 0; i < file_list->size(); i++) {
+		file = file_list->at(i);
+		std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
+		if (extension.compare(autostakkert_extension) == 0) {
+			int j = 0;
+			if (j == i) j++;
+			while ((j < acquisition_file_list->size()) && (acquisition_file_list->at(j) != acquisition_file_list->at(i))) {
+				j++;
+				if (j == i) j++;
+			}
+			if (j < acquisition_file_list->size()) {
+				file_list->erase(file_list->begin() + j);
+				acquisition_file_list->erase(acquisition_file_list->begin() + j);
+				i--;
+DBOUT("Erasing " << acquisition_file_list->at(j).c_str());
+			}
+		}
+	}
 }
 
 /**********************************************************************************************//**
@@ -223,284 +264,6 @@ int framecmp(const void *a, const void *b)
  *
  * @return	An int.
  **************************************************************************************************/
-
-int impact_detect(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, int fps, double radius,
-	double incrLum, int incrFrame)
-{
-	int c, n, minC, maxC;
-	int x0, y0;
-	int minFrame, maxFrame;
-	int ivalFrame, lastivalFrame;
-	double maxMeanValue;
-	double d;
-	ITEM **ord, **tmp;
-	ITEM *tmpSrc;
-	int nb_impact;
-	TCHAR buffer[1000];
-	nb_impact = 0;
-	std::vector<ITEM*> items;
-
-	struct FrameOrder frameOrder;
-	struct BrightnessOrder brightnessOrder;
-
-	if (list->size <= 0) return 0;
-	if (!(ord = (ITEM **)calloc(list->size, sizeof(ITEM *)))) {
-		OutputDebugString(L"ERROR in detect_impact: get_max_list: cannot reserve memory\n");
-		exit(EXIT_FAILURE);
-	}
-
-	for (tmpSrc = list->head, tmp = ord, c = 0; tmpSrc && c < list->size; tmpSrc = tmpSrc->next, tmp++, c++)
-		*tmp = tmpSrc;
-
-	qsort(ord, list->size, sizeof(ITEM *), itemcmp);
-	maxMeanValue = get_item_list_mean_value(list);
-
-	StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Mean of maximum value:"), maxMeanValue);
-	StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Max value:"), ord[0]);
-
-	OutputDebugString(buffer);
-	if (ord[0]->point->val <= meanValue*(1 + incrLum)) {
-		OutputDebugString(L"Not an impact candidate\n");
-		return nb_impact;
-	}
-	else {
-		OutputDebugString(L"Impact candidate\n");
-	}
-
-	x0 = ord[0]->point->x;
-	y0 = ord[0]->point->y;
-	//x0 = dtcMax->point->x;
-	//y0 = dtcMax->point->y;
-	dtc->MaxFrame = ord[0]->point->frame;
-
-	/*for (n = 0, d = 0.0; n < list->size && d <= radius; n++) {
-		d = sqrt(pow(ord[n]->point->x - x0, 2) + pow(ord[n]->point->y - y0, 2));
-	}*/
-	/*for (n = 0, d = 0.0; n < list->size; n++) {
-		d = sqrt(pow(ord[n]->point->x - x0, 2) + pow(ord[n]->point->y - y0, 2));
-		if (d <= radius) {
-			items.push_back(ord[n]);
-		}
-	}*/
-
-	std::vector<std::vector<ITEM*>> potential_impacts;
-	std::vector<ITEM*> potential_impact;
-	potential_impacts.push_back(potential_impact);
-
-	for (ITEM* it = list->head; it; it = it->next) {
-		int val = it->point->val;
-		//potential_impact = potential_impacts.back();
-		//if (val > meanValue * (1 + incrLum)) {
-		if (val > meanValue) {
-			potential_impact.push_back(it);
-			potential_impacts.back() = potential_impact;
-		}
-		else {
-			if (potential_impact.size() != 0) {
-				potential_impact = std::vector<ITEM*>();
-				potential_impacts.push_back(potential_impact);
-			}
-		}
-
-		/*if (it->point->val > meanValue*(1 + incrLum)) {
-			if (potential_impact.size() == 0)
-				potential_impact.push_back(it);
-			else {
-				ITEM* prev = potential_impact[potential_impact.size() - 1];
-				d = sqrt(pow(it->point->x - prev->point->x, 2) + pow(it->point->y - prev->point->y, 2));
-				if (d <= radius)
-					potential_impact.push_back(it);
-			}
-		} else {
-			//Calcular máximo
-			potential_impact.clear();
-			continue;
-		}*/
-	}
-
-	if (potential_impacts.size() == 0 || potential_impacts[0].size() == 0) return nb_impact;
-
-	std::vector<int> maximumValues;
-	std::vector<double> meanValues;
-
-	ITEM* max = ord[0];
-
-	for (std::vector<ITEM*> pot_impact : potential_impacts) {
-		//DBOUT("Size : " << pot_impact.size() << "\n");
-		int zero_frames = 0;
-		if (pot_impact.size() > 0) {
-			int i;
-			ITEM* it;
-			for (i = 1, it = pot_impact[i]; i < pot_impact.size(); i++) {
-				d = sqrt(pow(it->point->x - max->point->x, 2) + pow(it->point->y - max->point->y, 2));
-				if (d > radius) {
-					it->point->val = 0;
-					zero_frames++;
-				}
-				//else
-				//   prev = it;
-			}
-			/*pot_impact.erase(std::remove_if(pot_impact.begin(), pot_impact.end(), [&](const ITEM* it) {
-				return it->point->val == 0;
-			}), pot_impact.end());*/
-			int maximumValue = (int)*std::max_element(pot_impact.begin(), pot_impact.end(), brightnessOrder);
-			//int maximumValue = pot_impact.front()->point->val;
-
-			maximumValues.push_back(maximumValue);
-			double acc;
-			std::for_each(pot_impact.begin(), pot_impact.end(), [&](const ITEM* a) {
-				acc += a->point->val;
-			});
-			//acc /= pot_impact.size();
-			acc /= (pot_impact.size() - zero_frames);
-			meanValues.push_back(acc);
-		}
-	}
-
-	n = 0;
-	int maximum = 0;
-	for (int i = 0; (i < maximumValues.size()) && (i < potential_impacts.size()); i++) {
-		//if (maximumValues[i] > ((1+incrLum) * meanValue) && potential_impacts[i].size() > n) {
-		if (meanValues[i] > ((1 + incrLum) * meanValue) && potential_impacts[i].size() > n) {
-			n = potential_impacts[i].size();
-			maximum = i;
-		}
-	}
-
-	DBOUT("Maximum size: " << n << "\n");
-	/*
-	for (int i = 0; i < potential_impacts.size(); i++) {
-		if (potential_impacts[i].size() > n) {
-			n = potential_impacts[i].size();
-			maximum = i;
-		}
-	}
-	*/
-	items = potential_impacts[maximum];
-
-	n = items.size();
-
-	/*
-		d = sqrt(pow(it->point->x - x0, 2) + pow(it->point->y - y0, 2));
-		if (d <= radius) {
-			items.push_back(it);
-		}
-		*/
-
-		/*
-		ITEM* it = list->head;
-		for (ITEM* it = list->head; it; it = it->next) {
-			d = sqrt(pow(it->point->x - x0, 2) + pow(it->point->y - y0, 2));
-			double val = it->point->val;
-			if (d <= radius) {
-				items.push_back(it);
-			}
-		}
-
-		for (ITEM* ite: items)
-			DBOUT("Impact candidate: " << ite->point->frame << "\n");
-
-		//n--;
-		n = items.size();
-
-		std::vector<ITEM*> impactList;
-
-		std::vector<std::vector<ITEM*>> impactList2;
-		std::vector<ITEM*> iList;
-		impactList2.push_back(iList);
-
-		for (ITEM* ite : items) {
-			int frame_num = ite->point->frame;
-			DBOUT(frame_num << "\n");
-			iList = impactList2[impactList2.size() - 1];
-			if (iList.size() == 0) {
-				DBOUT("1 " << frame_num << "\n");
-				iList.push_back(ite);
-				impactList2[impactList2.size() - 1] = iList;
-			} else {
-				int other_frame_num = iList[iList.size() - 1]->point->frame;
-				if (frame_num - other_frame_num < 3) {
-					DBOUT("2 " << frame_num << "\n");
-					iList.push_back(ite);
-					impactList2[impactList2.size() - 1] = iList;
-				} else {
-					DBOUT("3 " << frame_num << "\n");
-					iList = std::vector<ITEM*>();
-					iList.push_back(ite);
-					impactList2.push_back(iList);
-				}
-			}
-			//DBOUT("Impact candidate: " << ite->point->frame << "\n");
-		}
-
-		//for (ITEM* ite : impactList)
-	//		DBOUT("Impact frame: " << ite->point->frame << "\n");
-
-		n = 0;
-		int max = 0;
-		for (int i = 0; i < impactList2.size(); i++) {
-			if (std::find(impactList2[i].begin(), impactList2[i].end(), ord[0]) != std::end(impactList2[i]))
-				max = i;
-			//if (impactList2[i].size() > n) {
-				//n = impactList2[i].size();
-				//max = i;
-			//}
-		}
-
-		items = impactList2[max];
-
-		n = items.size();
-		*/
-
-		//Get longest consecutive subsequence
-		//CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Impact number of frames: " + 
-		//(CString)std::to_string(n).c_str());
-
-	for (maxC = minC = c = 0, minFrame = maxFrame = ord[0]->point->frame; c < n; c++) {
-		if (minFrame > ord[c]->point->frame) {
-			minFrame = ord[c]->point->frame;
-			minC = c;
-		}
-		if (maxFrame < ord[c]->point->frame) {
-			maxFrame = ord[c]->point->frame;
-			maxC = c;
-		}
-	}
-	ivalFrame = ord[maxC]->point->frame - ord[minC]->point->frame;
-
-	//lastivalFrame = dtc->nMaxFrame - dtc->nMinFrame;
-	//dtc->MaxFrame = ord[0]->point->frame;
-	//dtc->nMinFrame = ord[minC]->point->frame;
-	//dtc->nMaxFrame = ord[maxC]->point->frame;
-	//dtc->MaxFrame = ord[0]->point->frame;
-
-	dtc->nMinFrame = items.front()->point->frame;
-	dtc->nMaxFrame = items.back()->point->frame;
-	std::sort(items.begin(), items.end(), frameOrder);
-	dtc->MaxFrame = items.front()->point->frame;
-
-	lastivalFrame = dtc->nMaxFrame - dtc->nMinFrame;
-	DBOUT("Increase from " << dtc->nMinFrame << " to " << dtc->nMaxFrame << ". Max: " << dtc->MaxFrame << "\n");
-	dtcout->MaxFrame = dtc->MaxFrame;
-	dtcout->nMinFrame = dtc->nMinFrame;
-	dtcout->nMaxFrame = dtc->nMaxFrame;
-	if (lastivalFrame >= incrFrame) {
-		StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("Max lum %d at frame %ld\n."),
-			(int)items.front()->point->val, dtc->MaxFrame);
-		fflush(stdout);
-		*dtcMax = create_item(items.front()->point);
-		StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("Impact at x:%d, y:%d\n."),
-			(*dtcMax)->point->x, (*dtcMax)->point->y);
-		DBOUT("Impact at x:" << (*dtcMax)->point->x << ", y: " << (*dtcMax)->point->y << "\n");
-		nb_impact++;
-		delete_list(list);
-	}
-	free(ord);
-	items.clear();
-	potential_impact.clear();
-	potential_impacts.clear();
-	return nb_impact;
-}
 
 int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, int fps, double radius,
 	double incrLum, int incrFrame)
@@ -674,7 +437,7 @@ int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
  * @return	An int.
  **************************************************************************************************/
 
-
+/*
 int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector<ITEM*> candidateFrames, int fps, double radius,
 	double timeImpact)
 {
@@ -690,18 +453,6 @@ int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector
 
 	int frame_delta = std::ceil(fps * timeImpact) + 10;
 
-	/*ITEM *tmpSrc;
-	ITEM **tmp;
-	ITEM **ord;
-	if (!(ord = (ITEM **)calloc(candidates->size, sizeof(ITEM *))))	{
-		fprintf(stderr, "ERROR in detect_impact: get_max_list: cannot reserve memory\n");
-		OutputDebugString(L"ERROR in detect_impact: get_max_list: cannot reserve memory\n");
-		exit(EXIT_FAILURE);
-	}
-	for (tmpSrc = candidates->head, tmp = ord, c = 0; tmpSrc && c < candidates->size; tmpSrc = tmpSrc->next, tmp++, c++) {
-		*tmp = tmpSrc;
-	}*/
-
 
 	for (ITEM* candidate : candidateFrames) {
 		candidateOriginal.push_back(candidate);
@@ -709,22 +460,6 @@ int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector
 	BrightnessOrder brightnessOrder;
 	std::sort(candidateFrames.begin(), candidateFrames.end(), brightnessOrder);
 
-	/*std::qsort(ord, candidates->size, sizeof(ITEM *), itemcmp);
-
-	first = ord[0];
-
-	for (current = candidates->head; current; current = current->next) {
-		if (current != first) {
-			d = sqrt(pow(current->point->x - first->point->x, 2) + pow(current->point->y - first->point->y, 2));
-			brightness_delta = abs(current->point->val - first->point->val);
-			frame_difference = abs(current->point->frame - first->point->frame);
-			if (d <= radius && brightness_delta <= opts.incrLumImpact && frame_difference <= frame_delta) {
-				impactVec.push_back(current);
-			}
-		} else {
-			impactVec.push_back(first);
-		}
-	}*/
 	first = candidateFrames[0];
 	impactVec.push_back(first);
 	for (int i = 1; i < candidateOriginal.size(); i++) {
@@ -748,6 +483,7 @@ int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector
 		return 0;
 	}
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	int detect(std::vector<std::string> file_list, OPTS opts)
@@ -811,7 +547,16 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	CString Clogmessage;
 
 	for (std::string filename : file_list) {
+//gets acquisition file from autostakkert session file
+		std::string extension = filename.substr(filename.find_last_of(".")+1, filename.size()-filename.find_last_of(".")-1);
+		if (extension.compare(autostakkert_extension) == 0) {
+			std::string filename_acquisition;
+			std::vector<cv::Point> cm_list;
 
+			read_autostakkert_file(filename, &filename_acquisition, &cm_list);
+			filename = filename_acquisition;
+		}
+//TODO: usage of cmlist and quality information from as3
 		opts.filename = strdup(filename.c_str());
 		std::string outputFolder = filename.substr(0, filename.find_last_of("\\") + 1);
 		outputFolder = outputFolder.replace(0, scan_folder_path.length() + 1, "");
@@ -1056,7 +801,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				croi = cv::Rect(0, 0, opts.wROI, opts.hROI);
 			} else {
 				croi = dtcGetFileROIcCM(pCapture, opts.ignore, 0);
-				dtcReinitCaptureRead(&pCapture, opts.filename);
+				dtcReinitCaptureRead2(&pCapture, opts.filename);
 			}
 	
 			if (opts.viewDif) cv::namedWindow("Initial differential photometry");
@@ -1879,8 +1624,8 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				std::string location = filename.substr(0, filename.find_last_of("\\") + 1);
 
 				LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence);
-				dtcWriteLog(logcation, info);
-				dtcWriteLog(logcation2, info);
+				dtcWriteLog2(logcation, info);
+				dtcWriteLog2(logcation2, info);
 
 				/*FINAL CLEANING**************************************/
 				if (opts.viewDif) cv::destroyWindow("Initial differential photometry");
@@ -1964,8 +1709,8 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 		CDeTeCtMFCDlg::getLog()->RedrawWindow();
 	}
 	SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Algorithm has been executed");
-	output_log << getDateTime().str().c_str() << "Algorithm has been executed" << "\n";
+	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Analysis has been done");
+	output_log << getDateTime().str().c_str() << "Analysis has been done" << "\n";
 	//dtcWriteWholeLog(logcation.c_str());
 	//dtcWriteWholeLog(logcation.c_str(), logs);
 	//dtcWriteWholeLog(logcation2.c_str(), logs);
@@ -1981,5 +1726,11 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	std::wifstream output_log_in(output_log_file.c_str());
 	output_log2 << output_log_in.rdbuf();
 	output_log2.close();
-	email->DoModal();
+//DBOUT("Interactive=" << opts.interactive << "\n");
+	if (opts.interactive) {
+		email->DoModal();
+	} else {
+		CDeTeCtMFCDlg:dlg.OnFileExit();
+		//m_pMainWnd->DestroyWindows();
+	}
 }

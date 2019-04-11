@@ -68,16 +68,14 @@
 		struct Filter filter;
 		int dateonly; // Display date information and stops processing
 		int ignore; // Ignore incorrect frames
+		int interactive;
 	};
 	typedef struct options OPTS;
 
 	extern OPTS opts;
 
+	void parse_command_line_options(int argc, char **argv, OPTS *opts);
 
-	/****************************************************************************************************/
-	/*									Procedures and functions										*/
-	/****************************************************************************************************/
-
-	void	parse_command_line_options(int argc, char *argv[], OPTS *opts);
+	char *get_arg(char ***argv);
 
 #endif /* __CMDLINE_H__ */

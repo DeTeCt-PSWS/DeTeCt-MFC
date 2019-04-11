@@ -180,6 +180,8 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.videotest = 0;
 	opts.wROI = 0;
 	opts.hROI = 0;
+	//AFX_MANAGE_STATE(AfxGetStaticModuleState());
+	//AFX_MANAGE_STATE(AFX_MODULE_STATE* pModuleState);
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -257,15 +259,30 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
-	SetIcon(m_hIcon, TRUE);			// Set big icon
-	SetIcon(m_hIcon, FALSE);		// Set small icon
+	//SetIcon(m_hIcon, TRUE);			// Set big icon
+	//SetIcon(m_hIcon, FALSE);		// Set small icon
+	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME));
+	SetIcon(hIcon, FALSE);
+	SetWindowText(_T(FULL_PROGNAME));
+
+	std::wstring wstr(full_version.begin(), full_version.end());
+	SetWindowText(wstr.c_str());
+
 
 	CenterWindow();
 
 	// TODO: Add extra initialization here
-	std::wstringstream ss2;
+	std::wstringstream ss2,ss3;
 	StreamDeTeCtOSversions(&ss2);
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+	if (!opts.interactive) {
+		ss3 << "Automatic mode on";
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
+	}
+
+	//Call directly file/directory addition if option passed to exe
+	if (opts.dirname > 0) OnFileOpen32771();
+	else if (opts.filename > 0) OnFileOpenfile();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -364,7 +381,7 @@ HCURSOR CDeTeCtMFCDlg::OnQueryDragIcon()
 void CDeTeCtMFCDlg::OnBnClickedOk()
 {
 	if (file_list.size() > 0) {
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Running algorithm");
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Running analysis");
 		
 		/* C++ standard threading */
 		/*
@@ -393,34 +410,65 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 void CDeTeCtMFCDlg::OnFileOpen32771()
 {
 	file_list = {};
+	acquisition_file_list = {};
 	CFolderPickerDialog dialog(NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, this, sizeof(OPENFILENAME));
 	std::wstring folder_path;
 	std::string path;
-	if (dialog.DoModal() == IDOK) {
+	std::wstringstream ss;
+
+	if (opts.dirname > 0) {
+		path = std::string(opts.dirname);
+	}
+	else {
+		if (dialog.DoModal() == IDOK) {
+			folder_path = std::wstring(dialog.GetPathName().GetString());
+			path = std::string(folder_path.begin(), folder_path.end());
+		}
+	}
+	if (path.size() <= 0) {
+		ss << "No file selected";
+	} else {
 		std::wstringstream ss2;
 
-		folder_path = std::wstring(dialog.GetPathName().GetString());
-		path = std::string(folder_path.begin(), folder_path.end());
 		scan_folder_path = path;
-		ss2 << "Resetting file list and scanning " << folder_path << " for files to analyse...";
+//TODO: clearscreen
+		ss2 << "Resetting file list and scanning " << folder_path << " for files to be analysed...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
-		read_files(path, &file_list);
+		read_files(path, &file_list, &acquisition_file_list);
 		for (std::string filename : file_list) {
 			std::wstringstream ss;
+			bool fileexists = FALSE;
+			std::string filename_acquisition;
+
+			std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+			if (extension.compare(autostakkert_extension) == 0) {
+				std::vector<cv::Point> cm_list;
+
+				read_autostakkert_file(filename, &filename_acquisition, &cm_list);
+				std::ifstream filetest(filename_acquisition);
+				if (filetest) fileexists = TRUE;
+				filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+				//TODO: test if filename_acquisition is already in the list and remove it
+			}
 			filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
-			ss << "Adding " << filename.c_str() << " for analysis";
+			if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
+				if (extension.compare(autostakkert_extension) != 0) ss << "Adding " << filename.c_str() << " for analysis";
+				else ss << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+			}
+			else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
+				ss << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+			}
 			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 		}
 		//		if (file_list.size() > 0) {
 		//			max_mean_folder_path = folder_path.append(L"\\Impact_detection");
 		//			if (GetFileAttributes(max_mean_folder_path.c_str()) == INVALID_FILE_ATTRIBUTES) CreateDirectory(max_mean_folder_path.c_str(), 0);
 		//		}
-	} else {
-		std::wstringstream ss;
-		ss << "No file selected";
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 	}
+	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 	this->RedrawWindow();
+	if (opts.dirname > 0) opts.dirname = NULL;
+	if (!opts.interactive) OnBnClickedOk();
 }
 
 /**********************************************************************************************//**
@@ -867,23 +915,65 @@ void CAboutDlg::OnBnClickedMfclink1()
 void CDeTeCtMFCDlg::OnFileOpenfile()
 {
 	file_list = {};
-	CString filter = _T("Detect supported video formats (*.avi;*.ser;*.wmv;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v)|*.avi;*.ser;*.wmv;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
-	CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
+	std::wstringstream ss;
 	std::wstring file_path;
 	std::string file;
-	std::wstringstream ss;
-	if (dialog.DoModal() == IDOK) {
-		file_path = std::wstring(dialog.GetPathName().GetString());
-		file = std::string(file_path.begin(), file_path.end());
-		scan_folder_path = file.substr(0, file.find_last_of("\\"));
-		file_list.push_back(file);
-		file = file.substr(file.find_last_of("\\") + 1, file.length());
-		ss << "Adding " << file.c_str() << " to list of files to analyse";
+	CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
+
+	if (opts.filename > 0) {
+		file = std::string(opts.filename);
 	} else {
-		ss << "No file selected";
+		if (dialog.DoModal() == IDOK) {
+			file_path = std::wstring(dialog.GetPathName().GetString());
+			file = std::string(file_path.begin(), file_path.end());
+		}
+	}
+	if (file.size() <=0) {
+			ss << "No file selected";
+	} else {
+		std::wstringstream ss2;
+//TODO: clearscreen
+		ss2 << "Resetting file list for analysis";
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+
+		std::wstringstream ss;
+		bool fileexists = FALSE;
+		std::string filename_acquisition;
+
+		std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+		if (extension.compare(autostakkert_extension) == 0) {
+			std::vector<cv::Point> cm_list;
+
+			read_autostakkert_file(file, &filename_acquisition, &cm_list);
+			std::ifstream filetest(filename_acquisition);
+			if (filetest) fileexists = TRUE;
+			filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+		}
+		if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
+			scan_folder_path = file.substr(0, file.find_last_of("\\"));
+			file_list.push_back(file);
+			file = file.substr(file.find_last_of("\\") + 1, file.length());
+			if (extension.compare(autostakkert_extension) != 0) ss << "Adding " << file.c_str() << " for analysis";
+			else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+		}
+		else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
+			file = file.substr(file.find_last_of("\\") + 1, file.length());
+			ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+		}
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+
+
+//		if (opts.filename > 0) {
+//			ss << "Adding automatically " << file.c_str() << " for analysis";
+//		}
+//		else {
+//			ss << "Adding " << file.c_str() << " for analysis";
+//		}
 	}
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 	this->RedrawWindow();
+	if (opts.filename > 0) opts.filename = NULL;
+	if (!opts.interactive) OnBnClickedOk();
 }
 
 /**********************************************************************************************//**

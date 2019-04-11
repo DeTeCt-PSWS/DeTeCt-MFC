@@ -77,21 +77,21 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
-    <TargetName>DeTeCt3.1.$(Platform)</TargetName>
+    <TargetName>DeTeCt3.$(Platform)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <TargetName>DeTeCt3.1.$(Platform)</TargetName>
+    <TargetName>DeTeCt</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>DeTeCt3.1.$(Platform)</TargetName>
+    <TargetName>DeTeCt3.$(Platform)</TargetName>
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>DeTeCt3.1.$(Platform)</TargetName>
+    <TargetName>DeTeCt</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -150,8 +150,8 @@
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>C:\opencv2\build\x64\bin;C:\opencv2\build\x64\vc14\lib;C:\opencv2\build\x64\vc14\staticlib;C:\ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_core2413d.lib;opencv_highgui2413d.lib;opencv_imgproc2413d.lib;opencv_video2413d.lib;avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;postproc.lib;swresample.lib;swscale.lib</AdditionalDependencies>
-      <OptimizeReferences>true</OptimizeReferences>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>false</OptimizeReferences>
+      <EnableCOMDATFolding>false</EnableCOMDATFolding>
       <IgnoreSpecificDefaultLibraries>
       </IgnoreSpecificDefaultLibraries>
     </Link>
@@ -253,6 +253,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="Development notes.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cmdline.h" />
@@ -265,12 +266,10 @@
     <ClInclude Include="dirent.h" />
     <ClInclude Include="dtc.h" />
     <ClInclude Include="dtcas3.h" />
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\fitsfile_dtc.h" />
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\fitsfmt.h" />
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\img.h" />
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\max.h" />
     <ClInclude Include="filefmt.h" />
     <ClInclude Include="filefmt2.h" />
+    <ClInclude Include="fitsfile_dtc.h" />
+    <ClInclude Include="fitsfmt.h" />
     <ClInclude Include="fits\fitshead.h" />
     <ClInclude Include="fits\imio.h" />
     <ClInclude Include="fits\lwcs.h" />
@@ -282,7 +281,6 @@
     <ClInclude Include="img2.h" />
     <ClInclude Include="ini.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="SendEmailDlg.h" />
     <ClInclude Include="serfmt.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
@@ -290,7 +288,6 @@
     <ClInclude Include="wrapper2.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cmdline.c" />
     <ClCompile Include="common.c" />
     <ClCompile Include="datation.c" />
     <ClCompile Include="datation2.cpp" />
@@ -309,7 +306,6 @@
     <ClCompile Include="fits\imio.c" />
     <ClCompile Include="fits\stub.c" />
     <ClCompile Include="dtcgui.cpp" />
-    <ClCompile Include="img.c" />
     <ClCompile Include="img2.cpp" />
     <ClCompile Include="ini.cpp" />
     <ClCompile Include="max.c" />

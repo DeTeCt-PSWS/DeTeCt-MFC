@@ -35,11 +35,6 @@ typedef struct _DtcCapture DtcCapture;
 /*									Procedures and functions										*/
 /****************************************************************************************************/
 
-DtcCapture	*dtcCaptureFromFile(const char *fname, int *pframecount);
-void 		dtcReinitCaptureRead(DtcCapture **pcapture, const char *fname);
-void 		dtcReleaseCapture(DtcCapture *capture);
-IplImage 	*dtcQueryFrame(DtcCapture *capture, const int ignore, int *perror);
 double 		dtcGetCaptureProperty(DtcCapture *capture, int property_id);
-
 
 #endif /* __WRAPPER_H__ */

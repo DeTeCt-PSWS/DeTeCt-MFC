@@ -3,7 +3,6 @@ g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\vc141.pdb
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\stdafx.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\datation.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\common.obj
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\cmdline.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\detectthread.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\detect-mfcdlg.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\detect-mfc.obj
@@ -19,10 +18,9 @@ g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\hput.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\hget.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\fitsfmt.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\fitsfile_dtc.obj
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\dtcgui.obj
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\img.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\ini.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\img2.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\dtcgui.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\max.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\sendemaildlg.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\wrapper.obj

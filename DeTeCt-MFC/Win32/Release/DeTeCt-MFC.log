@@ -1,4 +1,177 @@
-﻿  Génération de code en cours
+﻿  stdafx.cpp
+  cmdline.c
+  common.c
+  datation.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(888): warning C4244: 'fonction' : conversion de 'double' en 'int', perte possible de données
+  Compilation en cours...
+  Compilation en cours...
+  datation2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): warning C4477: 'fprintf' : la chaîne de format '%s' nécessite un argument de type 'char *', mais l'argument variadique 1 est de type 'std::string'
+  DeTeCt-MFC.cpp
+  DeTeCt-MFCDlg.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(529): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(531): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(533): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(535): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(537): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(539): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(541): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(543): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(545): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(547): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(710): warning C4244: '=' : conversion de 'float' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1137): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1189): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1214): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1239): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+  DetectThread.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+  Compilation en cours...
+  Compilation en cours...
+  dtc.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtc.c(363): warning C4244: 'fonction' : conversion de 'int' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtc.c(370): warning C4244: 'fonction' : conversion de 'double' en 'int', perte possible de données
+  Compilation en cours...
+  Compilation en cours...
+  dtcas3.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(51): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(246): warning C4244: 'argument' : conversion de 'int' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(253): warning C4244: 'argument' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(356): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+  Compilation en cours...
+  Compilation en cours...
+  filefmt.c
+  Compilation en cours...
+  Compilation en cours...
+  filefmt2.cpp
+  Compilation en cours...
+  Compilation en cours...
+  fitsfile_dtc.c
+  fitsfmt.c
+  hget.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(614): warning C4244: '=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(615): warning C4244: '=' : conversion de 'double' en 'int', perte possible de données
+  hput.c
+  iget.c
+  imio.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\imio.c(713): warning C4244: '=' : conversion de 'float' en 'short', perte possible de données
+  stub.c
+  Compilation en cours...
+  Compilation en cours...
+  dtcgui.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(291): warning C4244: 'initialisation' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(334): warning C4018: '<' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(362): warning C4018: '<' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(364): warning C4018: '>' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(628): warning C4018: '>' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(691): warning C4244: 'initialisation' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(730): warning C4018: '<' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(733): warning C4244: '=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1219): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1463): warning C4018: '<=' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1482): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1491): warning C4244: 'argument' : conversion de 'double' en 'const _Ty', perte possible de données
+          with
+          [
+              _Ty=uchar
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1557): warning C4244: 'initialisation' : conversion de 'const _Ty' en 'int', perte possible de données
+          with
+          [
+              _Ty=double
+          ]
+  Compilation en cours...
+  Compilation en cours...
+  img.c
+  Compilation en cours...
+  Compilation en cours...
+  img2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(205): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(229): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(253): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(307): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(326): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(344): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(358): warning C4244: '*=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(361): warning C4244: '*=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(443): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(459): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(479): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(496): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(551): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(555): warning C4244: 'initialisation' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(608): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(655): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(694): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(825): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(845): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(865): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(882): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(965): warning C4244: '=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(988): warning C4244: '=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1388): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1422): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1547): warning C4244: 'argument' : conversion de 'float' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1556): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1557): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+  ini.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\ini.cpp(15): warning C4244: 'argument' : conversion de 'double' en 'INT', perte possible de données
+  Compilation en cours...
+  Compilation en cours...
+  max.c
+  Compilation en cours...
+  Compilation en cours...
+  SendEmailDlg.cpp
+  Compilation en cours...
+  Compilation en cours...
+  serfmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(44): warning C4244: 'initialisation' : conversion de '__int64' en 'long', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(533): warning C4018: '<' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(719): warning C4018: '<' : incompatibilité signed/unsigned
+  wrapper.c
+  Compilation en cours...
+  Compilation en cours...
+  wrapper2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(140): warning C4018: '<=' : incompatibilité signed/unsigned
+  Compilation en cours...
+  Génération de code en cours
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(570): warning C4715: 'detect' : les chemins de contrôle ne retournent pas tous une valeur
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1985): warning C4715: 'detect' : les chemins de contrôle ne retournent pas tous une valeur
   All 2802 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
@@ -249,3 +422,130 @@ zlib.lib(trees.obj) : warning LNK4099: PDB 'zlib.pdb' n'a pu être trouvé avec 
 zlib.lib(uncompr.obj) : warning LNK4099: PDB 'zlib.pdb' n'a pu être trouvé avec 'zlib.lib(uncompr.obj)' ou sur 'G:\Work\Impact\DeTeCt-PSWS\DeTeCt-MFC\Win32\Release\zlib.pdb' ; l'objet sera lié sans informations de débogage
 zlib.lib(zutil.obj) : warning LNK4099: PDB 'zlib.pdb' n'a pu être trouvé avec 'zlib.lib(zutil.obj)' ou sur 'G:\Work\Impact\DeTeCt-PSWS\DeTeCt-MFC\Win32\Release\zlib.pdb' ; l'objet sera lié sans informations de débogage
   DeTeCt-MFC.vcxproj -> G:\Work\Impact\DeTeCt-PSWS\DeTeCt-MFC\Win32\Release\DeTeCt3.1.Win32.exe
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(279): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(279): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(228): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(228): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(530): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(530): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(530): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(530): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1946): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1948): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1992): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1993): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(1993): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(2057): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+c:\opencv2\build\include\opencv2\core\mat.hpp(67): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(72): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(78): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(85): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(91): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(98): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(104): warning C26495: Variable 'cv::Mat::flags' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(748): warning C26495: Variable 'cv::Mat::MStep::buf' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\mat.hpp(749): warning C26495: Variable 'cv::Mat::MStep::buf' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\matrix.h(95): warning C26495: Variable 'cvflann::UntypedMatrix::type' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\dynamic_bitset.h(62): warning C26495: Variable 'cvflann::DynamicBitset::size_' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\dynamic_bitset.h(69): warning C26495: Variable 'cvflann::DynamicBitset::size_' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\allocator.h(95): warning C26495: Variable 'cvflann::PooledAllocator::loc' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\random.h(93): warning C26495: Variable 'cvflann::UniqueRandom::counter_' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\lsh_table.h(352): warning C26495: Variable 'cvflann::lsh::LshTable<unsigned char>::speed_level_' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\lsh_table.h(94): warning C26495: Variable 'cvflann::lsh::LshStats::n_buckets_' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\flann\timer.h(59): warning C26495: Variable 'cvflann::StartStopTimer::value' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\objdetect\objdetect.hpp(338): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).
+c:\opencv2\build\include\opencv2\objdetect\objdetect.hpp(545): warning C26495: Variable 'cv::HOGDescriptor::nbins' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\objdetect\objdetect.hpp(550): warning C26495: Variable 'cv::HOGDescriptor::nbins' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\objdetect\objdetect.hpp(899): warning C26495: Variable 'cv::linemod::Match::template_id' is uninitialized. Always initialize a member variable (type.6).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(43): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): warning C6284: Objet passé comme _Param_(3)lorsqu'une chaîne est requise dans l'appel à 'fprintf' Type réel : 'class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> >'.
+c:\opencv2\build\include\opencv2\flann\any.h(95): warning C6269: Ordre des opérations sans doute incorrect : déréférencement ignoré.
+c:\opencv2\build\include\opencv2\core\operations.hpp(538): warning C26495: Variable 'cv::Matx<double,4,1>::val' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\operations.hpp(319): warning C26495: Variable 'cv::Matx<float,3,1>::val' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\operations.hpp(228): warning C6294: Boucle mal définie : la condition initiale ne satisfait pas les tests. Le corps de la boucle n'est pas exécuté.
+c:\opencv2\build\include\opencv2\core\operations.hpp(228): warning C6201: L'index '3' est en dehors de la plage d'index valide '0' à '2' pour la mémoire tampon 'this->val' allouée sans doute par la pile.
+c:\opencv2\build\include\opencv2\core\operations.hpp(206): warning C26495: Variable 'cv::Matx<float,3,1>::val' is uninitialized. Always initialize a member variable (type.6).
+c:\opencv2\build\include\opencv2\core\operations.hpp(221): warning C6294: Boucle mal définie : la condition initiale ne satisfait pas les tests. Le corps de la boucle n'est pas exécuté.
+c:\opencv2\build\include\opencv2\core\operations.hpp(221): warning C6201: L'index '2' est en dehors de la plage d'index valide '0' à '1' pour la mémoire tampon 'this->val' allouée sans doute par la pile.
+c:\opencv2\build\include\opencv2\core\operations.hpp(235): warning C6294: Boucle mal définie : la condition initiale ne satisfait pas les tests. Le corps de la boucle n'est pas exécuté.
+c:\opencv2\build\include\opencv2\core\operations.hpp(235): warning C6201: L'index '4' est en dehors de la plage d'index valide '0' à '3' pour la mémoire tampon 'this->val' allouée sans doute par la pile.
+c:\opencv2\build\include\opencv2\core\mat.hpp(1756): warning C6011: Suppression de la référence du pointeur NULL 'm'. Voir la ligne 1753 pour un emplacement antérieur dans lequel cela peut se produire
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfc.cpp(67): warning C6031: Valeur de retour ignorée : 'freopen'.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(673): warning C26454: Arithmetic overflow: '-' operation produces a negative unsigned result at compile time (io.5).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(674): warning C26454: Arithmetic overflow: '-' operation produces a negative unsigned result at compile time (io.5).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(675): warning C26454: Arithmetic overflow: '-' operation produces a negative unsigned result at compile time (io.5).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(676): warning C26454: Arithmetic overflow: '-' operation produces a negative unsigned result at compile time (io.5).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(677): warning C26454: Arithmetic overflow: '-' operation produces a negative unsigned result at compile time (io.5).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtc.c(426): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtc.c(579): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(299): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(452): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfile_dtc.c(302): warning C6053: L'appel préalable à 'strncpy' peut ne pas terminer la chaîne 'header' par zéro.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfile_dtc.c(259): warning C6387: 'headnext' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'strncpy'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(617): warning C6387: 'nval' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'strchr'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(620): warning C6387: 'nval' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'atof'. Voir la ligne 617 pour un emplacement antérieur dans lequel cela peut se produire
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1356): warning C6001: Utilisation de la mémoire non initialisée 'min'.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(581): warning C6053: L'appel préalable à 'strncpy' peut ne pas terminer la chaîne 'newcom' par zéro.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(42): warning C28159: Utilisez 'IsWindows*' à la place de 'GetVersionExW'. Motif : Deprecated. Use VerifyVersionInfo* or IsWindows* macros from VersionHelpers.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(81): warning C6387: 'Temp_value_#18420' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'GetProcAddress'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(259): warning C6272: Valeur non float passée comme argument '5' lorsqu'une valeur float est requise dans l'appel à 'StringCchPrintfW' Type réel : 'struct item *'.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(460): warning C6385: Lecture de données non valides depuis 'ord' : la taille lisible est '_Param_(1)*_Param_(2)' octets, mais '8' octets sont peut-être lus.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(355): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(642): warning C6011: Suppression de la référence du pointeur NULL 'impactBrightest'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1412): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1413): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1540): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1636): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1663): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1669): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.h(50): warning C26495: Variable '_DiffImage::y_shift' is uninitialized. Always initialize a member variable (type.6).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(75): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(76): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(105): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(106): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(168): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(192): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(252): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(277): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(338): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(362): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(429): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(464): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(501): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img.c(908): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(118): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(119): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(159): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(160): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(240): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(264): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(335): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(354): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(487): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(505): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(873): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(891): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(970): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(994): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1089): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1138): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1188): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1678): warning C26451: Arithmetic overflow: Using operator '*' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '*' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\max.c(205): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\max.c(205): warning C26451: Arithmetic overflow: Using operator '-' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '-' to avoid overflow (io.2).
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(188): warning C6276: Cast entre types de chaînes sémantiquement différentes : char * à wchar_t *. L'utilisation d'une chaîne non valide peut engendrer un comportement non défini.
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(423): warning C6387: 'output' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'sprintf_s'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(509): warning C6387: 'temp_buffer' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'fread'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(526): warning C6011: Suppression de la référence du pointeur NULL 'temp_buffer8'. Voir la ligne 509 pour un emplacement antérieur dans lequel cela peut se produire
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(525): warning C6011: Suppression de la référence du pointeur NULL 'temp_buffer16'. Voir la ligne 509 pour un emplacement antérieur dans lequel cela peut se produire
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(714): warning C6387: 'temp_buffer' peut être '0' : ceci n'est pas conforme à la spécification de la fonction 'fread'. 
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(720): warning C6011: Suppression de la référence du pointeur NULL 'temp_buffer16'. Voir la ligne 714 pour un emplacement antérieur dans lequel cela peut se produire
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(710): warning C26451: Arithmetic overflow: Using operator '+' on a 4 byte value and then casting the result to a 8 byte value. Cast the value to the wider type before calling operator '+' to avoid overflow (io.2).

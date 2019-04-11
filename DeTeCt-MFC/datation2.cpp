@@ -83,7 +83,7 @@ void dtcWriteWholeLog(std::string location, const char *dtcexename, const double
 
 	std::ofstream output_file(location);
 
-	output_file << "DeTeCt; jovian impact detection software " FULL_PROGNAME "\n";
+	output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 	output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
 	output_file << "Rating;    Start;                      End;                        Mid;                       Duration (s);  fps (fr/s);  File;                        DeTeCt version and comment\n";
 
@@ -128,7 +128,7 @@ void dtcWriteWholeLog(std::string location, const char *dtcexename, const double
 	output_file << std::setprecision(4) << std::fixed << duration << " s;\\t\\t";
 	output_file << std::setprecision(3) << std::fixed << fps << " fr/s; ";
 	output_file << filename << "; ";
-	output_file << FULL_PROGNAME << " (" << comment << "); ";
+	output_file << full_version.c_str() << " (" << comment << "); ";
 	std::string os_version = "";
 	GetOSversion(&os_version);
 	output_file.close();
@@ -196,7 +196,7 @@ void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 
 	std::ofstream output_file(location);
 
-	output_file << "DeTeCt; jovian impact detection software " FULL_PROGNAME "\n";
+	output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 	output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
 	output_file << "Certainty;		Rating;    Start;                      End;                        Mid;                        Duration (s);	fps (fr/s);  File;                        DeTeCt version and comment;\n";
 
@@ -243,7 +243,7 @@ void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 		output_file << std::setprecision(4) << std::fixed << video_info.duration << " s; ";
 		output_file << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 		output_file << video_info.filename << "; ";
-		output_file << FULL_PROGNAME" (" << video_info.comment << "); ";
+		output_file << full_version.c_str() << " (" << video_info.comment << "); ";
 		std::string os_version = "";
 		GetOSversion(&os_version);
 		output_file << os_version.c_str() << "\n";
@@ -259,7 +259,7 @@ void dtcWriteLogHeader(std::string location) {
 	
 	output_file.open(location);
 
-	output_file << "DeTeCt; jovian impact detection software " FULL_PROGNAME "\n";
+	output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 	output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
 	output_file << "Certainty;		Rating;    Start;                      End;                        Mid;                        Duration (s);	fps (fr/s);  File;                        DeTeCt version and comment;\n";
 }
@@ -287,7 +287,7 @@ void dtcCloseLog(std::string location) {
 * @param	location   	The location of the folder where dtc.log will be stored.
 * @param	videos_info	List of the information describing the algorithm output.
 																								**************************************************************************************************/
-void dtcWriteLog(std::string location, LogInfo video_info) {
+void dtcWriteLog2(std::string location, LogInfo video_info) {
 
 	location.append("\\");
 	location.append(DETECTLOGNAME);
@@ -336,7 +336,7 @@ void dtcWriteLog(std::string location, LogInfo video_info) {
 	output_file << std::setprecision(4) << std::fixed << video_info.duration << " s; ";
 	output_file << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 	output_file << video_info.filename << "; ";
-	output_file << FULL_PROGNAME" (" << video_info.comment << "); ";
+	output_file << full_version.c_str() << " (" << video_info.comment << "); ";
 	std::string os_version = "";
 	GetOSversion(&os_version);
 	output_file << os_version.c_str() << "\n";

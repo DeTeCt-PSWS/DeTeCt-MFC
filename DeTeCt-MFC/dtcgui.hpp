@@ -21,8 +21,11 @@ extern "C" {
 #include "auxfunc.h"
 #include "datation2.h"
 //#include "max2.h"
+#include "dtcas3.h"
 
 #include <vector>
+
+extern std::string full_version;
 
 struct FrameOrder {
 	bool operator()(ITEM* a, ITEM* b) {
@@ -36,18 +39,11 @@ struct BrightnessOrder {
 	}
 };
 
-
-void	read_files(std::string folder, std::vector<std::string> *file_list);
+void	read_files(std::string folder, std::vector<std::string> *file_list, std::vector<std::string> *acquisition_file_list);
 
 int		itemcmp(const void *a, const void *b);
 
 int		framecmp(const void *a, const void *b);
-
-int		impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector<ITEM*> candidateFrames, int fps, 
-	double radius, double timeImpact);
-
-int		impact_detect(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, int fps, double radius,
-	double incrLum, int incrFrame);
 
 int		detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, int fps, double radius,
 	double incrLum, int incrFrame);

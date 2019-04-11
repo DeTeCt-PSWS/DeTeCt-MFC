@@ -4,9 +4,9 @@
 #include "common.h"
 #include "cmdline.h"
 
-#define PROGNAME  "detect"
+#define PROGNAME  "DeTeCt"
 #define LONGNAME  "jovian impact DeTeCtion"
-#define VERSION_NB   "3.1.1beta"
+#define VERSION_NB   "3.1.2"
 #define VERSION_DATE "(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -17,7 +17,7 @@
 	#define DETECT_TARGET "x86"
 #endif
 
-#define FULL_PROGNAME PROGNAME " v" VERSION_NB "_" DETECT_TARGET "(" __DATE__ ")"
+#define FULL_PROGNAME PROGNAME " v" VERSION_NB "_" DETECT_TARGET " (" __DATE__ ")"
 
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)

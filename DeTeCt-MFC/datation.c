@@ -5,8 +5,8 @@
 /*    DATATION: Detection of datation information functions						*/
 /*                                                                              */
 /********************************************************************************/
-#include "common.h"
 
+#include "common.h"
 #include <time.h>
 #include <stdio.h>
 #include <sys/stat.h>

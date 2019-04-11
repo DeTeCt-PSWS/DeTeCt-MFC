@@ -1,8 +1,9 @@
-DeTeCt3.1.x64.exe -autostakkert G:\Work\Impact\dtc\movies\ser\test_AS_P50_lapl6_ap36.as3
+DeTeCt3.exe G:\Work\Impact\dtc\movies\ser\jupiter_2012_08_04_062019_Clear.ser
+pause
+DeTeCt3.exe -automatic G:\Work\Impact\dtc\movies\ser\jupiter_2012_08_04_062019_Clear.ser
+pause
+DeTeCt3.exe G:\Work\Impact\dtc\movies\ser\
+pause
+DeTeCt3.exe -automatic G:\Work\Impact\dtc\movies\ser
 pause
 goto :eof
-
-DeTeCt3.1.x64.exe -dummy G:\Work\Impact\dtc\movies\ser\test_AS_P50_lapl6_ap36.as3
-pause
-DeTeCt3.1.x64.exe 
-pause

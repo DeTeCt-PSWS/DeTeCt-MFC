@@ -4,6 +4,10 @@
 #include <sstream>
 #include <cstdio>
 
+#include "cmdline.h" 
+
+std::string autostakkert_extension = "as3";
+
 bool starts_with(const std::string& s1, const std::string& s2) {
 	return s2.size() <= s1.size() && s1.compare(0, s2.size(), s2) == 0;
 }
@@ -24,6 +28,13 @@ std::vector<std::string> read_txt(std::string path) {
 		lines.push_back(line);
 	}
 	return lines;
+}
+
+
+void read_autostakkert_file(std::string configfile, std::string *filename, std::vector<cv::Point> *cm_list) {
+	for (std::string line : read_txt(configfile)) {
+		read_autostakkert_config_line(line, filename, cm_list);
+	}
 }
 
 void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list) {
@@ -53,7 +64,7 @@ void read_autostakkert_config_line(std::string line, std::string *filename, std:
 //	}
 }
 
-int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
+/*int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 	clock_t begin, end;
 	cv::setUseOptimized(true);
 	try {
@@ -129,7 +140,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 		init_string(ofilenamenorm);
 		init_string(comment);
 		/*********************************INITIALIZATION******************************************/
-		DBOUT("\nmain: Init\n")
+/*		DBOUT("\nmain: Init\n")
 			begin = clock();
 		time(&start_process_time);
 		if (!(pCapture = dtcCaptureFromFile2(opts.filename, &framecount))) {
@@ -195,7 +206,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 			}
 		}
 		/*********************************CAPTURE READING******************************************/
-		while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
+/*		while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
 			nframe++;
 			if (!(frame_error) == 0) {
 				frame_errors += 1;
@@ -228,7 +239,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 				roi = cv::Rect(rectX, rectY, rectWidth, rectHeight);
 				*/
 				/*******************FIRST FRAME PROCESSING*******************/
-				if (nframe == 1) {
+/*				if (nframe == 1) {
 					pGryMat.copyTo(pFirstFrameROIMat);
 					pFirstFrameROIMat = dtcApplyMask(pFirstFrameROIMat.clone());
 					firstFrameCm = dtcGetGrayMatCM(pFirstFrameROIMat);
@@ -279,7 +290,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 					}
 				}
 				/*******************EVERY FRAME PROCESSING*******************/
-				int x_offset, y_offset;
+/*				int x_offset, y_offset;
 				roi = dtcCorrelateROI(pGryMat, pFirstFrameROIMat, pFirstFrameROI, &x_offset, &y_offset);
 				cm.x = firstFrameCm.x + x_offset;
 				cm.y = firstFrameCm.y + y_offset;
@@ -289,7 +300,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 					cv::absdiff(pGryMat, pRefMat, pDifMat);
 				}
 				/*ADUdtc algorithm******************************************/
-				if (opts.ostype == OTYPE_ADU) {
+/*				if (opts.ostype == OTYPE_ADU) {
 					pADUavgMat.convertTo(pADUavgMat, CV_32FC1);
 					pADUmaxMat.convertTo(pADUmaxMat, CV_32FC1);
 					pGryMat.convertTo(pGryMat, CV_32FC1);
@@ -416,7 +427,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 			std::cout << "Frame " << nframe << std::endl;
 		}
 		/*********************************FINAL PROCESSING******************************************/
-		if (opts.darkfilename) {
+/*		if (opts.darkfilename) {
 			if (darkfile_ok == 1) {
 				pADUdarkMat.release();
 				pADUdarkMat = NULL;
@@ -443,18 +454,18 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 				delete_list(&ptlist);
 			}
 			/*ADUdtc algorithm******************************************/
-			if (opts.ostype == OTYPE_ADU) {
+/*			if (opts.ostype == OTYPE_ADU) {
 				if (opts.ofilename) {
 					/*Mean image*/
-					pADUavgMat.convertTo(pADUavgMat, CV_32FC1);
+/*					pADUavgMat.convertTo(pADUavgMat, CV_32FC1);
 					pADUmaxMat.convertTo(pADUmaxMat, CV_32FC1);
 					pGryMat.convertTo(pGryMat, CV_32FC1);
 					pADUavgMat.convertTo(pADUavgMat, pADUavgMat.type(), 1.0 / (nframe - frame_errors), 0);
 					cv::minMaxLoc(pADUavgMat, &minLum, &maxLum, &minPoint, &maxPoint);
 					cv::minMaxLoc(pADUmaxMat, &minLummax, &maxLummax, &minPoint, &maxPoint); /*Max-mean image*/
-					pADUdtcMat = cv::Mat(pGryImg_height, pGryImg_width, CV_32FC1);
+/*					pADUdtcMat = cv::Mat(pGryImg_height, pGryImg_width, CV_32FC1);
 					cv::subtract(pADUmaxMat, pADUavgMat, pADUdtcMat); /*Max-mean image*/
-					pADUavgMat.convertTo(pADUavgMat, pADUavgMat.type(), 255.0 / maxLum, 0);
+/*					pADUavgMat.convertTo(pADUavgMat, pADUavgMat.type(), 255.0 / maxLum, 0);
 					if (opts.detail) {
 						//strncpy(ofilenamemean, opts.ofilename, std::strlen(opts.ofilename) - 4);
 						snprintf(ofilenamemean, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
@@ -466,16 +477,16 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 						}
 					}
 					/*Max image*/
-					if (opts.verbose) {
+/*					if (opts.verbose) {
 						printf("Max image (ADU min,ADU max) =                (%5d,%5d)\n", (int)minLummax, (int)maxLummax);
 					}
 					/*Max-mean image*/
-					cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
+/*					cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
 					if (opts.verbose) {
 						printf("Max-Mean image image (ADU min,ADU max) =     (%5d,%5d) (image %s)\n", (int)minLum, (int)maxLum, opts.ofilename);
 					}
 					/*Max-mean normalized image*/
-					pADUdtcMat.convertTo(pADUdtcMat, pADUavgMat.type(), 255.0 / maxLum, 0);
+/*					pADUdtcMat.convertTo(pADUdtcMat, pADUavgMat.type(), 255.0 / maxLum, 0);
 					snprintf(ofilenamenorm, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
 					//strncpy(ofilenamenorm, opts.ofilename, strlen(opts.ofilename) - 4);
 					ofilenamenorm[strlen(ofilenamenorm)] = '\0';
@@ -485,7 +496,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 					cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum2, &minPoint, &maxPoint);
 					if (opts.verbose) { printf("Max-Mean normalized image (ADU min,ADU max) =(%5d,%5d) (image %s)\n", (int)minLum, (int)maxLum2, ofilenamenorm); }
 					/*Max-mean non normalized image*/
-					if (opts.detail) {
+/*					if (opts.detail) {
 						if (maxLum > 255) {
 							pADUdtcMat.convertTo(pADUdtcMat, pADUdtcMat.type(), maxLum / (255.0*255.0), 0);
 						}
@@ -514,7 +525,7 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 			}
 			dtcWriteLog(opts.filename, start_time, end_time, duration, fps_real, timetype, opts.filename, comment, nb_impact, 1);
 			/*FINAL CLEANING**************************************/
-			if (opts.viewDif) { cv::destroyWindow("Differential frame"); }
+/*			if (opts.viewDif) { cv::destroyWindow("Differential frame"); }
 			if (opts.viewRef) { cv::destroyWindow("Reference"); }
 			if (opts.viewROI) { cv::destroyWindow("ROI"); }
 			if (opts.viewTrk) { cv::destroyWindow("Tracking"); }
@@ -567,8 +578,9 @@ int detect(std::string filename, std::vector<cv::Point> cm_list, OPTS opts) {
 	catch (cv::Exception& e) {
 		std::cout << e.what() << std::endl;
 	}
-}
+}*/
 
+/*
 void detect_autostakkert(std::string path) {
 	opts.filename = opts.ofilename = opts.darkfilename = opts.ovfname = opts.sfname = NULL;
 	opts.nsaveframe = 0;
@@ -623,4 +635,4 @@ void detect_autostakkert(std::string path) {
 		std::cout << filename << std::endl;
 		detect(filename, cm_list, opts);
 	}
-}
+}*/

@@ -40,5 +40,8 @@ typedef struct _DtcCapture2 DtcCapture2;
 
 	DtcCapture	*dtcCaptureFromFile2(const char *fname, int *pframecount);
 	cv::Mat 	dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror);
+	void		dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname);
+void 		dtcReleaseCapture(DtcCapture *capture);
+
 
 #endif /* __WRAPPER_H__ */

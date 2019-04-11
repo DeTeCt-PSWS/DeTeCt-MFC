@@ -1,0 +1,7 @@
+Autostakkert .as3 session file format support
+Icon on title bar and on main window
+Messages changes
+Cleaning of messages
+Code cleaning
+
+

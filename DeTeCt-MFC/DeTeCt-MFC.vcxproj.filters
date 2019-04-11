@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
+    <Text Include="Development notes.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeTeCt-MFC.h">
@@ -69,18 +70,6 @@
     <ClInclude Include="filefmt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\fitsfmt.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\fitsfile_dtc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\img.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="E:\DeTeCt project\Visual Studio\v2.0\DeTeCt\src\max.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="dtcgui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -102,9 +91,6 @@
     <ClInclude Include="ini.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SendEmailDlg.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="datation2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -115,6 +101,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="wrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fitsfile_dtc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fitsfmt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -149,16 +141,7 @@
     <ClCompile Include="datation.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dtc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="filefmt.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="fitsfile_dtc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="cmdline.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dtcgui.cpp">
@@ -191,16 +174,19 @@
     <ClCompile Include="fitsfmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="img.c">
+    <ClCompile Include="max.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="max.c">
+    <ClCompile Include="wrapper.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="dtc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="serfmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="wrapper.c">
+    <ClCompile Include="filefmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

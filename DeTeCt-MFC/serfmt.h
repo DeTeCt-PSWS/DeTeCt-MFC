@@ -112,11 +112,9 @@ typedef struct _SerCapture SerCapture;
 SerCapture 		*serCaptureFromFile(const char *fname);
 void 			serReinitCaptureRead(SerCapture *sc,const char *fname);
 void 			serReadTimeStamps(SerCapture *sc);
-IplImage 		*serQueryFrame(SerCapture *sc, const int ignore, int *perror); 
 unsigned char 	*serQueryTimeStamp(SerCapture *sc);
 void 			serReleaseCapture(SerCapture *sc);
 
-size_t 			serImageRead(void *image, const size_t size, const size_t num, FILE *f);
 size_t 			serTimeStampRead(unsigned char *pTimeStamp, const size_t size, const size_t num, FILE *f);
 
 double 			serDateTime_JD(unsigned char *headerfield);

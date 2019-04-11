@@ -173,3 +173,47 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 		break;
 	}
 }
+
+void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
+{
+	int framecount;
+
+	switch ((*pcapture)->type)
+	{
+	case CAPTURE_SER:
+		serReinitCaptureRead((*pcapture)->u.sercapture, fname);
+		break;
+	case CAPTURE_FITS:
+	case CAPTURE_FILES:
+		fileReinitCaptureRead((*pcapture)->u.filecapture, fname);
+		break;
+	default: // CAPTURE_CV			
+		dtcReleaseCapture(*pcapture);
+		if (!(*pcapture = dtcCaptureFromFile2(fname, &framecount))) {
+			fprintf(stderr, "ERROR in dtcReinitCaptureRead opening file %s\n", fname);
+			exit(EXIT_FAILURE);
+		}
+		break;
+	}
+}
+
+
+void dtcReleaseCapture(DtcCapture *capture)
+{
+	switch (capture->type)
+	{
+	case CAPTURE_SER:
+		/*fprintf(stderr,"dtcReleaseCapture: Releasing ser capture\n");
+		fprintf(stderr, "dtcReleaseCapture: Image pointer %d\n", capture->u.sercapture->image);*/
+		serReleaseCapture(capture->u.sercapture);
+		break;
+	case CAPTURE_FITS:
+	case CAPTURE_FILES:
+		fileReleaseCapture(capture->u.filecapture);
+		break;
+	default: // CAPTURE_CV
+		//capture->u.videocapture->release();
+		cvReleaseCapture(&capture->u.capture);
+	}
+}
+

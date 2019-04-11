@@ -266,31 +266,6 @@ void serReadTimeStamps(SerCapture *sc)
 	}
 }
 
-/*****************Reads current frame***************************/			
-IplImage *serQueryFrame(SerCapture *sc, const int ignore, int *perror)
-{
-	size_t bytesR;
-	(*perror)=0;
-
-	if ((sc->frame >= sc->header.FrameCount) || ((ignore) && (sc->frame >= sc->ValidFrameCount))) {
-		return NULL;
-	}
-	sc->frame++;
-				if (opts.debug) { fprintf(stderr, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
-	if (!(bytesR = serImageRead(sc->image->imageData, sizeof (char), sc->ImageBytes, sc->fh)))
-	{
-		sc->ValidFrameCount=sc->frame-1;
-		if (!ignore) {
-			fprintf(stderr, "ERROR in serQueryFrame reading frame #%zd\n", sc->frame);
-			exit(EXIT_FAILURE);
-		} else {
-			(*perror)=1;
-			fprintf(stderr, "WARNING in serQueryFrame: ignoring error reading frame #%zd and above (%zd missing till frame #%zd)\n", sc->frame, sc->header.FrameCount-sc->ValidFrameCount, sc->header.FrameCount);
-		}
-	}
-	return sc->image;
-}
-
 /*****************Reads current timestamp***************************/			
 unsigned char *serQueryTimeStamp(SerCapture *sc)
 {
@@ -335,28 +310,6 @@ free(sc->image->imageData);*/
 	free(sc);
 	sc=NULL;
 											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Released sc\n"); }
-}
-
-/*****************Reads current image data***************************/			
-size_t serImageRead(void *image, const size_t size, const size_t num, FILE *f)
-{
-	size_t bytesC;
-	size_t bytesR;
-	size_t n;
-	size_t *ptr;
-	
-	bytesR = 0;
-	n = num;
-	ptr = image;
-	while (bytesR < num * size) {
-		bytesC = fread(ptr, size, num, f);
-		if (!bytesC)
-			return 0;	
-		bytesR += bytesC;
-		ptr += bytesR;
-		n -= bytesR;
-	}
-	return bytesR; 
 }
 
 /*****************Reads current timestamp***************************/			

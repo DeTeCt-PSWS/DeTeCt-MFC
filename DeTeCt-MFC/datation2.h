@@ -51,7 +51,7 @@ void dtcWriteLogHeader(std::string location);
 
 void dtcCloseLog(std::string location);
 
-void dtcWriteLog(std::string location, LogInfo video_info);
+void dtcWriteLog2(std::string location, LogInfo video_info);
 
 void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info);
 
