@@ -1285,7 +1285,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			totalMean /= (nframe - frame_errors);
 
 			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-				L"Differential photometry has been done, will now analyse for impact detection.");
+				L"Differential photometry has been done, running now impact detection...");
 			CDeTeCtMFCDlg::getLog()->RedrawWindow();
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 			output_log << getDateTime().str().c_str() << "Differential photometry has been done, will now analyse"
@@ -1302,9 +1302,9 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			int radius = std::min(std::min(20.0, pGryMat.rows / 10.0), pGryMat.cols / 10.0);
 			radius = radius > 5 ? radius : 5; //std::max gives error
 
-			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Running impact detection... ");
-			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-			CDeTeCtMFCDlg::getLog()->RedrawWindow();
+//			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Running impact detection... ");
+//			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+//			CDeTeCtMFCDlg::getLog()->RedrawWindow();
 			output_log << getDateTime().str().c_str() << "Running impact detection..." << "\n";
 			output_log.flush();
 
@@ -1587,8 +1587,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				std::string line;
 				while (std::getline(str, line)) log_messages.push_back("    " + line);
 				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Computation time: " +
-					(CString)std::to_string(int(end - begin) / CLOCKS_PER_SEC).c_str() + " seconds.");
-				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Showing detection image..."
+					(CString)std::to_string(int(end - begin) / CLOCKS_PER_SEC).c_str() + " seconds." + L" Showing detection image..."
 					+ L" will be automatically closed in 4 seconds");
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 				CDeTeCtMFCDlg::getLog()->RedrawWindow();

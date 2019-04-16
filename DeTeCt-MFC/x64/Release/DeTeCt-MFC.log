@@ -1,6 +1,245 @@
-﻿  Génération de code en cours
-  0 of 2824 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+﻿  stdafx.cpp
+  WndResizer.cpp
+  Compilation en cours...
+  common.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\common.c(130): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\common.c(145): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+  datation.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation.c(888): warning C4244: 'fonction' : conversion de 'double' en 'int', perte possible de données
+  Compilation en cours...
+  datation2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): warning C4477: 'fprintf' : la chaîne de format '%s' nécessite un argument de type 'char *', mais l'argument variadique 1 est de type 'std::string'
+  DeTeCt-MFC.cpp
+  DeTeCt-MFCDlg.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(650): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(652): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(654): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(656): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(658): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(660): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(662): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(664): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(666): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(668): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(831): warning C4244: '=' : conversion de 'float' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1178): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1300): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1352): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1377): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1402): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+  DetectThread.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+  Compilation en cours...
+  dtc.c
+  Compilation en cours...
+  dtcas3.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(62): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+  Compilation en cours...
+  filefmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(68): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(75): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(85): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(88): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(90): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(101): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(126): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(139): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(160): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(182): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(357): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+  Compilation en cours...
+  filefmt2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(85): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(93): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(103): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(107): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(110): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(122): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(148): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(162): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt2.cpp(183): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+  Compilation en cours...
+  fitsfile_dtc.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfile_dtc.c(292): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfile_dtc.c(474): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfile_dtc.c(484): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+  fitsfmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfmt.c(33): warning C4267: '=' : conversion de 'size_t' en 'long', perte possible de données
+  hget.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(95): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(134): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(169): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(227): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(283): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(387): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(420): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(467): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(614): warning C4244: '=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(615): warning C4244: '=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(700): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(751): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(781): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(818): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1046): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1109): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1118): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1215): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1224): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1329): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1384): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1408): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1462): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1488): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1612): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1687): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1691): warning C4244: 'return' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1740): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1752): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1779): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1792): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(1799): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+  hput.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(433): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(483): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(506): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(530): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(576): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(626): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(659): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hput.c(717): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+  iget.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\iget.c(331): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\iget.c(466): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\iget.c(468): warning C4244: '=' : conversion de '__int64' en 'int', perte possible de données
+  imio.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\imio.c(713): warning C4244: '=' : conversion de 'float' en 'short', perte possible de données
+  stub.c
+  Compilation en cours...
+  dtcgui.cpp
+  _WIN32_WINNT not defined. Defaulting to _WIN32_WINNT_MAXVER (see WinSDKVer.h)
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(386): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(745): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(749): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(964): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1208): warning C4018: '<=' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1227): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1236): warning C4244: 'argument' : conversion de 'double' en 'const _Ty', perte possible de données
+          with
+          [
+              _Ty=uchar
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1302): warning C4244: 'initialisation' : conversion de 'const _Ty' en 'int', perte possible de données
+          with
+          [
+              _Ty=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1732): warning C4102: 'CDeTeCtMFCDlg' : étiquette non référencée
+  img2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(152): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(205): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(229): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(253): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(307): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(326): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(344): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(358): warning C4244: '*=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(361): warning C4244: '*=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(443): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(459): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(479): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(496): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(551): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(555): warning C4244: 'initialisation' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(608): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(655): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(694): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(825): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(845): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(865): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(882): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(934): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(965): warning C4244: '=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(988): warning C4244: '=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1388): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1422): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1547): warning C4244: 'argument' : conversion de 'float' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1556): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1557): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+  ini.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\ini.cpp(7): warning C4312: 'cast de type' : la conversion de 'DWORD' en 'char *' d'une taille supérieure
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\ini.cpp(15): warning C4244: 'argument' : conversion de 'double' en 'INT', perte possible de données
+  Compilation en cours...
+  max.c
+  Compilation en cours...
+  SendEmailDlg.cpp
+  Compilation en cours...
+  serfmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(35): warning C4311: 'cast de type' : troncation de pointeur de 'SerCapture *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(41): warning C4311: 'cast de type' : troncation de pointeur de 'FILE *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(148): warning C4267: 'fonction' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(149): warning C4311: 'cast de type' : troncation de pointeur de 'IplImage *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(154): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(178): warning C4311: 'cast de type' : troncation de pointeur de 'SerCapture *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(44): warning C4244: 'initialisation' : conversion de '__int64' en 'long', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(185): warning C4267: 'initialisation' : conversion de 'size_t' en 'long', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(294): warning C4311: 'cast de type' : troncation de pointeur de 'FILE *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(301): warning C4311: 'cast de type' : troncation de pointeur de 'IplImage *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(309): warning C4311: 'cast de type' : troncation de pointeur de 'SerCapture *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(491): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(492): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(493): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(494): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(476): warning C4267: 'initialisation' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(483): warning C4267: 'initialisation' : conversion de 'size_t' en 'uint32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(484): warning C4267: 'initialisation' : conversion de 'size_t' en 'uint32_t', perte possible de données
+  wrapper.c
+  Compilation en cours...
+  wrapper2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(48): warning C4311: 'cast de type' : troncation de pointeur de 'DtcCapture *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(48): warning C4302: 'cast de type' : troncation de 'DtcCapture *' à 'int'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(59): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(73): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(84): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(146): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(149): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+  Génération de code en cours
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1735): warning C4715: 'detect' : les chemins de contrôle ne retournent pas tous une valeur
+  All 3001 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Fin de la génération du code
   DeTeCt-MFC.vcxproj -> G:\Work\Impact\DeTeCt-PSWS\DeTeCt-MFC\x64\Release\DeTeCt.exe

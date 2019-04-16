@@ -32,6 +32,8 @@ CProgressCtrl CDeTeCtMFCDlg::progressBar;
 CListBox SendEmailDlg::outputLog;
 std::vector<LPCTSTR> SendEmailDlg::logMessages;
 
+CStatic c_Frame;
+
 // CAboutDlg dialog used for App About
 
 /**********************************************************************************************//**
@@ -70,6 +72,7 @@ public:
 	afx_msg void OnUpdateExitQuit(CCmdUI *pCmdUI);
 	afx_msg void OnBnClickedMfclink1();
 	afx_msg void OnBnClickedMfclink2();
+
 };
 
 /**********************************************************************************************//**
@@ -183,6 +186,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	//AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	//AFX_MANAGE_STATE(AFX_MODULE_STATE* pModuleState);
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
+
 }
 
 /**********************************************************************************************//**
@@ -217,6 +221,8 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_FILE_EXIT, &CDeTeCtMFCDlg::OnFileExit)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CDeTeCtMFCDlg::OnLbnSelchangeList1)
 	ON_COMMAND(ID_FILE_OPENFILE, &CDeTeCtMFCDlg::OnFileOpenfile)
+	ON_WM_GETMINMAXINFO()
+	ON_BN_CLICKED(IDC_FRAME, &CDeTeCtMFCDlg::OnBnClickedFrame)
 END_MESSAGE_MAP()
 
 
@@ -236,6 +242,10 @@ END_MESSAGE_MAP()
 BOOL CDeTeCtMFCDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	//Test WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
+	BOOL bOk;
+	int x_size, y_size;
 
 	// Add "About..." menu item to system menu.
 
@@ -263,13 +273,76 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	//SetIcon(m_hIcon, FALSE);		// Set small icon
 	HICON hIcon = LoadIcon(AfxGetInstanceHandle(), MAKEINTRESOURCE(IDR_MAINFRAME));
 	SetIcon(hIcon, FALSE);
-	SetWindowText(_T(FULL_PROGNAME));
 
+	// Set title bar
+	//SetWindowText(_T(FULL_PROGNAME));
 	std::wstring wstr(full_version.begin(), full_version.end());
 	SetWindowText(wstr.c_str());
 
+// Following does not work
+//	ModifyStyle(0, WS_MAXIMIZEBOX, SWP_FRAMECHANGED);  // enable maximize
+//	ModifyStyle(0, WS_MINIMIZEBOX, SWP_FRAMECHANGED);  // enable minimize
+//	ModifyStyle(1, WS_MAXIMIZEBOX);
+
+
+//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing) 
+  bOk = m_resizer.Hook(this);
+  ASSERT( bOk );
+
+//  bOk = m_resizer.SetAnchor(IDC_FRAME_MINSIZE, ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
+//   ASSERT( bOk );
+//  bOk = m_resizer.SetMinimumSize(IDC_FRAME_MINSIZE, CSize(600, 600));
+//   ASSERT( bOk );
+//	bOk = m_resizer.SetMaximumSize(IDC_FRAME_MINSIZE, CSize(800, 800));
+//   ASSERT( bOk ); 
+//  bOk = m_resizer.SetAnchor(IDC_FRAME_MINSIZE, ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
+//   ASSERT(bOk);
+
+// also set the min/max for this dlg. you have to use "" for the panel name
+//  bOk = m_resizer.SetAnchor(_T("_root"), ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
+//  ASSERT(bOk);
+  x_size = 441 + 221;
+  y_size = 267 + 168;
+  bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
+   ASSERT(bOk);
+
+//   bOk = m_resizer.SetMaximumSize(_T("_root"), CSize(700, 700));
+//   ASSERT(bOk);
+
+//   m_resizer.SetShowResizeGrip(TRUE);
+   bOk = m_resizer.InvokeOnResized();
+   ASSERT(bOk);
+
+//end
 
 	CenterWindow();
+
+/*
+HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
+	void DisableMinimizeButton(HWND hwnd)
+	{
+		SetWindowLong(hwnd, GWL_STYLE,
+			GetWindowLong(hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+	}
+
+	void EnableMinimizeButton(HWND hwnd)
+	{
+		SetWindowLong(hwnd, GWL_STYLE,
+			GetWindowLong(hwnd, GWL_STYLE) | WS_MINIMIZEBOX);
+	}
+
+	void DisableMaximizeButton(HWND hwnd)
+	{
+		SetWindowLong(hwnd, GWL_STYLE,
+			GetWindowLong(hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+	}
+
+	void EnableMaximizeButton(HWND hwnd)
+	{
+		SetWindowLong(hwnd, GWL_STYLE,
+			GetWindowLong(hwnd, GWL_STYLE) | WS_MAXIMIZEBOX);
+	}
+*/
 
 	// TODO: Add extra initialization here
 	std::wstringstream ss2,ss3;
@@ -1363,4 +1436,28 @@ void SendEmailDlg::OnBnClickedMfclink1()
 		NULL,
 		SW_SHOWNORMAL
 	);
+}
+
+void CDeTeCtMFCDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de messages et/ou les paramètres par défaut des appels
+	// Limits the size to the frame
+	// cf. http://www.flounder.com/getminmaxinfo.htm
+
+	if (c_Frame.GetSafeHwnd() != NULL)            // [1]
+	{	// has frame
+		CRect r;                                 // [2]
+		c_Frame.GetWindowRect(&r);               // [3]
+		ScreenToClient(&r);                      // [4]
+		CalcWindowRect(&r);                      // [5] 
+		lpMMI->ptMinTrackSize.x = r.Width();     // [6]
+		lpMMI->ptMinTrackSize.y = r.Height();    // [7]
+	}	// has frame
+	else
+		CDialog::OnGetMinMaxInfo(lpMMI);          // [8]
+}
+
+void CDeTeCtMFCDlg::OnBnClickedFrame()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 }

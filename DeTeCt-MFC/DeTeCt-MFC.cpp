@@ -195,6 +195,26 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 
+	HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
+	//   void DisableMinimizeButton(HWND hWnd)   {
+	//	   SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+	//   }
+
+	//   void EnableMinimizeButton(HWND hWnd) {
+	SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) | WS_MINIMIZEBOX);
+	//   }
+
+	//   void DisableMaximizeButton(HWND hWnd) {
+	//	   SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+	//   }
+
+	//   void EnableMaximizeButton(HWND hWnd) {
+	SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) | WS_MAXIMIZEBOX);
+	//   }
+
+
+
+
 	if (nResponse == IDOK)
 	{
 		// TODO: Place code here to handle when the dialog is

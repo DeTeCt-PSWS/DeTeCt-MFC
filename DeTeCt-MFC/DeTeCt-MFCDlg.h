@@ -11,6 +11,11 @@
 #include "afxcmn.h"
 #include "resource.h"
 
+//Test WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
+#include "WndResizer.h"
+
+
+
 const CString filter = _T("Video/image (*.ser,*.avi,*.wmv,*.m4v,*.as3,*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
 
 // CDeTeCtMFCDlg dialog
@@ -69,6 +74,12 @@ public:
 	afx_msg void OnFileOpenfile();
 	std::string scan_folder_path = {};
 	std::wstring max_mean_folder_path = {};
+	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
+	afx_msg void OnBnClickedFrame();
+
+//Test WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
+private:
+	CWndResizer m_resizer;
 };
 #pragma once
 

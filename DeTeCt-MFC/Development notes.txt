@@ -1,7 +1,6 @@
-Autostakkert .as3 session file format support
-Icon on title bar and on main window
+Resizable window (from WndResizer class)
+Autostakkert processing queue
 Messages changes
-Cleaning of messages
-Code cleaning
+Autostakkert alignement usage
 
 

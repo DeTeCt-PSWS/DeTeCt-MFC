@@ -4,4 +4,7 @@
     <LocalDebuggerCommandArguments>-automati G:\Work\Impact\dtc\movies\ser</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup>
+    <RESOURCE_FILE>DeTeCt-MFC.rc</RESOURCE_FILE>
+  </PropertyGroup>
 </Project>

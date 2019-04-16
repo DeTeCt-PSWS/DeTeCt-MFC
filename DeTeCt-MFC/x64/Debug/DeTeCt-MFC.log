@@ -1,13 +1,1 @@
-﻿  datation2.cpp
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): warning C4840: utilisation non portable de la classe 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>' en tant qu'argument d'une fonction variadique
-  g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): note: 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string' n'est pas trivial
-  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\xstring(2128): note: voir la déclaration de 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>::basic_string'
-  g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): note: le constructeur et le destructeur ne sont pas appelés ; une copie de la classe au niveau du bit est passée en tant qu'argument
-  c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\xstring(4373): note: voir la déclaration de 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>'
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\datation2.cpp(136): warning C4477: 'fprintf' : la chaîne de format '%s' nécessite un argument de type 'char *', mais l'argument variadique 1 est de type 'std::string'
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\dirent.h(347): warning C4505: '_wreaddir' : la fonction locale non référencée a été supprimée
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\dirent.h(522): warning C4505: 'opendir' : la fonction locale non référencée a été supprimée
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\dirent.h(592): warning C4505: 'readdir' : la fonction locale non référencée a été supprimée
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\dirent.h(675): warning C4505: 'closedir' : la fonction locale non référencée a été supprimée
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\dirent.h(702): warning C4505: 'rewinddir' : la fonction locale non référencée a été supprimée
-  DeTeCt-MFC.vcxproj -> G:\Work\Impact\DeTeCt-PSWS\DeTeCt-MFC\x64\Debug\DeTeCt.exe
+﻿

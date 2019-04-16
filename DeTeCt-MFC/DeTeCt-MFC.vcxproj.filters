@@ -109,6 +109,9 @@
     <ClInclude Include="fitsfmt.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WndResizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeTeCt-MFC.cpp">
@@ -188,6 +191,9 @@
     </ClCompile>
     <ClCompile Include="filefmt.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\WndResizerApp\WndResizerApp\WndResizerApp\WndResizer.cpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
