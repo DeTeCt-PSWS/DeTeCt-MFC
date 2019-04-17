@@ -782,11 +782,11 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				fps_int = (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FPS);
 			else
 				fps_int = (int)std::floor(0.5 + fps_real);
-			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initialising capture: " +
+			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initializing capture: " +
 				(CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps");
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 			CDeTeCtMFCDlg::getLog()->RedrawWindow();
-			output_log << getDateTime().str().c_str() << "Initialising capture:  " << nframe << " frames @ " << fps_int
+			output_log << getDateTime().str().c_str() << "Initializing capture:  " << nframe << " frames @ " << fps_int
 				<< " fps" << "\n";
 			output_log.flush();
 
@@ -1285,11 +1285,10 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			totalMean /= (nframe - frame_errors);
 
 			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-				L"Differential photometry has been done, running now impact detection...");
+				L"Differential photometry done, running impact detection...");
 			CDeTeCtMFCDlg::getLog()->RedrawWindow();
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-			output_log << getDateTime().str().c_str() << "Differential photometry has been done, will now analyse"
-				<< " for impact detection." << "\n";
+			output_log << getDateTime().str().c_str() << "Differential photometry done, running impact detection..." << "\n";
 			output_log.flush();
 
 			if (opts.darkfilename) {
@@ -1587,13 +1586,13 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				std::string line;
 				while (std::getline(str, line)) log_messages.push_back("    " + line);
 				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Computation time: " +
-					(CString)std::to_string(int(end - begin) / CLOCKS_PER_SEC).c_str() + " seconds." + L" Showing detection image..."
-					+ L" will be automatically closed in 4 seconds");
+					(CString)std::to_string(int(end - begin) / CLOCKS_PER_SEC).c_str() + " seconds," + L" showing detection image"
+					+ L" (automatically closed in 4 seconds)...");
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 				CDeTeCtMFCDlg::getLog()->RedrawWindow();
 				output_log << getDateTime().str().c_str() << "Computation time: " << std::to_wstring(int(end - begin) / CLOCKS_PER_SEC)
 					<< " seconds." << "\n";
-				output_log << getDateTime().str().c_str() << "Showing detection image..." << " will be automatically closed in 4 seconds"
+				output_log << getDateTime().str().c_str() << "Showing detection image" << " (automatically closed in 4 seconds)...."
 					<< "\n";
 				output_log.flush();
 
@@ -1701,23 +1700,23 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			log_messages.push_back(short_filename + ":");
 			log_messages.push_back("    " + logmessage);
 		}
-		message = "-------------- " + short_filename + " end --------------";
+		message = "--------- " + short_filename + " analyzis done ---------";
 		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
 		output_log << getDateTime().str().c_str() << message.c_str() << "\n";
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 		CDeTeCtMFCDlg::getLog()->RedrawWindow();
 	}
 	SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Analysis has been done");
-	output_log << getDateTime().str().c_str() << "Analysis has been done" << "\n";
+	//CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Analysis has been done");
+	//output_log << getDateTime().str().c_str() << "Analysis has been done" << "\n";
 	//dtcWriteWholeLog(logcation.c_str());
 	//dtcWriteWholeLog(logcation.c_str(), logs);
 	//dtcWriteWholeLog(logcation2.c_str(), logs);
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"The log is available at " +
+	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Log file is available at " +
 		(CString)logcation.c_str() + L"\\DeTeCt.log");
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
-	output_log << getDateTime().str().c_str() << "The log is available at " << logcation.c_str() << "\\DeTeCt.log" << "\n";
+	output_log << getDateTime().str().c_str() << "Log file is available at " << logcation.c_str() << "\\DeTeCt.log" << "\n";
 	output_log.close();
 	std::wstring output_log_file2(scan_folder_path.begin(), scan_folder_path.end());
 	output_log_file2 = output_log_file2.append(L"\\output.log");

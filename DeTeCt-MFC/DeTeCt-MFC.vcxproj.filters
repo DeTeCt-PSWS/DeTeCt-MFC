@@ -195,6 +195,9 @@
     <ClCompile Include="..\..\WndResizerApp\WndResizerApp\WndResizerApp\WndResizer.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="WndResizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DeTeCt-MFC.rc">

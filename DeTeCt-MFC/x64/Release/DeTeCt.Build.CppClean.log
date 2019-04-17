@@ -1,6 +1,7 @@
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\detect.pch
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\vc141.pdb
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\stdafx.obj
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\wndresizer.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\datation.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\common.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\detectthread.obj
@@ -26,7 +27,6 @@ g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\sendemaildlg.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\wrapper.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\serfmt.obj
 g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\wrapper2.obj
-g:\work\impact\detect-psws\detect-mfc\detect-mfc\x64\release\wndresizer.obj
 g:\work\impact\detect-psws\detect-mfc\x64\release\detect.ipdb
 g:\work\impact\detect-psws\detect-mfc\x64\release\detect.iobj
 g:\work\impact\detect-psws\detect-mfc\x64\release\detect.exe

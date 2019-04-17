@@ -309,7 +309,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 //   bOk = m_resizer.SetMaximumSize(_T("_root"), CSize(700, 700));
 //   ASSERT(bOk);
 
-//   m_resizer.SetShowResizeGrip(TRUE);
+   m_resizer.SetShowResizeGrip(TRUE);
    bOk = m_resizer.InvokeOnResized();
    ASSERT(bOk);
 

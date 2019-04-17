@@ -1,6 +1,15 @@
-Resizable window (from WndResizer class)
-Autostakkert processing queue
-Messages changes
+To be done:
 Autostakkert alignement usage
+Autostakkert processing queue
+
+Done:
+Main window not persistant
+Main window Maximize/minimize buttons added
+Main title bar standard style
+Messages changes
+WndResizer ressources added
+-------------------------------------------
+Resizable window (from WndResizer class)
+Messages changes
 
 
