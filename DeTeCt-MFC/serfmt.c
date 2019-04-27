@@ -32,13 +32,13 @@ SerCapture *serCaptureFromFile(const char *fname)
 	if (sc == NULL) {
 		assert(sc != NULL);
 	} else {
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile:  Created sercapture %d\n", (int)(sc)); }
+		if (opts.debug) { fprintf(stderr, "serCaptureFromFile:  Created sercapture %p\n", sc); }
 		if (!(sc->fh = fopen(fname, "rb")))
 		{
 			fprintf(stderr, "ERROR in serCaptureFromFile opening %s file\n", fname);
 			exit(EXIT_FAILURE);
 		}
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile:  Created fh %d\n", (int)(sc->fh)); }
+		if (opts.debug) { fprintf(stderr, "serCaptureFromFile:  Created fh %p\n", sc->fh); }
 
 		_fseeki64(sc->fh, 0L, SEEK_END);
 		long actual_file_size = _ftelli64(sc->fh);
@@ -146,7 +146,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 				sc->header.ImageWidth, sc->header.ImageHeight, depth, sc->nChannels);
 		}
 		sc->image = cvCreateImage(cvSize(sc->header.ImageWidth, sc->header.ImageHeight), depth, sc->nChannels);
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created Image %d\n", (int)(sc->image)); }
+		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created Image %p\n", sc->image); }
 		/*	sc->TimeStamp = calloc(sizeof (char), SER_DATETIME_SIZE);
 		assert(sc->TimeStamp != NULL);
 		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created TimeStamp %d\n",sc->TimeStamp); }*/
@@ -175,7 +175,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 			fprintf(stderr, "serCaptureFromFile: end\n");
 			serPrintHeader(sc);
 		}
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created ser %d\n", (int)(sc)); }
+		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created ser %p\n", sc); }
 		size_t im_size = sc->byte_depth == 2 ? sizeof(uint16_t) : sizeof(uint8_t);
 		sc->frame_data = calloc(im_size, sc->ImageBytes);
 		sc->mat_type = sc->byte_depth == 2 ?
@@ -291,14 +291,14 @@ void serReleaseCapture(SerCapture *sc)
 {
 	/* fprintf(stderr, "serReleaseCapture: Releasing imageData %d\n", sc->image->imageData);
 	free(sc->image->imageData);*/
-											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing fh %d\n",(int) (sc->fh)); }
+											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing fh %p\n",sc->fh); }
 	if (!(fclose(sc->fh)==0)) {
 		fprintf(stderr, "ERROR in serReleaseCapture closing capture file\n");
 		exit(EXIT_FAILURE);
 	}
 /*											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
 free(sc->image->imageData);*/
-											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %d size image %zd\n", (int) (sc->image), sizeof(*sc->image)); }
+											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %p size image %zd\n", sc->image, sizeof(*sc->image)); }
 	cvReleaseImage(&sc->image);
 	sc->image=NULL;
 /*											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image header %d\n", (int) (sc->image)); }
@@ -306,7 +306,7 @@ free(sc->image->imageData);*/
 											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Releasing TimeStamp %d\n", (int) (sc->TimeStamp)); }
 	free(sc->TimeStamp);
 	sc->TimeStamp=NULL;*/
-											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Releasing sc %d\n", (int) (sc)); }
+											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Releasing sc %p\n", sc); }
 	free(sc);
 	sc=NULL;
 											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Released sc\n"); }
@@ -354,7 +354,7 @@ double serDateTime_JD(unsigned char *headerfield)
 /*		fprintf(stderr,"serDateTime_JD: p %d\n", (*p));*/
 		DateTime=DateTime*256+(*p--);
 	}
-	DateTime=DateTime/10000000/60/60/24;
+	DateTime=DateTime/10000000/ONE_DAY_SEC;
 	
 	return DateTime+gregorian_calendar_to_jd(1,1,1,0,0,0);
 }

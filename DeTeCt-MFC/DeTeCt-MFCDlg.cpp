@@ -348,6 +348,10 @@ HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
 	std::wstringstream ss2,ss3;
 	StreamDeTeCtOSversions(&ss2);
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+	if (opts.dateonly) {
+		ss3 << "WARNING, datation info only monde on, no detection analysis will be performed";
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
+	}
 	if (!opts.interactive) {
 		ss3 << "Automatic mode on";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
@@ -454,7 +458,9 @@ HCURSOR CDeTeCtMFCDlg::OnQueryDragIcon()
 void CDeTeCtMFCDlg::OnBnClickedOk()
 {
 	if (file_list.size() > 0) {
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Running analysis");
+
+		if (opts.dateonly) 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis will be performed\n");
+		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Running analysis");
 		
 		/* C++ standard threading */
 		/*
@@ -507,9 +513,10 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 //TODO: clearscreen
 		ss2 << "Resetting file list and scanning " << folder_path << " for files to be analysed...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 		read_files(path, &file_list, &acquisition_file_list);
 		for (std::string filename : file_list) {
-			std::wstringstream ss;
+			std::wstringstream ss3;
 			bool fileexists = FALSE;
 			std::string filename_acquisition;
 
@@ -525,13 +532,14 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 			}
 			filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
 			if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
-				if (extension.compare(autostakkert_extension) != 0) ss << "Adding " << filename.c_str() << " for analysis";
-				else ss << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+				if (extension.compare(autostakkert_extension) != 0) ss3 << "Adding " << filename.c_str() << " for analysis";
+				else ss3 << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
 			}
 			else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
-				ss << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+				ss3 << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
 			}
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 		}
 		//		if (file_list.size() > 0) {
 		//			max_mean_folder_path = folder_path.append(L"\\Impact_detection");
@@ -539,6 +547,7 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 		//		}
 	}
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	this->RedrawWindow();
 	if (opts.dirname > 0) opts.dirname = NULL;
 	if (!opts.interactive) OnBnClickedOk();
@@ -828,7 +837,7 @@ void PrefDialog::OnBnClickedOk()
 	::WritePrivateProfileString(L"other", L"refmin", str, folder);
 	str.Empty();
 	impactMinTime.GetWindowTextW(str);
-	opts.incrFrameImpact = std::stof(str.GetString());
+	opts.incrFrameImpact = std::stoi(str.GetString());
 	::WritePrivateProfileString(L"impact", L"frames", str, folder);
 	str.Empty();
 	impactRadius.GetWindowTextW(str);
@@ -1008,8 +1017,8 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 //TODO: clearscreen
 		ss2 << "Resetting file list for analysis";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 
-		std::wstringstream ss;
 		bool fileexists = FALSE;
 		std::string filename_acquisition;
 
@@ -1034,7 +1043,7 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 			ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
 		}
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
-
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 
 //		if (opts.filename > 0) {
 //			ss << "Adding automatically " << file.c_str() << " for analysis";
@@ -1044,6 +1053,7 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 //		}
 	}
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	this->RedrawWindow();
 	if (opts.filename > 0) opts.filename = NULL;
 	if (!opts.interactive) OnBnClickedOk();

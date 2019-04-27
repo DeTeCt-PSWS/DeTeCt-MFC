@@ -1,3 +1,4 @@
+#pragma warning(disable : 4505)
 /*
  * dirent.h - dirent API for Microsoft Visual Studio
  *

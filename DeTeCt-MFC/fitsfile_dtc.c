@@ -1,3 +1,5 @@
+#pragma warning(disable : 4244)
+
 /*** File libwcs/fitsfile.c
  *** September 15, 2011
  *** By Jessica Mink, jmink@cfa.harvard.edu

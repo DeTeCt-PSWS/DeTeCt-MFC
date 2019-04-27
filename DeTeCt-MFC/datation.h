@@ -6,7 +6,7 @@
 #include "wrapper.h"
 
 
-#define ONE_DAY_SEC	86400	/* 24.0*60.0*60.0 */
+#define ONE_DAY_SEC	86400.0	/*86400= 24.0*60.0*60.0 */
 
 	enum _TIME_TYPE { LT, UT, Unknown };
 	typedef enum _TIME_TYPE TIME_TYPE;

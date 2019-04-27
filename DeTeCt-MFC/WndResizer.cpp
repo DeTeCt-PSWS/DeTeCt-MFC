@@ -1,3 +1,4 @@
+#pragma warning(disable: 4100 4189 4840 4458 4239)
 /*
 DISCLAIMER
 

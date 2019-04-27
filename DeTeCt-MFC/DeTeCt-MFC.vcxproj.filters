@@ -88,9 +88,6 @@
     <ClInclude Include="dtcas3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ini.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="datation2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -110,6 +107,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="WndResizer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wrapper3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -162,9 +162,6 @@
     <ClCompile Include="dtcas3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ini.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="SendEmailDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -192,10 +189,10 @@
     <ClCompile Include="filefmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\WndResizerApp\WndResizerApp\WndResizerApp\WndResizer.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="WndResizer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wrapper3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

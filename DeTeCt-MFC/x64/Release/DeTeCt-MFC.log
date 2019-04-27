@@ -1,8 +1,216 @@
-﻿C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(944,5): warning MSB8027: Deux ou plusieurs fichiers avec le nom WndResizer.cpp généreront des sorties vers le même emplacement. Cela peut entraîner une génération incorrecte. Les fichiers impliqués sont ..\..\WndResizerApp\WndResizerApp\WndResizerApp\WndResizer.cpp, WndResizer.cpp.
-x64\Release\WndResizer.obj : warning LNK4042: objet spécifié plus d'une fois ; définitions supplémentaires ignorées
+﻿  stdafx.cpp
+  common.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\common.c(130): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\common.c(145): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+  datation.c
+  Compilation en cours...
+  datation2.cpp
+  DeTeCt-MFC.cpp
+  DeTeCt-MFCDlg.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(306): warning C4239: extension non standard utilisée : 'argument' : conversion de 'CSize' en 'CSize &'
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(306): note: Une référence non const peut uniquement être liée à lvalue
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(567): warning C4100: 'pCmdUI' : paramètre formel non référencé
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(659): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(661): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(663): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(665): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(667): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(669): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(671): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(673): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(675): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(677): warning C4244: 'argument' : conversion de 'double' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1147): warning C4458: la déclaration de 'logMessages' masque le membre de classe
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.h(201): note: voir la déclaration de 'SendEmailDlg::logMessages'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1188): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1310): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1362): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1387): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\detect-mfcdlg.cpp(1412): warning C4244: '+=' : conversion de 'double' en 'float', perte possible de données
+  DetectThread.cpp
+  Compilation en cours...
+  dtc.c
+  Compilation en cours...
+  dtcas3.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcas3.cpp(72): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+  Compilation en cours...
+  filefmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(68): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(75): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(85): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(88): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(90): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(101): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(126): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(139): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(160): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(182): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\filefmt.c(357): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+  Compilation en cours...
+  filefmt2.cpp
+  Compilation en cours...
+  fitsfile_dtc.c
+  fitsfmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fitsfmt.c(33): warning C4267: '=' : conversion de 'size_t' en 'long', perte possible de données
+  hget.c
+  hput.c
+  iget.c
+  imio.c
+  stub.c
+  Compilation en cours...
+  dtcgui.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(391): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(273): warning C4100: 'fps' : paramètre formel non référencé
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(507): warning C4459: la déclaration de 'opts' masque la déclaration globale
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(26): note: voir la déclaration de 'opts'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(753): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(757): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(763): warning C4244: 'argument' : conversion de 'int' en 'short', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(976): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1220): warning C4018: '<=' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1239): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1248): warning C4244: 'argument' : conversion de 'double' en 'const _Ty', perte possible de données
+          with
+          [
+              _Ty=uchar
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1249): warning C4244: 'argument' : conversion de '_Tp' en 'const _Ty', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+          and
+          [
+              _Ty=uint16_t
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1250): warning C4244: 'argument' : conversion de '_Tp' en 'const _Ty', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+          and
+          [
+              _Ty=uint16_t
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1251): warning C4244: 'argument' : conversion de 'int' en '_Ty', perte possible de données
+          with
+          [
+              _Ty=uint16_t
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1252): warning C4244: 'argument' : conversion de 'int' en 'const _Ty', perte possible de données
+          with
+          [
+              _Ty=uint16_t
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(1313): warning C4244: 'initialisation' : conversion de 'const _Ty' en 'int', perte possible de données
+          with
+          [
+              _Ty=double
+          ]
+c:\program files (x86)\microsoft visual studio\2017\community\vc\tools\msvc\14.16.27023\include\algorithm(1443): warning C4244: '=' : conversion de 'int' en 'char', perte possible de données
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\dtcgui.cpp(142): note: voir la référence à l'instanciation de la fonction modèle '_OutIt std::transform<std::_String_iterator<std::_String_val<std::_Simple_types<_Ty>>>,std::_String_iterator<std::_String_val<std::_Simple_types<_Ty>>>,int(__cdecl *)(int)>(const _InIt,const _InIt,_OutIt,_Fn)' en cours de compilation
+          with
+          [
+              _OutIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>,
+              _Ty=char,
+              _InIt=std::_String_iterator<std::_String_val<std::_Simple_types<char>>>,
+              _Fn=int (__cdecl *)(int)
+          ]
+  img2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(153): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(308): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(327): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(345): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(359): warning C4244: '*=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(362): warning C4244: '*=' : conversion de 'double' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(444): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(460): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(480): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(497): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(610): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(828): warning C4244: 'initialisation' : conversion de '_Tp' en 'int', perte possible de données
+          with
+          [
+              _Tp=double
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(848): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(868): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(885): warning C4244: 'argument' : conversion de 'float' en 'size_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(937): warning C4267: 'initialisation' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(968): warning C4244: '=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(991): warning C4244: '=' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1396): warning C4244: 'argument' : conversion de 'double' en 'float', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1379): warning C4100: 'ign' : paramètre formel non référencé
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1556): warning C4244: 'argument' : conversion de 'float' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1565): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1566): warning C4244: 'argument' : conversion de 'float' en '_Tp', perte possible de données
+          with
+          [
+              _Tp=int
+          ]
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1753): warning C4100: 'tracking' : paramètre formel non référencé
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1752): warning C4100: 'difference' : paramètre formel non référencé
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1752): warning C4100: 'reference' : paramètre formel non référencé
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\img2.cpp(1752): warning C4100: 'original' : paramètre formel non référencé
+  Compilation en cours...
+  max.c
+  Compilation en cours...
+  SendEmailDlg.cpp
+  Compilation en cours...
+  serfmt.c
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(148): warning C4267: 'fonction' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(154): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(190): warning C4389: '==' : incompatibilité signed/unsigned
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(44): warning C4244: 'initialisation' : conversion de '__int64' en 'long', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(185): warning C4267: 'initialisation' : conversion de 'size_t' en 'long', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(491): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(492): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(493): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(494): warning C4267: '=' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(605): warning C4456: la déclaration de 'r' masque la déclaration locale précédente
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(488): note: voir la déclaration de 'r'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(605): warning C4456: la déclaration de 'g' masque la déclaration locale précédente
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(488): note: voir la déclaration de 'g'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(605): warning C4456: la déclaration de 'b' masque la déclaration locale précédente
+  g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(488): note: voir la déclaration de 'b'
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(476): warning C4267: 'initialisation' : conversion de 'size_t' en 'int32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(483): warning C4267: 'initialisation' : conversion de 'size_t' en 'uint32_t', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(484): warning C4267: 'initialisation' : conversion de 'size_t' en 'uint32_t', perte possible de données
+  Compilation en cours...
+  WndResizer.cpp
+  Compilation en cours...
+  wrapper.c
+  Compilation en cours...
+  wrapper2.cpp
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(59): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(73): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(84): warning C4267: '=' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(146): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\wrapper2.cpp(149): warning C4267: 'argument' : conversion de 'size_t' en 'int', perte possible de données
+  wrapper3.cpp
   Génération de code en cours
-  0 of 3002 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(571): warning C4701: variable locale 'r' potentiellement non initialisée utilisée
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(569): warning C4701: variable locale 'g' potentiellement non initialisée utilisée
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\serfmt.c(567): warning C4701: variable locale 'b' potentiellement non initialisée utilisée
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(179): warning C4706: assignation au sein d'une expression conditionnelle
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(181): warning C4706: assignation au sein d'une expression conditionnelle
+g:\work\impact\detect-psws\detect-mfc\detect-mfc\fits\hget.c(183): warning C4706: assignation au sein d'une expression conditionnelle
+  All 3017 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
   Fin de la génération du code
   DeTeCt-MFC.vcxproj -> G:\Work\Impact\DeTeCt-PSWS\DeTeCt-MFC\x64\Release\DeTeCt.exe

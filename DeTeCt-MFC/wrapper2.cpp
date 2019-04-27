@@ -45,7 +45,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 		assert(capt != NULL);
 	}
 	else {
-		if (opts.debug) { fprintf(stderr, "dtcCaptureFromFile: capt @ %d\n", (int)(capt)); }
+		if (opts.debug) { fprintf(stderr, "dtcCaptureFromFile: capt @ %p\n", capt); }
 		if (!strcmp(ext, "ser")) {
 			capt->type = CAPTURE_SER;
 			if (!(capt->u.sercapture = serCaptureFromFile(fname)))

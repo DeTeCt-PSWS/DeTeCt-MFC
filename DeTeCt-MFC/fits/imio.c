@@ -1,3 +1,5 @@
+#pragma warning(disable : 4244 4267 4131 4310)
+
 /*** File wcslib/imio.c
  *** October 30, 2012
  *** By Jessica Mink, jmink@cfa.harvard.edu

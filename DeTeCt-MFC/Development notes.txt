@@ -1,15 +1,35 @@
 To be done:
 Autostakkert alignement usage
 Autostakkert processing queue
-
-Done:
-Main window not persistant
-Main window Maximize/minimize buttons added
-Main title bar standard style
-Messages changes
-WndResizer ressources added
+Favor file_name date < file info
+Confidence @0 check
+Check correctness of video/image (ie planet or not)
+red and green cross not at the same place
+bug adding as3 file as duplicate
+--------------------------------------------------------------------------------------
+v3.1.5: usage of GetCreation/LastAccess/Time CFileFind class for file information (bug stat() not working on all files)
+confidence:	bug corrected
+interface:	automatic scroll of execution log when added folder/file
+datation:	file info start/end time bug correction 
+date only:	print log bug for Display date only; disclaimers
+autostakkert:check existence of as3 acquisition file
+code:		code cleaning and warnings checked
+--------------------------------------------------------------------------------------
+v3.1.4:  main window improved
+interface:	Main window not persistant
+interface:	Main window Maximize/minimize buttons added
+interface:	Main title bar standard style
+interface:	Messages changes
+code:		WndResizer ressources added
+--------------------------------------------------------------------------------------
+v3.1.3: resizable window (from WndResizer class)
+interface:	Messages changes
+--------------------------------------------------------------------------------------
+v3.1.2: autostakkert .as3 session file format support
+interface:	icon on title bar and on main window
+interface:	Messages changes
+interface:	cleaning of messages
+code:		code cleaning
+--------------------------------------------------------------------------------------
+v3.1.1: migration to MSVS17/github, opencv 2.4.13.6
 -------------------------------------------
-Resizable window (from WndResizer class)
-Messages changes
-
-

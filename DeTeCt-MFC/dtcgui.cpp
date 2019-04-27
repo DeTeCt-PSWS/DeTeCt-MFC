@@ -1,3 +1,5 @@
+#define _WIN32_WINNT _WIN32_WINNT_WINXP
+
 /********************************************************************************/
 /*                                                                              */
 /*			DTC	(c) Luis Calderon, Marc Delcroix, Jon Juaristi 2012-			*/
@@ -103,7 +105,6 @@ void GetOSversion(std::string *pos_version)
 void read_files(std::string folder, std::vector<std::string> *file_list, std::vector<std::string> *acquisition_file_list) {
 	DIR *directory;
 	struct dirent *entry;
-	std::string file;
 	std::string acquisition_file;
 
 	//        std::vector<std::string> non_supported_ext = { "bat", "exe", "log", "txt", "Jpg", "jpg", "Png", "png", "Tif", "tif",
@@ -163,14 +164,18 @@ void read_files(std::string folder, std::vector<std::string> *file_list, std::ve
 				}
 			}
 			else if (std::find(supported_otherext.begin(), supported_otherext.end(), extension) != supported_otherext.end()) {
-				file_list->push_back(folder + "\\" + entry->d_name);
 				if (extension.compare(autostakkert_extension) == 0) {
 					std::vector<cv::Point> cm_list;
 
 					read_autostakkert_file(folder + "\\" + file, &acquisition_file, &cm_list);
-					acquisition_file_list->push_back(acquisition_file);
+
+					if (acquisition_file.length() >0) {
+						file_list->push_back(folder + "\\" + entry->d_name);
+						acquisition_file_list->push_back(acquisition_file);
+					}
 				}
 				else {
+					file_list->push_back(folder + "\\" + entry->d_name);
 					acquisition_file_list->push_back(folder + "\\" + entry->d_name);
 				}
 			}
@@ -181,7 +186,7 @@ void read_files(std::string folder, std::vector<std::string> *file_list, std::ve
 	file_list->begin();
 	acquisition_file_list->begin();
 	for (int i = 0; i < file_list->size(); i++) {
-		file = file_list->at(i);
+		std::string file = file_list->at(i);
 		std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
 		if (extension.compare(autostakkert_extension) == 0) {
 			int j = 0;
@@ -504,9 +509,9 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	cv::setUseOptimized(true);
 	std::string logcation(scan_folder_path);
 	std::string logcation2(scan_folder_path);
-	std::string start_time = getRunTime().str().c_str();
-	std::wstring wstart_time = std::wstring(start_time.begin(), start_time.end());
-	logcation2.append("\\Impact_detection_run@").append(start_time);
+	std::string start_runtime = getRunTime().str().c_str();
+	std::wstring wstart_time = std::wstring(start_runtime.begin(), start_runtime.end());
+	logcation2.append("\\Impact_detection_run@").append(start_runtime);
 	std::vector<int> img_save_params = { CV_IMWRITE_JPEG_QUALITY, 100 };
 	
 	std::wstring detection_folder_path = {};
@@ -541,6 +546,9 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	std::vector<LogInfo> logs;
 	std::vector<LPCTSTR> logMessages;
 	std::vector<std::string> log_messages;
+	
+	log_messages.push_back("WARNING, datation info only, no detection analysis was performed");
+	log_messages.push_back("");
 
 	std::string logmessage;
 	std::wstring wlogmessage;
@@ -773,8 +781,10 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 				pCapture = NULL;
 				logmessage = "INFO: only " + std::to_string(nframe) + " frames (minimum is " + std::to_string(opts.minframes) + 
 					"), stopping processing\n";
-				log_messages.push_back(short_filename + ":");
-				log_messages.push_back("    " + logmessage);
+				if (!opts.dateonly) {
+					log_messages.push_back(short_filename + ":");
+					log_messages.push_back("    " + logmessage);
+				}
 				continue;
 			}
 			dtcGetDatation(pCapture, opts.filename, nframe, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
@@ -791,8 +801,10 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			output_log.flush();
 
 			if (opts.dateonly) {
-				if (nframe > 0)
-					dtcWriteLog(opts.filename, start_time, end_time, duration, fps_real, timetype, opts.filename, comment, -1, 1);
+				//dtcWriteLog(opts.filename, start_time, end_time, duration, fps_real, timetype, opts.filename, comment, -1, 1);
+				LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, "WARNING, datation info only", 0, 0);
+				dtcWriteLog2(logcation, info);
+				dtcWriteLog2(logcation2, info);
 				dtcReleaseCapture(pCapture);
 				pCapture = NULL;
 				continue;
@@ -1379,7 +1391,8 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 
 			double impact_frames = (&outdtc)->nMaxFrame - (&outdtc)->nMinFrame;
 			double log10_value = impact_frames != 0 ? std::log10((impact_frames / (opts.incrFrameImpact)) * 10) : 0;
-			double confidence = (brightness_factor / opts.incrLumImpact) * log10_value;
+			double confidence = 0;
+			if (log10_value>0) confidence = (brightness_factor / opts.incrLumImpact) * log10_value;
 			//double confidence = (stdev / opts.incrLumImpact) * log10_value;
 
 			if (nframe > 0) {
@@ -1714,21 +1727,25 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	//dtcWriteWholeLog(logcation2.c_str(), logs);
 	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Log file is available at " +
 		(CString)logcation.c_str() + L"\\DeTeCt.log");
+	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis was performed\n");
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
 	output_log << getDateTime().str().c_str() << "Log file is available at " << logcation.c_str() << "\\DeTeCt.log" << "\n";
+	if (opts.dateonly) 	output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";
 	output_log.close();
 	std::wstring output_log_file2(scan_folder_path.begin(), scan_folder_path.end());
 	output_log_file2 = output_log_file2.append(L"\\output.log");
 	std::wofstream output_log2(output_log_file2.c_str());
 	std::wifstream output_log_in(output_log_file.c_str());
+	output_log2 << "WARNING, datation info only, no detection analysis was performed\n"; 
 	output_log2 << output_log_in.rdbuf();
-	output_log2.close();
+	output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";output_log2.close();
 //DBOUT("Interactive=" << opts.interactive << "\n");
 	if (opts.interactive) {
 		email->DoModal();
 	} else {
-		CDeTeCtMFCDlg:dlg.OnFileExit();
+		dlg.OnFileExit();
 		//m_pMainWnd->DestroyWindows();
 	}
+	return TRUE;
 }

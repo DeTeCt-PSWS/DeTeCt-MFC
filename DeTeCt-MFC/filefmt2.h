@@ -56,12 +56,12 @@ typedef struct _FileCapture FileCapture;
 /*									Procedures and functions										*/
 /****************************************************************************************************/
 
-FileCapture	*FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type);
-void 		fileReinitCaptureRead(FileCapture *fc, const char *fname);
-cv::Mat 	fileQueryFrame(FileCapture *fc, const int ignore, int *perror);
-void 		fileGet_info(FileCapture *fc, const char *fname, double *date);
-void 		fileReleaseCapture(FileCapture *fc);
-void 		fileGenerate_filename(char *dest, FileCapture *fc, int nb);
+//FileCapture	*FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type);
+//void 		fileReinitCaptureRead(FileCapture *fc, const char *fname);
+//cv::Mat 	fileQueryFrame(FileCapture *fc, const int ignore, int *perror);
+//void 		fileGet_info(FileCapture *fc, const char *fname, double *date);
+//void 		fileReleaseCapture(FileCapture *fc);
+//void 		fileGenerate_filename(char *dest, FileCapture *fc, int nb);
 void 		fileGet_filename(char *dest, FileCapture *fc, int nb);
 void 		fileGenerate_number(char *dest, FileCapture *fc, int nb);
 

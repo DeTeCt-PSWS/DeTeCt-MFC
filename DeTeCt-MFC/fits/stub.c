@@ -1,3 +1,5 @@
+#pragma warning(disable: 4100)
+
 int isiraf(char *filename) /* return 1 if IRAF imh file, else 0 */
 {
 	return 0;

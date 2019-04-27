@@ -6,7 +6,7 @@
 #include "DeTeCt-MFC.h"
 #include "DeTeCt-MFCDlg.h"
 #include "dtcas3.h"
-#include "ini.h"
+//#include "ini.h"
 #include "cmdline.h"
 
 //#include <iostream>

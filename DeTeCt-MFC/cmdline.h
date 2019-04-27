@@ -74,8 +74,8 @@
 
 	extern OPTS opts;
 
-	void parse_command_line_options(int argc, char **argv, OPTS *opts);
+	//void parse_command_line_options(int argc, char **argv, OPTS *opts);
 
-	char *get_arg(char ***argv);
+	//char *get_arg(char ***argv);
 
 #endif /* __CMDLINE_H__ */

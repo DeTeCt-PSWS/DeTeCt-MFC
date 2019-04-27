@@ -75,6 +75,7 @@ void fprint_jd_wj(std::ofstream *stream, const double jd)
  * @param	nb_impact 	The nb impact.
  * @param	print	  	The print.
  **************************************************************************************************/
+/*
 void dtcWriteWholeLog(std::string location, const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print)
 {
 	std::string dtclogfilename(dtcexename);
@@ -174,6 +175,7 @@ void dtcWriteWholeLog(std::string location, const char *dtcexename, const double
 		printf("(%s)\n", comment);
 	}
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	void dtcWriteWholeLog2(std::string location, std::vector<LogInfo> videos_info)

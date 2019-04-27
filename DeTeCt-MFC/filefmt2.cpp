@@ -36,6 +36,7 @@ extern "C" {
  * @return	Null if it fails, else a pointer to a FileCapture.
  **************************************************************************************************/
 
+/*
 FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type)
 {
 	FileCapture *fc;
@@ -49,7 +50,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	int	i;
 	int position_found;
 
-	/* Init */
+	// Init 
 	fc = (FileCapture *) calloc(sizeof(FileCapture), 1);
 	assert(fc != NULL);
 
@@ -79,8 +80,8 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	init_string(fc->filename_trail);
 	position_found = -1;
 
-	/* Look for number syntax */
-	if ((!(strrstr(fname, "1.") == NULL)) && (strlen(strrstr(fname, "1.")) == (strlen("1.") + strlen(fc->filename_ext)))) {	/* *0.* */
+	// Look for number syntax 
+	if ((!(strrstr(fname, "1.") == NULL)) && (strlen(strrstr(fname, "1.")) == (strlen("1.") + strlen(fc->filename_ext)))) {	// *0.* 
 		fc->FirstFileIdx = 1;
 		i = (strlen(fname) - strlen(strrstr(fname, "1.") - 1));
 		while ((fname[i] == '0') && (i >= 0)) {
@@ -88,7 +89,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			i--;
 		}
 	}
-	else if ((!(strrstr(fname, "0.") == NULL)) && (strlen(strrstr(fname, "0.")) == (strlen("0.") + strlen(fc->filename_ext)))) {	/* *1.* */
+	else if ((!(strrstr(fname, "0.") == NULL)) && (strlen(strrstr(fname, "0.")) == (strlen("0.") + strlen(fc->filename_ext)))) {	// *1.* 
 		fc->FirstFileIdx = 0;
 		i = (strlen(fname) - strlen(strrstr(fname, "0.") - 1));
 		while ((fname[i] == '0') && (i >= 0)) {
@@ -126,18 +127,18 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			position_found = 0;
 		}
 	}
-	if (position_found<0) {	/* *0* */
+	if (position_found<0) {	// *0* 
 		fc->LeadingZeros = 10;
 		for (i = 0; i<fc->LeadingZeros; first_nb[i++] = '0');
 		first_nb[i] = '\0';
 		while ((fc->LeadingZeros>0) && (InRstr(filename_root, first_nb)<0)) {
-			/*										if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: Leading zeros %d first_nb %s\n", fc->LeadingZeros, first_nb); }*/
+			//										if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: Leading zeros %d first_nb %s\n", fc->LeadingZeros, first_nb); }
 			fc->LeadingZeros--;
 			first_nb[fc->LeadingZeros] = '\0';
 		}
 		first_nb[fc->LeadingZeros] = '1';
 		first_nb[fc->LeadingZeros + 1] = '\0';
-		if (InRstr(filename_root, first_nb) >= 0) { /* *01* */
+		if (InRstr(filename_root, first_nb) >= 0) { // *01* 
 			fc->FirstFileIdx = 1;
 		}
 		else if (fc->LeadingZeros>0) {
@@ -166,14 +167,14 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	fc->LastFileIdx = fc->FirstFileIdx;
 	if (fc->FirstFileIdx >= 0) {
 		//									if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: File syntax %s*%s.%s (%d vs %d vs %d), leading zeros %d\n", fc->filename_head, fc->filename_trail, fc->filename_ext, strlen(fname), strlen(fc->filename_rac), strlen(fc->filename_ext),fc->LeadingZeros); }
-		/* Look for last file */
+		// Look for last file 
 		fc->LastFileIdx = (*pframecount) - 1 + fc->FirstFileIdx;
 		if (fc->LastFileIdx<fc->FirstFileIdx) {
 			frame_idx = fc->FirstFileIdx - 1;
 			do {
 				frame_idx++;
 				fileGet_filename(filename_tmp, fc, frame_idx);
-				/*										if (opts.debug) { fprintf(stderr,"FileCaptureFromFile: Checking frame %d\n",frame_idx); }*/
+				//										if (opts.debug) { fprintf(stderr,"FileCaptureFromFile: Checking frame %d\n",frame_idx); }
 			} while (strlen(filename_tmp)>0);
 			fc->LastFileIdx = frame_idx - 1;
 		}
@@ -188,7 +189,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		exit(EXIT_FAILURE);
 	}
 	else {
-		/* Reads information from first file */
+		// Reads information from first file 
 		switch (fc->FileType) {
 		case CAPTURE_FITS:
 			fileGet_info(fc, fname, &fc->StartTimeUTC_JD);
@@ -221,7 +222,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		}
 		if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
 		if (fc->FrameCount>1) {
-			/* Reads information from last file */
+			// Reads information from last file 
 			fileGet_filename(filename_tmp, fc, fc->LastFileIdx);
 			if (!(fc->fh = fopen(filename_tmp, "rb"))) {
 				fprintf(stderr, "ERROR in FileCaptureFromFile opening %s file...\n", filename_tmp);
@@ -238,14 +239,14 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				}
 				break;
 			case CAPTURE_FILES:
-				/*				fileGet_info(fc, filename_tmp, &fc->EndTime_JD); */
+				//				fileGet_info(fc, filename_tmp, &fc->EndTime_JD); 
 				if (stat(filename_tmp, &teststat_end) >= 0) {
 					fc->EndTime_JD = JD_from_time_t(teststat_end.st_mtime);
 					if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
 				}
 				break;
 			}
-			/* Cleaning */
+			// Cleaning 
 			if (fclose(fc->fh) != 0) {
 				fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
 				exit(EXIT_FAILURE);
@@ -254,6 +255,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	}
 	return fc;
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	void fileReinitCaptureRead(FileCapture *fc, const char *fname)
@@ -267,6 +269,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
  * @param 		  	fname	Filename of the file.
  **************************************************************************************************/
 
+/*
 void fileReinitCaptureRead(FileCapture *fc, const char *fname)
 {
 	fc->frame = -1;
@@ -276,6 +279,7 @@ void fileReinitCaptureRead(FileCapture *fc, const char *fname)
 		exit(EXIT_FAILURE);
 	}
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
@@ -292,6 +296,7 @@ void fileReinitCaptureRead(FileCapture *fc, const char *fname)
  * @return	A cv::Mat.
  **************************************************************************************************/
 
+/*
 cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 {
 	cv::Mat old_image;
@@ -362,7 +367,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 		break;
 	case CAPTURE_FILES:
 		old_image = fc->image;
-		/*			fprintf(stderr, "fileQueryFrame: reading frame %d\n", fc->frame);*/
+		//			fprintf(stderr, "fileQueryFrame: reading frame %d\n", fc->frame);
 		if ((fc->image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
 			if (!ignore) {
 				fprintf(stderr, "ERROR in fileQueryFrame reading frame %d\n", fc->frame);
@@ -392,6 +397,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 
 	return fc->image;
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
@@ -523,6 +529,7 @@ cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
  * @param [in,out]	date 	If non-null, the date.
  **************************************************************************************************/
 
+/*
 void fileGet_info(FileCapture *fc, const char *fname, double *date)
 {
 	(*date) = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0.0);
@@ -544,6 +551,7 @@ void fileGet_info(FileCapture *fc, const char *fname, double *date)
 	fc->BytesPerPixel = fc->PixelDepth > 8 ? 2 : 1;
 	fc->ImageBytes = fc->ImageWidth * fc->ImageHeight * fc->BytesPerPixel;
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	void fileReleaseCapture(FileCapture *fc)
@@ -556,12 +564,13 @@ void fileGet_info(FileCapture *fc, const char *fname, double *date)
  * @param [in,out]	fc	If non-null, the fc.
  **************************************************************************************************/
 
+/*
 void fileReleaseCapture(FileCapture *fc)
 {
-	/*	if (fclose(fc->fh)!=0) {
-	fprintf(stderr, "ERROR in fileReleaseCapture: closing capture file\n");
-	exit(EXIT_FAILURE);
-	}*/
+	//	if (fclose(fc->fh)!=0) {
+	//fprintf(stderr, "ERROR in fileReleaseCapture: closing capture file\n");
+	//exit(EXIT_FAILURE);
+	//}
 	switch (fc->FileType) {
 	case CAPTURE_FITS:
 		free(fc->image.data);
@@ -573,6 +582,7 @@ void fileReleaseCapture(FileCapture *fc)
 	}
 	free(fc);
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
@@ -586,7 +596,7 @@ void fileReleaseCapture(FileCapture *fc)
  * @param [in,out]	fc  	If non-null, the file capture.
  * @param 		  	nb  	The nb.
  **************************************************************************************************/
-
+/*
 void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
 {
 	char nbstring[MAX_STRING];
@@ -600,7 +610,7 @@ void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
 	sprintf(nbstring, "%d%s.%s", nb, fc->filename_trail, fc->filename_ext);
 	strcat(dest, nbstring);
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	void fileGet_filename(char *dest, FileCapture *fc, int nb)
  *

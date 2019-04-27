@@ -15,6 +15,7 @@
 #include "datation.h"
 #include "wrapper.h"
 #include "dtc.h"
+#include "wrapper3.h"
 
 const double FPS_MIN		=	0.01;
 const double FPS_MAX		=	2000.0;
@@ -678,11 +679,11 @@ void dtcWriteLog(const char *dtcexename, const double start_time, const double e
 
 void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const int nbframes, double *pstart_time, double *pend_time, double *pDuration, double *pfps)
 {
-	time_t	start_time_t;
-	time_t	end_time_t;
-	struct tm *pstart_time_tm;
-	struct tm *pend_time_tm;
-	struct stat videofile_info;
+	//time_t	start_time_t;
+	//time_t	end_time_t;
+	//struct tm *pstart_time_tm;
+	//struct tm *pend_time_tm;
+	//struct stat videofile_info;
 	double	duration_tmp;
 	int		nbframes_opencv;
 	
@@ -697,31 +698,41 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 		default: // CAPTURE_CV
 			(*pfps) = dtcGetCaptureProperty(capture, CV_CAP_PROP_FPS);
 			nbframes_opencv = (int) floor(0.5+dtcGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT));
-	}	
+	}
+	
+	GetCreatedModifiedTimes(filename, pstart_time, pend_time);
 
-	if (InStr(filename,"-DeRot.")<0) {
-		stat(filename, &videofile_info);
-		start_time_t=videofile_info.st_ctime;
-		end_time_t=videofile_info.st_mtime;
-		pend_time_tm=localtime(&end_time_t);
-		(*pend_time)=gregorian_calendar_to_jd(pend_time_tm->tm_year+1900, pend_time_tm->tm_mon+1, pend_time_tm->tm_mday, pend_time_tm->tm_hour, pend_time_tm->tm_min, (double) (pend_time_tm->tm_sec));
-//		duration_tmp=(double) (difftime(videofile_info.st_mtime,videofile_info.st_ctime));
-		duration_tmp=(double) (videofile_info.st_mtime-videofile_info.st_ctime);
-		if ((duration_tmp<12.0*60.0*60.0) && (duration_tmp>DURATION_MIN))  {
-			pstart_time_tm=localtime(&start_time_t);
-			(*pstart_time)=gregorian_calendar_to_jd(pstart_time_tm->tm_year+1900, pstart_time_tm->tm_mon+1, pstart_time_tm->tm_mday, pstart_time_tm->tm_hour, pstart_time_tm->tm_min, (double) (pstart_time_tm->tm_sec));
-			(*pDuration)=duration_tmp;
-		} else if ((*pfps)>FPS_MIN) {
-			if (nbframes>nbframes_opencv) {
-				(*pDuration)=nbframes/(*pfps);
-			} else {
-				(*pDuration)=nbframes_opencv/(*pfps);
-			}
-			(*pstart_time)=(*pend_time)-(*pDuration)/ONE_DAY_SEC;
-		} else  {
-			(*pstart_time)=gregorian_calendar_to_jd(1,1,1,0,0,0);
+	if (InStr(filename, "-DeRot.") < 0) {
+		//stat(filename, &videofile_info);
+		//start_time_t=videofile_info.st_ctime;
+		//end_time_t=videofile_info.st_mtime;
+		//pend_time_tm=localtime(&end_time_t);
+		duration_tmp = (double)(((*pend_time) - (*pstart_time))*ONE_DAY_SEC);
+		//duration calculation
+		if ((duration_tmp < DURATION_MAX / 2) && (duration_tmp > DURATION_MIN)) {
+			//duration correct, keeping start and end time
+			(*pDuration) = duration_tmp;
 		}
-//(*pstart_time)=gregorian_calendar_to_jd(pstart_time_tm->tm_year+1900, pstart_time_tm->tm_mon+1, pstart_time_tm->tm_mday, pstart_time_tm->tm_hour, pstart_time_tm->tm_min, (double) (pstart_time_tm->tm_sec));
+		//duration incorrect, estimation from nb of frames and fps
+		else {
+			if ((*pfps) > FPS_MIN) {
+				if (nbframes > nbframes_opencv) {
+					(*pDuration) = nbframes / (*pfps);
+				}
+				else {
+					(*pDuration) = nbframes_opencv / (*pfps);
+				}
+			}
+			else {
+				(*pDuration) = 0;
+			}
+			if ((*pstart_time) > (*pend_time)) {
+				(*pstart_time) = (*pend_time) - (*pDuration) / ONE_DAY_SEC;
+			}
+			else {
+				(*pend_time) = (*pstart_time) + (*pDuration) / ONE_DAY_SEC;
+			}
+		}
 	}
 }
 
@@ -885,7 +896,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 			sec_log=(double) (plog_time_tm->tm_sec);
 			jd_log=gregorian_calendar_to_jd(year_log, month_log, day_log, hour_log, min_log, sec_log);
 
-			timezone=abs(round((jd_log-(*jd_start_time_loginfo))*24));
+			timezone=abs((int) round((jd_log-(*jd_start_time_loginfo))*24));
 			if ((timezone>=1) && (timezone<=12)) { 
 				(*plogtimezone)=UT;
 				timezone=0;

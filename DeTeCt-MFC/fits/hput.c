@@ -1,3 +1,5 @@
+#pragma warning(disable : 4244 4131)
+
 /*** File libwcs/hput.c
  *** September 9, 2011
  *** By Jessica Mink, jmink@cfa.harvard.edu

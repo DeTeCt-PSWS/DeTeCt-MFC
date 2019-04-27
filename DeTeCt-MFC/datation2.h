@@ -45,7 +45,7 @@ struct _LogInfo {
 
 typedef struct _LogInfo LogInfo;
 
-void dtcWriteWholeLog(std::string location, const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print);
+//void dtcWriteWholeLog(std::string location, const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print);
 
 void dtcWriteLogHeader(std::string location);
 

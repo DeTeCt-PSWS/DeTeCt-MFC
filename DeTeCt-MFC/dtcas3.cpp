@@ -35,6 +35,16 @@ void read_autostakkert_file(std::string configfile, std::string *filename, std::
 	for (std::string line : read_txt(configfile)) {
 		read_autostakkert_config_line(line, filename, cm_list);
 	}
+	
+	//test if filename exists with full name or at the same directory as configfile
+	std::ifstream filetest(filename->c_str());
+	if (!filetest) {
+		std::string acquisition_file2(filename->c_str());
+		(*filename) = configfile.substr(0, configfile.find_last_of("\\") + 1) + acquisition_file2.substr(acquisition_file2.find_last_of("\\") + 1, acquisition_file2.length());
+		std::ifstream filetest2(filename->c_str());
+		if (filetest2) filetest2._close();
+		else (*filename) = "";
+	} else filetest._close();
 }
 
 void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list) {

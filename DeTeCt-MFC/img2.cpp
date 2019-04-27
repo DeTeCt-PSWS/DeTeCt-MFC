@@ -32,7 +32,7 @@ void printtbuf(double *uc, size_t s);
  * @param [in,out]	width 	If non-null, the ROI's width.
  * @param [in,out]	height	If non-null, the ROI's height.
  **************************************************************************************************/
-
+/*
 void dtcGetROI(Image img, int *xorig, int *yorig, int *width, int *height)
 {
 	if (img.roi.area()) {
@@ -48,6 +48,7 @@ void dtcGetROI(Image img, int *xorig, int *yorig, int *width, int *height)
 		*height = img.frame.rows;
 	}
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	cv::Point dtcGetCM(cv::Mat img)
@@ -61,7 +62,7 @@ void dtcGetROI(Image img, int *xorig, int *yorig, int *width, int *height)
  *
  * @return	A cv::Point defining the CM.
  **************************************************************************************************/
-
+/*
 cv::Point dtcGetCM(cv::Mat img)
 {
 	double xcm = 0, ycm = 0, Y = 0, l;
@@ -88,7 +89,7 @@ cv::Point dtcGetCM(cv::Mat img)
 
 	return cv::Point((int)floor(xcm / Y), (int)floor(ycm / Y));
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::Point dtcGetGrayCM(cv::Mat img)
  *
@@ -101,7 +102,7 @@ cv::Point dtcGetCM(cv::Mat img)
  *
  * @return	A cv::Point which defines the CM.
  **************************************************************************************************/
-
+/*
 cv::Point dtcGetGrayCM(cv::Mat img)
 {
 	double xcm = 0, ycm = 0, Y = 0;
@@ -123,7 +124,7 @@ cv::Point dtcGetGrayCM(cv::Mat img)
 
 	return cvPoint((int)floor(xcm / Y), (int)floor(ycm / Y));
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::Point dtcGetGrayMatCM(cv::Mat mat)
  *
@@ -181,7 +182,7 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
  *
  * @return	A cv::Rect which defines the ROI.
  **************************************************************************************************/
-
+/*
 cv::Rect dtcGetImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double fact, double secfact)
 {
 	uchar *src, *tsrc;
@@ -270,7 +271,7 @@ cv::Rect dtcGetImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double fact
 
 	return cv::Rect(cm.x - hwd / 2, cm.y - hht / 2, hwd, hht);
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double fact, double secfact)
  *
@@ -537,7 +538,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
  *
  * @return	A cv::Rect.
  **************************************************************************************************/
-
+/*
 cv::Rect dtcGetGrayImageROIcCM3(cv::Mat img, cv::Point cm, float medsize, double fact, double secfact)
 {
 	cv::Mat frame;
@@ -581,6 +582,7 @@ cv::Rect dtcGetGrayImageROIcCM3(cv::Mat img, cv::Point cm, float medsize, double
 	window_lower_right_corner.y = window_upper_left_corner.y + ((cm.y - window_upper_left_corner.y) * 2);
 	return cv::Rect(window_upper_left_corner, window_lower_right_corner);
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	cv::Mat dtcApplyMask(cv::Mat img)
@@ -641,7 +643,7 @@ cv::Mat dtcApplyMask(cv::Mat img) {
 *
 * @return	A cv::Mat with the masked frame.
 **************************************************************************************************/
-
+/*
 void dtcApplyMaskToFrame(cv::Mat img) {
 	int sx, sy; // size of the image
 	double min_brightness, max_brightness;
@@ -668,6 +670,7 @@ void dtcApplyMaskToFrame(cv::Mat img) {
 	background.release();
 	background = NULL;
 }
+*/
 
 /**********************************************************************************************//**
 * @fn	cv::Mat dtcGetMask(cv::Mat img)
@@ -681,7 +684,7 @@ void dtcApplyMaskToFrame(cv::Mat img) {
 *
 * @return	A cv::Mat with the mask.
 **************************************************************************************************/
-
+/*
 cv::Mat dtcGetMask(cv::Mat img) {
 	int sx, sy; // size of the image
 	double min_brightness, max_brightness;
@@ -711,7 +714,7 @@ cv::Mat dtcGetMask(cv::Mat img) {
 	background = NULL;
 	return mask;
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::Rect dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Rect current_roi, int *x_offset, int *y_offset)
  *
@@ -728,7 +731,7 @@ cv::Mat dtcGetMask(cv::Mat img) {
  *
  * @return	A cv::Rect which delimits the new ROI.
  **************************************************************************************************/
-
+/*
 cv::Rect dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Rect current_roi, int *x_offset, int *y_offset) {
 
 	cv::Mat img, region, newRoi;
@@ -758,7 +761,7 @@ cv::Rect dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Rect current_roi, int *
 	return current_roi;
 
 }
-
+*/
 cv::Rect dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Point roi_tl_coords, cv::Size roi_size) {
 
 	cv::Mat img, region, corrMat;
@@ -1014,7 +1017,7 @@ cv::Rect dtcGetGrayMatROIcCM(cv::Mat *img, cv::Point cm, int medsize, double fac
  *
  * @return	A cv::Mat.
  **************************************************************************************************/
-
+/*
 cv::Mat dtcLumThreshold_ToZero2(Image imgsrc, Image imgdst, double threshold)
 {
 	int xorig, yorig, width, height;
@@ -1040,6 +1043,7 @@ cv::Mat dtcLumThreshold_ToZero2(Image imgsrc, Image imgdst, double threshold)
 
 	return imgsrc.frame;
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	double dtcGetImageLum(Image img)
@@ -1053,7 +1057,7 @@ cv::Mat dtcLumThreshold_ToZero2(Image imgsrc, Image imgdst, double threshold)
  *
  * @return	A double.
  **************************************************************************************************/
-
+/*
 double dtcGetImageLum(Image img)
 {
 	int xorig, yorig, width, height;
@@ -1088,6 +1092,7 @@ double dtcGetImageLum(Image img)
 
 	return lum / (height * width);
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	DtcImageVals dtcGetImageVals(Image img)
@@ -1101,7 +1106,7 @@ double dtcGetImageLum(Image img)
  *
  * @return	The DtcImageVals.
  **************************************************************************************************/
-
+/*
 DtcImageVals dtcGetImageVals(Image img)
 {
 	int xorig, yorig, width, height;
@@ -1139,7 +1144,7 @@ DtcImageVals dtcGetImageVals(Image img)
 
 	return vals;
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	DtcImageVals dtcGetGrayImageVals(Image img)
  *
@@ -1152,7 +1157,7 @@ DtcImageVals dtcGetImageVals(Image img)
  *
  * @return	The DtcImageVals.
  **************************************************************************************************/
-
+/*
 DtcImageVals dtcGetGrayImageVals(Image img)
 {
 	int xorig, yorig, width, height;
@@ -1189,7 +1194,7 @@ DtcImageVals dtcGetGrayImageVals(Image img)
 
 	return vals;
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::Rect dtcMaxRect(cv::Rect one, cv::Rect two)
  *
@@ -1229,6 +1234,7 @@ cv::Rect dtcMaxRect(cv::Rect one, cv::Rect two)
  * @return	A cv::Mat with the frame in grayscale.
  **************************************************************************************************/
 
+/*
 cv::Mat dtcGetGrayMat(cv::Mat frame, DtcCapture *capture)
 {
 	
@@ -1280,6 +1286,7 @@ cv::Mat dtcGetGrayMat(cv::Mat frame, DtcCapture *capture)
 	frame_to_gray = NULL;
 	return gray;
 }
+*/
 
 cv::Mat dtcGetGrayMat(cv::Mat *frame, DtcCapture *capture)
 {
@@ -1333,6 +1340,7 @@ cv::Mat dtcGetGrayMat(cv::Mat *frame, DtcCapture *capture)
 	frame_to_gray = NULL;
 	return gray;
 }
+
 
 /**********************************************************************************************//**
  * @fn	cv::Mat dtcReduceMatToROI(cv::Mat src, cv::Rect roi)
@@ -1415,7 +1423,7 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore, int ign) {
  *
  * @return	A cv::Rect.
  **************************************************************************************************/
-
+/*
 cv::Rect dtcGetFrameROIcCM(cv::Mat frame, cv::Point cm, const int ignore, int ign) {
 	cv::Rect win, roi = cv::Rect(0, 0, 0, 0);
 	if (!frame.data) return roi;
@@ -1423,6 +1431,7 @@ cv::Rect dtcGetFrameROIcCM(cv::Mat frame, cv::Point cm, const int ignore, int ig
 	roi = dtcMaxRect(win, roi);
 	return roi;
 }
+*/
 
 /**********************************************************************************************//**
  * @fn	void dtcDrawCM(Image image, cv::Point cm)
@@ -1480,7 +1489,7 @@ void dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour) {
  *
  * @return	A cv::Mat with the destination image.
  **************************************************************************************************/
-
+/*
 cv::Mat dtcRunningAvg(Image imgsrc, Image imgdst, double lR)
 {
 	int x_srco, y_srco;
@@ -1514,7 +1523,7 @@ cv::Mat dtcRunningAvg(Image imgsrc, Image imgdst, double lR)
 
 	return imgdst.frame;
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
  *
@@ -1663,7 +1672,7 @@ cv::VideoWriter *dtcWriteVideo(const char *file, cv::VideoWriter writer, DtcCapt
  * @param	pmat  	The frame.
  * @param	nframe	The frame number.
  **************************************************************************************************/
-
+/*
 void dtcShowPhotometry(cv::Mat pmat, int nframe)
 {
 	cv::Scalar lum;
@@ -1678,7 +1687,7 @@ void dtcShowPhotometry(cv::Mat pmat, int nframe)
 		nframe, lum.val[0] / (pmat.cols * pmat.rows),
 		(int)minLum, minPoint.x, minPoint.y, (int)maxLum, maxPoint.x, maxPoint.y);
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	int doublecmp(const void *a, const void *b)
  *
@@ -1720,7 +1729,7 @@ void printtbuf(double *uc, size_t s)
 	}
 	printf("]\n");
 }
-
+/*
 cv::Mat	correctBayerFilterImages(cv::Mat frame, int bayerCode) {
 	if (!frame.data) return cv::Mat();
 	if (frame.channels() > 1) {
@@ -1732,7 +1741,7 @@ cv::Mat	correctBayerFilterImages(cv::Mat frame, int bayerCode) {
 	cv::cvtColor(frame, frame, bayerCode);
 	return frame;
 }
-
+*/
 bool isEqual(cv::Mat m1, cv::Mat m2) {
 	if (m1.empty() && m2.empty()) return true;
 	if (m1.cols != m2.cols || m1.rows != m2.rows || m1.dims != m2.dims) return false;

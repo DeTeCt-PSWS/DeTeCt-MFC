@@ -1,3 +1,5 @@
+#pragma warning(disable : 4244 4267 4131 4459)
+
 /*** File libwcs/iget.c
  *** January 4, 2007
  *** By Jessica Mink, jmink@cfa.harvard.edu

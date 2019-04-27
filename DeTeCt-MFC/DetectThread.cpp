@@ -1,3 +1,5 @@
+#define _WIN32_WINNT _WIN32_WINNT_WINXP
+
 #include "DetectThread.h"
 #include "cmdline.h"
 #include <queue>
