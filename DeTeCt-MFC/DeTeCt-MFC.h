@@ -12,6 +12,7 @@
 #include "resource.h"		// main symbols
 #include "DeTeCt-MFCDlg.h"
 
+#include "dtcgui.hpp"
 
 // CDeTeCtMFCApp:
 // See DeTeCt-MFC.cpp for the implementation of this class

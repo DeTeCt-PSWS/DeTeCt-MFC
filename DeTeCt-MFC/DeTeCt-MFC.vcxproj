@@ -295,7 +295,6 @@
     <ClCompile Include="DeTeCt-MFC.cpp" />
     <ClCompile Include="DeTeCt-MFCDlg.cpp" />
     <ClCompile Include="DetectThread.cpp" />
-    <ClCompile Include="dtc.c" />
     <ClCompile Include="dtcas3.cpp" />
     <ClCompile Include="filefmt.c" />
     <ClCompile Include="filefmt2.cpp" />

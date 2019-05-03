@@ -27,18 +27,18 @@ SerCapture *serCaptureFromFile(const char *fname)
 	char ptmp[SER_MAX_FIELD_SIZE];
 	//int nChannels, depth;
 	int depth;
-	if (opts.debug) { fprintf(stderr, "serCaptureFromFile: creation\n"); }
+	if (debug_mode) { fprintf(stderr, "serCaptureFromFile: creation\n"); }
 	sc = (SerCapture*)calloc(sizeof(SerCapture), 1);
 	if (sc == NULL) {
 		assert(sc != NULL);
 	} else {
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile:  Created sercapture %p\n", sc); }
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile:  Created sercapture %p\n", sc); }
 		if (!(sc->fh = fopen(fname, "rb")))
 		{
 			fprintf(stderr, "ERROR in serCaptureFromFile opening %s file\n", fname);
 			exit(EXIT_FAILURE);
 		}
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile:  Created fh %p\n", sc->fh); }
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile:  Created fh %p\n", sc->fh); }
 
 		_fseeki64(sc->fh, 0L, SEEK_END);
 		long actual_file_size = _ftelli64(sc->fh);
@@ -130,26 +130,26 @@ SerCapture *serCaptureFromFile(const char *fname)
 		sc->BytesPerPixel = sc->byte_depth * sc->nChannels;
 		sc->ImageBytes = sc->header.ImageWidth * sc->header.ImageHeight * sc->BytesPerPixel;
 
-		if (opts.debug) {
+		if (debug_mode) {
 			fprintf(stderr, "serCaptureFromFile: BytesPerPixel = %zd ; depth = %d\n", sc->BytesPerPixel, depth);
 		}
 
 		/*	sc->image = cvCreateImageHeader(cvSize(sc->header.ImageWidth, sc->header.ImageHeight),
 		depth, nChannels);
 		assert(sc->image != NULL);
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created image %d\n",sc->image); }
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created image %d\n",sc->image); }
 		sc->image->imageData = calloc(sizeof (char), sc->ImageBytes);
 		assert(sc->image->imageData != NULL);
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created image data %d\n",sc->image->imageData); }*/
-		if (opts.debug) {
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created image data %d\n",sc->image->imageData); }*/
+		if (debug_mode) {
 			fprintf(stderr, "serCaptureFromFile: Width, Height, depth, nchannels %zd,%zd,%d,%d\n",
 				sc->header.ImageWidth, sc->header.ImageHeight, depth, sc->nChannels);
 		}
 		sc->image = cvCreateImage(cvSize(sc->header.ImageWidth, sc->header.ImageHeight), depth, sc->nChannels);
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created Image %p\n", sc->image); }
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created Image %p\n", sc->image); }
 		/*	sc->TimeStamp = calloc(sizeof (char), SER_DATETIME_SIZE);
 		assert(sc->TimeStamp != NULL);
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created TimeStamp %d\n",sc->TimeStamp); }*/
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created TimeStamp %d\n",sc->TimeStamp); }*/
 
 		sc->image->widthStep = sc->header.ImageWidth * sc->BytesPerPixel * sc->nChannels;
 		sc->image->imageDataOrigin = sc->image->imageData;
@@ -171,11 +171,11 @@ SerCapture *serCaptureFromFile(const char *fname)
 			sc->EndTime_JD = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
 			sc->EndTimeUTC_JD = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
 		}
-		if (opts.debug) {
+		if (debug_mode) {
 			fprintf(stderr, "serCaptureFromFile: end\n");
 			serPrintHeader(sc);
 		}
-		if (opts.debug) { fprintf(stderr, "serCaptureFromFile: Created ser %p\n", sc); }
+		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created ser %p\n", sc); }
 		size_t im_size = sc->byte_depth == 2 ? sizeof(uint16_t) : sizeof(uint8_t);
 		sc->frame_data = calloc(im_size, sc->ImageBytes);
 		sc->mat_type = sc->byte_depth == 2 ?
@@ -201,7 +201,7 @@ void serReinitCaptureRead(SerCapture *sc,const char *fname)
 	sc->frame = 0;
 	sc->TimeStamp_frame = 0;
 	rewind(sc->fh);
-					if (opts.debug) { fprintf(stderr, "serReinitCaptureRead: %s file rewinded\n", fname); }
+					if (debug_mode) { fprintf(stderr, "serReinitCaptureRead: %s file rewinded\n", fname); }
 	if (fread(buffer, sizeof (char), SER_HEADER_SIZE, sc->fh) != SER_HEADER_SIZE) {
 		fprintf(stderr, "ERROR in serReinitCaptureRead reading %s ser header\n", fname);
 		exit(EXIT_FAILURE);		
@@ -226,7 +226,7 @@ void serReadTimeStamps(SerCapture *sc)
 	double starttime;
 	double endtime;
 
-											if (opts.debug) {
+											if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: StartTime  ");
 												fprint_jd(stderr,sc->StartTime_JD);
 												fprintf(stderr,"\n");
@@ -240,7 +240,7 @@ void serReadTimeStamps(SerCapture *sc)
 			timezone=(int) floor(0.5+(starttime-sc->StartTimeUTC_JD)*24);
 			sc->StartTimeUTC_JD=starttime-timezone/24.0;
 			sc->StartTime_JD=starttime;
-											if (opts.debug) {
+											if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: FirstFrame ");
 												fprint_jd(stderr,serDateTime_JD(sc->TimeStamp));
 												fprintf(stderr,"\n");
@@ -252,7 +252,7 @@ void serReadTimeStamps(SerCapture *sc)
 			endtime=serDateTime_JD(sc->TimeStamp);
 			sc->EndTimeUTC_JD=endtime-timezone/24.0;
 			sc->EndTime_JD=endtime;
-											if (opts.debug) {
+											if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: LastFrame  ");
 												fprint_jd(stderr,serDateTime_JD(sc->TimeStamp));
 												fprintf(stderr,"\n\n");
@@ -291,25 +291,25 @@ void serReleaseCapture(SerCapture *sc)
 {
 	/* fprintf(stderr, "serReleaseCapture: Releasing imageData %d\n", sc->image->imageData);
 	free(sc->image->imageData);*/
-											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing fh %p\n",sc->fh); }
+											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing fh %p\n",sc->fh); }
 	if (!(fclose(sc->fh)==0)) {
 		fprintf(stderr, "ERROR in serReleaseCapture closing capture file\n");
 		exit(EXIT_FAILURE);
 	}
-/*											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
+/*											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
 free(sc->image->imageData);*/
-											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image %p size image %zd\n", sc->image, sizeof(*sc->image)); }
+											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing image %p size image %zd\n", sc->image, sizeof(*sc->image)); }
 	cvReleaseImage(&sc->image);
 	sc->image=NULL;
-/*											if (opts.debug) { fprintf(stderr, "serReleaseCapture: Releasing image header %d\n", (int) (sc->image)); }
+/*											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing image header %d\n", (int) (sc->image)); }
 	cvReleaseImageHeader(&sc->image);
-											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Releasing TimeStamp %d\n", (int) (sc->TimeStamp)); }
+											if (debug_mode) { 	fprintf(stderr, "serReleaseCapture: Releasing TimeStamp %d\n", (int) (sc->TimeStamp)); }
 	free(sc->TimeStamp);
 	sc->TimeStamp=NULL;*/
-											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Releasing sc %p\n", sc); }
+											if (debug_mode) { 	fprintf(stderr, "serReleaseCapture: Releasing sc %p\n", sc); }
 	free(sc);
 	sc=NULL;
-											if (opts.debug) { 	fprintf(stderr, "serReleaseCapture: Released sc\n"); }
+											if (debug_mode) { 	fprintf(stderr, "serReleaseCapture: Released sc\n"); }
 }
 
 /*****************Reads current timestamp***************************/			
@@ -643,7 +643,7 @@ void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
 		return NULL;
 	}
 	sc->frame++;
-	if (opts.debug) { fprintf(stderr, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
+	if (debug_mode) { fprintf(stderr, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
 	if (!(bytesR = serFrameRead(sc)))
 	{
 		sc->ValidFrameCount = sc->frame - 1;

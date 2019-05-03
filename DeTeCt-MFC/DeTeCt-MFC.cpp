@@ -90,10 +90,10 @@ BOOL CDeTeCtMFCApp::InitInstance()
 			if (month.size() > 2) month.erase(0, 1);
 		}
 	}
-	if (compilation_date.size() == 11) day = compilation_date.substr(4, 2);
+	if (compilation_date.substr(4,1) != " ") day = compilation_date.substr(4, 2);
 	else {
 		day.append("0");
-		day.append(compilation_date.substr(4, 1));
+		day.append(compilation_date.substr(5, 1));
 	}
 	year = compilation_date.substr(compilation_date.size() - 4, 4);
 	full_version.append(PROGNAME " v" VERSION_NB ".");

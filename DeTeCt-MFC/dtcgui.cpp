@@ -23,8 +23,14 @@
 #include <strsafe.h>
 
 /** @brief	Options for the algorithm */
+
 OPTS opts;
+
+// ***TEST
+//	int global_C_variable_test;
+
 extern CDeTeCtMFCDlg dlg;
+
 
 void StreamDeTeCtOSversions(std::wstringstream *ss)
 {
@@ -547,7 +553,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	std::vector<LPCTSTR> logMessages;
 	std::vector<std::string> log_messages;
 	
-	log_messages.push_back("WARNING, datation info only, no detection analysis was performed");
+	if (opts.dateonly) log_messages.push_back("WARNING, datation info only, no detection analysis was performed");
 	log_messages.push_back("");
 
 	std::string logmessage;
@@ -1468,15 +1474,15 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 					pow(maxDtcImg->point->y - maxDtcImp->point->y, 2));
 				snprintf(ofilenamenorm, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
 				ofilenamenorm[strlen(opts.ofilename) - 4] = '\0';
-				strcat(ofilenamenorm, "_dtc_max-mean1.jpg");
+				strcat(ofilenamenorm, DTC_MAX_MEAN1_SUFFIX);
 				std::strcat(max_mean_folder_path_filename, right(ofilenamenorm, strlen(ofilenamenorm) - InRstr(ofilenamenorm,
 					"\\"), tmpstring));
 				pADUdtcMat.convertTo(pADUdtcImg, CV_8UC3);
 				cv::cvtColor(pADUdtcImg, pADUdtcImg, CV_GRAY2BGR);
 
 				if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0))
-					dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0));
-				dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0));
+					dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
+				dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
 
 				cv::imwrite(max_mean_folder_path_filename, pADUdtcImg, img_save_params);
 
@@ -1503,7 +1509,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 					//pGryMat.convertTo(pGryMat, CV_8UC1);
 					snprintf(ofilenamenorm, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
 					ofilenamenorm[strlen(opts.ofilename) - 4] = '\0';
-					strcat(ofilenamenorm, "_dtc_max-mean2.jpg");
+					strcat(ofilenamenorm, DTC_MAX_MEAN2_SUFFIX);
 					std::strcat(max_mean2_folder_path_filename, right(ofilenamenorm, strlen(ofilenamenorm) - InRstr(ofilenamenorm,
 						"\\"), tmpstring));
 
@@ -1511,8 +1517,8 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 					cv::cvtColor(pADUdtcImg2, pADUdtcImg2, CV_GRAY2BGR);
 
 					if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0))
-						dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0));
-					dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0));
+						dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
+					dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
 					cv::imwrite(max_mean2_folder_path_filename, pADUdtcImg2, img_save_params);
 				}
 
@@ -1713,7 +1719,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 			log_messages.push_back(short_filename + ":");
 			log_messages.push_back("    " + logmessage);
 		}
-		message = "--------- " + short_filename + " analyzis done ---------";
+		message = "--------- " + short_filename + " analysis done ---------";
 		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
 		output_log << getDateTime().str().c_str() << message.c_str() << "\n";
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
@@ -1727,19 +1733,19 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	//dtcWriteWholeLog(logcation2.c_str(), logs);
 	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Log file is available at " +
 		(CString)logcation.c_str() + L"\\DeTeCt.log");
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis was performed\n");
+	if (opts.dateonly) CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis was performed\n");
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
 	output_log << getDateTime().str().c_str() << "Log file is available at " << logcation.c_str() << "\\DeTeCt.log" << "\n";
-	if (opts.dateonly) 	output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";
+	if (opts.dateonly) output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";
 	output_log.close();
 	std::wstring output_log_file2(scan_folder_path.begin(), scan_folder_path.end());
 	output_log_file2 = output_log_file2.append(L"\\output.log");
 	std::wofstream output_log2(output_log_file2.c_str());
 	std::wifstream output_log_in(output_log_file.c_str());
-	output_log2 << "WARNING, datation info only, no detection analysis was performed\n"; 
+	if (opts.dateonly) output_log2 << "WARNING, datation info only, no detection analysis was performed\n";
 	output_log2 << output_log_in.rdbuf();
-	output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";output_log2.close();
+	if (opts.dateonly) output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";output_log2.close();
 //DBOUT("Interactive=" << opts.interactive << "\n");
 	if (opts.interactive) {
 		email->DoModal();

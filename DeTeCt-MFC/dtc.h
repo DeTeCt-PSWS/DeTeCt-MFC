@@ -6,7 +6,7 @@
 
 #define PROGNAME  "DeTeCt"
 #define LONGNAME  "jovian impact DeTeCtion"
-#define VERSION_NB   "3.1.5"
+#define VERSION_NB   "3.1.6"
 #define VERSION_DATE "(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -39,6 +39,12 @@
 #define DTC_DIFF_FRAME_PREFIX  "_dtc_diff_frame"
 #define SINGLE_PREFIX "_single_"
 
-extern OPTS opts;
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int debug_mode;
+#ifdef __cplusplus
+	}
+#endif
 
 #endif /* __DTC_H__ */

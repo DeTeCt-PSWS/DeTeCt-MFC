@@ -10,6 +10,8 @@
 //#include <stdio.h>
 #include <ctype.h>
 
+int debug_mode;
+
 /*****************Math functions***************************/
 //int		round(const float num)
 //{

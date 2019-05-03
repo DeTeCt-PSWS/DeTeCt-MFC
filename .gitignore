@@ -8,3 +8,10 @@
 *.pch
 *.obj
 *.pdb
+*.log
+*.ipdb
+*.pdb
+*.idb
+*.iobj
+*.iodb
+*.ilk

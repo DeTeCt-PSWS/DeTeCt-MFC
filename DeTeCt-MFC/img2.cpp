@@ -14,6 +14,8 @@
 #include "wrapper2.h"
 #include "auxfunc.h"
 
+#include "dtcgui.hpp"
+
 static void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);
 int doublecmp(const void *a, const void *b);
 void printtbuf(double *uc, size_t s);
@@ -1468,11 +1470,11 @@ void dtcDrawCM(Image image, cv::Point cm)
  * @param	point	The point of impact.
  **************************************************************************************************/
 
-void dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour) {
-	cv::line(frame, cv::Point(point.x + 20, point.y), cv::Point(point.x + 30, point.y), colour, 1, 8, 0);
-	cv::line(frame, cv::Point(point.x - 30, point.y), cv::Point(point.x - 20, point.y), colour, 1, 8, 0);
-	cv::line(frame, cv::Point(point.x, point.y - 30), cv::Point(point.x, point.y - 20), colour, 1, 8, 0);
-	cv::line(frame, cv::Point(point.x, point.y + 20), cv::Point(point.x, point.y + 30), colour, 1, 8, 0);
+void dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, int lmax) {
+	cv::line(frame, cv::Point(point.x + lmin, point.y), cv::Point(point.x + lmax, point.y), colour, 1, 8, 0);
+	cv::line(frame, cv::Point(point.x - lmax, point.y), cv::Point(point.x - lmin, point.y), colour, 1, 8, 0);
+	cv::line(frame, cv::Point(point.x, point.y - lmax), cv::Point(point.x, point.y - lmin), colour, 1, 8, 0);
+	cv::line(frame, cv::Point(point.x, point.y + lmin), cv::Point(point.x, point.y + lmax), colour, 1, 8, 0);
 }
 
 /**********************************************************************************************//**

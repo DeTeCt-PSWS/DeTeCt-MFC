@@ -62,9 +62,12 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 	
 	double time_tmp;
 	char comment2[MAX_STRING];	
-	
+
+//***Test
+//global_C_variable_test = 1;
+
 /********** Init **********/	
-											if (opts.debug) { fprintf(stderr,"dtcGetDatation: Initializing\n"); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatation: Initializing\n"); }
 	(*pstart_time)=JD_init;
 	(*pend_time)=JD_init;
 	(*ptimetype)=Unknown;
@@ -81,10 +84,10 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 	{
 		case CAPTURE_SER:
 		case CAPTURE_CV:
-													if (opts.debug) { fprintf(stderr,"dtcGetDatation: Reading information from file\n"); }
+													if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from file\n"); }
 			dtcGetDatationFromFileInfo(capture, filename, nbframes, &start_time_file, &end_time_file, &duration_file, &fps_file);
 			timetype_file=LT;
-													if (opts.debug) {
+													if (debug_mode) {
 														fprintf(stderr,"dtcGetDatation: FILE Start    = %f (", start_time_file);
 														fprint_jd(stderr, start_time_file);
 														fprintf(stderr,")\n");
@@ -101,7 +104,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 		case CAPTURE_FILES:
 		case CAPTURE_FITS:
 		default:
-													if (opts.debug) {
+													if (debug_mode) {
 														fprintf(stderr,"dtcGetDatation: FILES/FITS Start    = %fUT, %f (", capture->u.filecapture->StartTimeUTC_JD,capture->u.filecapture->StartTime_JD);
 														fprint_jd(stderr, capture->u.filecapture->StartTimeUTC_JD);
 														fprintf(stderr,", ");
@@ -130,7 +133,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 			if ((capture->u.sercapture->StartTimeUTC_JD>JD_test_min) && (fabs(timezone)>12) && (fabs(floor(0.5+capture->u.sercapture->StartTime_JD-capture->u.sercapture->StartTimeUTC_JD)*24)<=12)) {
 				timezone=(int) floor(0.5+(capture->u.sercapture->StartTime_JD-capture->u.sercapture->StartTimeUTC_JD)*24);
 			}
-												if (opts.debug) { fprintf(stderr,"dtcGetDatation: Reading information from ser file\n"); }
+												if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from ser file\n"); }
 			serReadTimeStamps(capture->u.sercapture);
 			if (capture->u.sercapture->TimeStampExists) {
 /* End date available from SER file */
@@ -157,7 +160,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 				timezone=(int) floor(0.5+(capture->u.sercapture->EndTime_JD-capture->u.sercapture->EndTimeUTC_JD)*24);
 			}
 
-												if (opts.debug) {
+												if (debug_mode) {
 													fprintf(stderr,"dtcGetDatation: SER  Start    = %f (", start_time_ser);
 													fprint_jd(stderr, start_time_ser);
 													fprintf(stderr,")\n");
@@ -230,7 +233,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 				duration_fits=duration_fits+1/fps_fits;
 				end_time_fits=capture->u.filecapture->EndTime_JD+1/fps_fits/ONE_DAY_SEC;
 			}	
-												if (opts.debug) {
+												if (debug_mode) {
 													fprintf(stderr,"dtcGetDatation: FILES Start    = %f (", start_time_fits);
 													fprint_jd(stderr, start_time_fits);
 													fprintf(stderr,")\n");
@@ -281,7 +284,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 				duration_fits=duration_fits+1/fps_fits;
 				end_time_fits=capture->u.filecapture->EndTimeUTC_JD+1/fps_fits/ONE_DAY_SEC;
 			}	
-												if (opts.debug) {
+												if (debug_mode) {
 													fprintf(stderr,"dtcGetDatation: FITS Start    = %f (", start_time_fits);
 													fprint_jd(stderr, start_time_fits);
 													fprintf(stderr,")\n");
@@ -334,12 +337,12 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 	}
 }
 /********** Date from log file **********/	
-											if (opts.debug) { fprintf(stderr,"dtcGetDatation: Reading information from log file\n"); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from log file\n"); }
 	dtcGetDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2);
 	if ((duration_log<DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC>DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC<DURATION_MAX)) {
 		duration_log=(end_time_log-start_time_log)*ONE_DAY_SEC;
 	}
-											if (opts.debug) {
+											if (debug_mode) {
 												fprintf(stderr,"dtcGetDatation: LOG  Start    = %f (", start_time_log);
 												fprint_jd(stderr, start_time_log);
 												fprintf(stderr,")\n");
@@ -486,7 +489,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 	if (((*pfps)<FPS_MIN) || ((*pfps)>FPS_MAX)) {
 		(*pfps)=0.0;
 	}
-											if (opts.debug) {
+											if (debug_mode) {
 												fprintf(stderr,"dtcGetDatation: FINAL Start    = %f (", (*pstart_time));
 												fprint_jd(stderr, (*pstart_time));
 												fprintf(stderr,")\n");
@@ -542,7 +545,7 @@ void dtcCorrectDatation(DtcCapture *capture, double *pstart_time, double *pend_t
 				break;
 		}
 	}	
-											if (opts.debug) {
+											if (debug_mode) {
 												fprintf(stderr,"dtcGetDatation: Start    = %f (", (*pstart_time));
 												fprint_jd(stderr, (*pstart_time));
 												fprintf(stderr,")\n");
@@ -862,12 +865,12 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 		strcpy(logfilename_dir, ".\\");
 		strcpy(logfilename_short, logfilename_rac);
 	}
-										if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Len filename %s=%zd\n", filename ,strlen(filename));}
+										if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Len filename %s=%zd\n", filename ,strlen(filename));}
 /* Firecapture log */	
 	strcpy(logfilename, logfilename_rac);
 	strncat(logfilename, ".txt", strlen(".txt"));
 	logfile=fopen(logfilename,"r");
-										if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+										if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 /* Sharpcap log */	
 	if (logfile==NULL) {
 		strcpy(logfilename, logfilename_rac);
@@ -904,18 +907,18 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 				(*plogtimezone)=LT;
 				timezone=0;
 			}
-											if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+											if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 /* Genika log */	
 			} else {
 				strcpy(logfilename, filename);
 				strncat(logfilename, ".txt", strlen(".txt"));
 				logfile=fopen(logfilename,"r");
-											if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+											if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 				if (logfile==NULL) {
 /* Marc Delcroix's LucamRecorder log */	
 					strcpy(logfilename, logfilename_rac);
 					strncat(logfilename, "-Ser-Stream_info.Log", strlen("-Ser-Stream_info.Log"));
-											if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+											if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 					logfile=fopen(logfilename,"r");
 					if (logfile!=NULL) {
 						strcpy(software,"Lucam Recorder");
@@ -923,7 +926,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 /* LucamRecorder log */	
 						strcpy(logfilename, logfilename_rac);
 						strncat(logfilename, "-Ser-Stream.Log", strlen("-Ser-Stream.Log"));
-											if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+											if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 						logfile=fopen(logfilename,"r");
 						if (logfile!=NULL) {
 							strcpy(software,"Lucam Recorder");
@@ -931,7 +934,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 /* Marc Delcroix's LucamRecorder log fixed name */	
 							strcpy(logfilename, logfilename_dir);
 							strcat(logfilename, "stream_info.log");
-													if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+													if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 							logfile=fopen(logfilename,"r");
 							if (logfile!=NULL) {
 								strcpy(software,"Lucam Recorder");
@@ -939,7 +942,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 /* LucamRecorder log fixed name */	
 								strcpy(logfilename, logfilename_dir);
 								strcat(logfilename, "Stream.Log");
-													if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+													if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 								logfile=fopen(logfilename,"r");
 								if (logfile!=NULL) {
 									strcpy(software,"Lucam Recorder");
@@ -947,7 +950,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 /* PLxCapture log */	
 									strcpy(logfilename, logfilename_rac);
 									strncat(logfilename, ".plx", strlen(".plx"));
-													if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
+													if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Testing file %s\n", logfilename);}
 									logfile=fopen(logfilename,"r");
 									if (logfile!=NULL) {
 										strcpy(software,"PLxCapture");
@@ -1001,7 +1004,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 		sec=0.0;
 		(*pDuration)=0.0;
 		(*pfps)=0.0;
-										if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Processing file %s\n", logfilename);}
+										if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Processing file %s\n", logfilename);}
 #pragma warning(suppress: 6324)
 		while ((!feof(logfile)) && (strcpy(line, getline_ux_win(logfile)) != NULL)) {
 			init_string(fieldname);
@@ -1038,7 +1041,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 			strcpy(line,replace_str(line,"="," : "));
 
 			strcpy(line,replace_str(line,"mS:","mS : "));
-										if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Line |%s|, ", line);}		
+										if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Line |%s|, ", line);}		
 			if (strstr(line," : ") == NULL) {
 				strcpy(fieldname,line);
 			} else {
@@ -1048,7 +1051,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 				strcpy(fieldname,left(fieldname,strlen(fieldname)-1,tmpline));
 			}
 			strcat(fieldname,"\0");
-										if (opts.debug) {fprintf(stderr, "Field|%s|, ", fieldname);}												
+										if (debug_mode) {fprintf(stderr, "Field|%s|, ", fieldname);}												
 
 			if (InStr(line," : ")>0) {
 				strcpy(value,right(line,strlen(line)-InStr(line," : ")-strlen(" : "),tmpline));
@@ -1060,7 +1063,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 				}
 				strcat(value,"\0");
 			}
-									if (opts.debug) {fprintf(stderr, "Value|%s|\n", value);}		
+									if (debug_mode) {fprintf(stderr, "Value|%s|\n", value);}		
 
 /* Test software */
 			if (strcmp(software,"") == 0) {
@@ -1076,7 +1079,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 							software_beta = atoi(mid(fieldname,InStr(fieldname,"beta ")+strlen("beta "), InStr(fieldname,")")-InStr(fieldname,"beta ")-strlen("beta "), tmpline));
 						}
 					}
-					if (opts.debug) {fprintf(stderr, "Firecapture v%1.1f beta %d\n",software_version, software_beta);}
+					if (debug_mode) {fprintf(stderr, "Firecapture v%1.1f beta %d\n",software_version, software_beta);}
 					init_string(tmpline);
 				} else if (strcmp(fieldname,"Début de la capture")==0) {
 					strcpy(software,"Genika");
@@ -1097,7 +1100,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 				} else if ((strcmp(fieldname,"Capture start time")==0) || (strcmp(fieldname,"Start time of recording")==0)) {
 					strcpy(software,"Lucam Recorder");
 				}
-											if (opts.debug) {fprintf(stderr, "dtcGetDatationFromLogFile: Software detected %s\n\n", software);}		
+											if (debug_mode) {fprintf(stderr, "dtcGetDatationFromLogFile: Software detected %s\n\n", software);}		
 			}
 /**************************************************************************************************************/
 /* Firecapture                                                                                                */
@@ -1180,7 +1183,7 @@ MM.dd.yyyy
 										year=2000+date2;
 										day=date1;
 									} else {
-										if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+										if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 									}
 								}
 								break;
@@ -1204,7 +1207,7 @@ MM.dd.yyyy
 										year=2000+date2;
 										day=date1;
 									} else {
-										if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+										if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 									}
 								} else if ((strcmp(mid(value,2,1,tmpline),"_")==0) && (strcmp(mid(value,5,1,tmpline),"_")==0)) {
 									date1=atoi(mid(value,0,2,tmpline));
@@ -1237,7 +1240,7 @@ MM.dd.yyyy
 										month=date2;
 									}
 								} else {
-									if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+									if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 								}
 								break;
 							case 9: /* case with one accent in literal month */
@@ -1269,10 +1272,10 @@ MM.dd.yyyy
 										day=date1;
 										year=date2+2000;
 									} else {
-										if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+										if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 									}
 								} else {							
-									if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+									if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 								}
 								break;
 							case 10:
@@ -1322,7 +1325,7 @@ MM.dd.yyyy
 										day=date1;
 										month=date2;
 									} else {
-										if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+										if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 									}
 								} else if (strcmp(mid(value,6,2,tmpline),"._")==0) {							
 									month=month_nb(mid(value,3,3,tmpline));
@@ -1335,10 +1338,10 @@ MM.dd.yyyy
 										day=date1;
 										year=date2+2000;
 									} else {
-										if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+										if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 									}
 								} else {							
-									if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+									if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 								}
 								break;
 							case 11: /* case with one accent in literal month */
@@ -1355,7 +1358,7 @@ MM.dd.yyyy
 									month=month_nb(mid(value,5,2,tmpline));
 									day=atoi(mid(value,9,2,tmpline));
 								} else {
-									if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+									if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 								}
 								break;
 							case 12:
@@ -1372,13 +1375,13 @@ MM.dd.yyyy
 									month=month_nb(mid(value,5,3,tmpline));
 									day=atoi(mid(value,10,2,tmpline));
 								} else {
-									if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+									if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 								}
 								break;
 							default:
-								if (opts.debug) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
+								if (debug_mode) {fprintf(stderr, "ERROR in dtcGetDatationFromLogFile: Firecapture date format not detected for value %s\n", value); }
 						}
-												if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
+												if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
 					}
 /*	Pos. syntax	length
 	HHmmss		6
@@ -1410,7 +1413,7 @@ MM.dd.yyyy
 							}
 						}
 						(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
-												if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
+												if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
 					}
 				} else if ((strcmp(fieldname,"End")==0) || (strcmp(fieldname,"End(UT)")==0)) { 	/* End=01:01:47 */
 					end_time_flag = 1;
@@ -1586,8 +1589,8 @@ MM.dd.yyyy
 					if (hour_end<hour) { /* Day change */
 						day_end+=1;
 					}
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: start time y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: end time   y m d h m s|%d %d %d %d %d %f|\n", year_end, month_end, day_end, hour_end, min_end, sec_end); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: start time y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: end time   y m d h m s|%d %d %d %d %d %f|\n", year_end, month_end, day_end, hour_end, min_end, sec_end); }
 					(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
 					(*jd_end_time_loginfo)=gregorian_calendar_to_jd(year_end, month_end, day_end, hour_end, min_end, sec_end);
 					if (fabs((jd_log-(*jd_end_time_loginfo)-12.0/24.0))*ONE_DAY_SEC<=1.0) { /* = AM/PM not determined */
@@ -1595,7 +1598,7 @@ MM.dd.yyyy
 						(*jd_end_time_loginfo)=(*jd_end_time_loginfo)+12.0/24.0;
 					}
 					(*pDuration)=((*jd_end_time_loginfo)-(*jd_start_time_loginfo))*ONE_DAY_SEC;
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
 					jd_mid_time_loginfo=((*jd_end_time_loginfo)-(*jd_start_time_loginfo))/2;
 				} else if (strcmp(fieldname,"LT")==0) { /*LT=UT-1h*/
 					if (strlen(value)==2) {
@@ -1614,12 +1617,12 @@ MM.dd.yyyy
 					}
 				} else if (strcmp(fieldname,"Duration")==0) { 	/* Duration=135s */
 					(*pDuration)=strtod(left(value,strlen(value) - 1,tmpline),NULL);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
 /*					} else if (strcmp(fieldname,"Profile")==0) {
 					strcpy(planet,value);*/
 				} else if (((strcmp(fieldname,"FPS")==0) || (strcmp(fieldname,"FPS (avg.)")==0)) && ((*pfps)<FPS_MIN)) { 	/* FPS=49 */
 					(*pfps)=atoi(value);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: FPS|%s,%f|\n", value,(*pfps)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: FPS|%s,%f|\n", value,(*pfps)); }
 				}
 				else if ((strcmp(fieldname, "Frames captured") == 0)) { 	/* Frames captured=29248 */
 					(*pnbframes) = strtol(value, NULL, 10);
@@ -1670,7 +1673,7 @@ MM.dd.yyyy
 					}
 					(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
 					(*plogtimezone)=LT;
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Start time|y m d h m s|%d %d %d %d %d %f|%f JD|\n", year, month, day, hour, min,sec,(*jd_start_time_loginfo)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Start time|y m d h m s|%d %d %d %d %d %f|%f JD|\n", year, month, day, hour, min,sec,(*jd_start_time_loginfo)); }
 				} else if (strcmp(fieldname,"Start Time local time")==0) {	/*   1   5   9  2  5  8  1 */
 					right(value,strlen(value)-InStr(value," : ")-3,value2);
 					strcat(value2,"\0");
@@ -1681,7 +1684,7 @@ MM.dd.yyyy
 					min=atoi(strtok(NULL,":"));					
 					sec=strtod(strtok(NULL,":"),NULL);
 					(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Start time|y m d h m s|%d %d %d %d %d %f|%f JD|\n", year, month, day, hour, min,sec,(*jd_start_time_loginfo)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Start time|y m d h m s|%d %d %d %d %d %f|%f JD|\n", year, month, day, hour, min,sec,(*jd_start_time_loginfo)); }
 					if ((strcmp(right(value,2,tmpline),"PM")==0) && (hour<12)) {
 						(*jd_start_time_loginfo)=(*jd_start_time_loginfo)+0.5;
 					}
@@ -1700,7 +1703,7 @@ MM.dd.yyyy
 /*									hour=hour - oShell.RegRead("HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation\ActiveTimeBias")*-1/60 */
 					min_end=atoi(mid(value,14,2,tmpline));
 					sec_end=strtod(mid(value,17,2,tmpline),NULL);
-						(*jd_end_time_loginfo)=gregorian_calendar_to_jd(year_end, month_end, day_end, hour_end, min_end, sec_end);											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|%f JD|\n", year_end, month_end, day_end, hour_end, min_end,sec_end,(*jd_end_time_loginfo)); }
+						(*jd_end_time_loginfo)=gregorian_calendar_to_jd(year_end, month_end, day_end, hour_end, min_end, sec_end);											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|%f JD|\n", year_end, month_end, day_end, hour_end, min_end,sec_end,(*jd_end_time_loginfo)); }
 				} else if (strcmp(fieldname,"End Time local time")==0) {	/*   1   5   9  2  5  8  1 */
 					right(value,strlen(value)-InStr(value," : ")-3,value2);
 					strcat(value2,"\0");
@@ -1711,7 +1714,7 @@ MM.dd.yyyy
 					min=atoi(strtok(NULL,":"));					
 					sec=strtod(strtok(NULL,":"),NULL);
 					(*jd_end_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: End time|y m d h m s|%d %d %d %d %d %f|%f JD|\n", year, month, day, hour, min,sec,(*jd_start_time_loginfo)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: End time|y m d h m s|%d %d %d %d %d %f|%f JD|\n", year, month, day, hour, min,sec,(*jd_start_time_loginfo)); }
 					if ((strcmp(right(value,2,tmpline),"PM")==0) && (hour<12)) {
 						(*jd_end_time_loginfo)=(*jd_end_time_loginfo)+0.5;
 					}
@@ -1738,17 +1741,17 @@ MM.dd.yyyy
 					(*jd_start_time_loginfo)=(*jd_start_time_loginfo)-timezone/24.0;
 					(*jd_end_time_loginfo)=(*jd_end_time_loginfo)-timezone/24.0;
 					(*plogtimezone)=UT;
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Mid time|y m d h m.m|%d %d %d %d %f|%f JD|\n", year_mid, month_mid, day_mid, hour_mid, minsec_mid,jd_mid_time_loginfo); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Mid time|y m d h m.m|%d %d %d %d %f|%f JD|\n", year_mid, month_mid, day_mid, hour_mid, minsec_mid,jd_mid_time_loginfo); }
 				} else if (strcmp(fieldname,"Durée de capture (s)")==0)  {	/* : 181.12 */
 					(*pDuration)=strtod(value,NULL);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
 				} else if (strcmp(fieldname,"Acquisition Length in mS")==0)  {	/* : 181.12 */
 					(*pDuration)=strtod(value,NULL)/1000.0;
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
 				} else if ((strcmp(fieldname,"FPS moyenne")==0) || (strcmp(fieldname,"Mean FPS")==0) || (strcmp(fieldname,"resulting FPS")==0)) { 	
 					if (((*pfps)==0) && (strtod(value,NULL)>0)) {
 						(*pfps)=strtod(value,NULL);
-												if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: FPS|%s,%f|\n", value,(*pfps)); }
+												if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: FPS|%s,%f|\n", value,(*pfps)); }
 					}
 				}
 /**************************************************************************************************************/
@@ -1837,19 +1840,19 @@ MM.dd.yyyy
 						(*plogtimezone)=UT;
 					}
 					(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
 				} else if ((strcmp(fieldname,"Capture duration")==0) ||(strcmp(fieldname,"Recording duration")==0)) { 	/* : 181.12 */
 					strcpy(value,replace_str(value, " Sec", ""));
 					strcpy(value,replace_str(value, " sec", ""));
 					strcpy(value,replace_str(value, "s", ""));
 					strcpy(value,replace_str(value, ",", "."));
 					(*pDuration)=strtod(value,NULL);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: Duration|%s,%f|\n", value,(*pDuration)); }
 				} else if ((strcmp(fieldname,"Capture frame speed")==0) || (strcmp(fieldname,"Camera stream rate")==0)) { 	/* : 1.4 */
 					strcpy(value,replace_str(value, " Fps", ""));
 					strcpy(value,replace_str(value, " fps", ""));
 					(*pfps)=strtod(value,NULL);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: FPS|%s,%f|\n", value,(*pfps)); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: FPS|%s,%f|\n", value,(*pfps)); }
 				}
 /**************************************************************************************************************/
 /* PLxCapture                                                                                                 */
@@ -1869,7 +1872,7 @@ MM.dd.yyyy
 																/* JLRGB20121031-010133061.plx*/				
 		/* Gets UT from Filename */
 					right(logfilename_rac,18,logfilename_tmp);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: filename|%s|\n", logfilename_tmp); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: filename|%s|\n", logfilename_tmp); }
 					year_tmp=atoi(mid(logfilename_tmp,0,4,tmpline));
 					month_tmp=atoi(mid(logfilename_tmp,4,2,tmpline));
 					day_tmp=atoi(mid(logfilename_tmp,6,2,tmpline));
@@ -1877,7 +1880,7 @@ MM.dd.yyyy
 					min_tmp=atoi(mid(logfilename_tmp,11,2,tmpline));
 					sec_tmp=strtod(mid(logfilename_tmp,13,2,tmpline),NULL);
 					timezone=(int) floor(0.5+((*jd_start_time_loginfo)-gregorian_calendar_to_jd(year_tmp, month_tmp, day_tmp, hour_tmp, min_tmp, sec_tmp))*24);
-											if (opts.debug) { fprintf(stderr,"dtcGetDatationFromLogFile: ymdhms=%d.%d.%d.%d.%d.%f timzeone=%d|\n", year_tmp,month_tmp,day_tmp,hour_tmp,min_tmp,sec_tmp,timezone); }
+											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: ymdhms=%d.%d.%d.%d.%d.%f timzeone=%d|\n", year_tmp,month_tmp,day_tmp,hour_tmp,min_tmp,sec_tmp,timezone); }
 					if ((timezone>=-12) && (timezone<=12)) {
 						(*plogtimezone)=UT;
 						(*jd_start_time_loginfo)-=timezone/24.0;

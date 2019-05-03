@@ -48,7 +48,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	get_fileextension(fname, fc->filename_ext, EXT_MAX);
 	get_folder(fname, fc->filename_folder);
 	right(fname,strlen(fname)-strlen(fc->filename_folder)-1,filename_root);
-										if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: Folder %s file %s\n", fc->filename_folder, fname); }
+										if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: Folder %s file %s\n", fc->filename_folder, fname); }
 	fc->FirstFileIdx=-1;
 	fc->LastFileIdx=-1;
 	fc->LeadingZeros=0;
@@ -110,7 +110,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		for (i=0; i<fc->LeadingZeros; first_nb[i++]='0');
 		first_nb[i]='\0';
 		while ((fc->LeadingZeros>0) && (InRstr(filename_root,first_nb)<0)) {
-/*										if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: Leading zeros %d first_nb %s\n", fc->LeadingZeros, first_nb); }*/
+/*										if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: Leading zeros %d first_nb %s\n", fc->LeadingZeros, first_nb); }*/
 			fc->LeadingZeros--;
 			first_nb[fc->LeadingZeros]='\0';
 		}	
@@ -142,7 +142,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 
 	fc->LastFileIdx=fc->FirstFileIdx;
 	if (fc->FirstFileIdx>=0) {
-//									if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: File syntax %s*%s.%s (%d vs %d vs %d), leading zeros %d\n", fc->filename_head, fc->filename_trail, fc->filename_ext, strlen(fname), strlen(fc->filename_rac), strlen(fc->filename_ext),fc->LeadingZeros); }
+//									if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: File syntax %s*%s.%s (%d vs %d vs %d), leading zeros %d\n", fc->filename_head, fc->filename_trail, fc->filename_ext, strlen(fname), strlen(fc->filename_rac), strlen(fc->filename_ext),fc->LeadingZeros); }
 /* Look for last file */	
 		fc->LastFileIdx=(*pframecount) -1 + fc->FirstFileIdx;
 		if (fc->LastFileIdx<fc->FirstFileIdx) {
@@ -150,7 +150,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			do {
 				frame_idx++;
 				fileGet_filename(filename_tmp, fc, frame_idx);
-/*										if (opts.debug) { fprintf(stderr,"FileCaptureFromFile: Checking frame %d\n",frame_idx); }*/
+/*										if (debug_mode) { fprintf(stderr,"FileCaptureFromFile: Checking frame %d\n",frame_idx); }*/
 			} while (strlen(filename_tmp)>0);
 			fc->LastFileIdx=frame_idx-1;
 		}
@@ -158,7 +158,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	fc->FrameCount=fc->LastFileIdx-fc->FirstFileIdx+1;
 	fc->ValidFrameCount=fc->FrameCount;
 	(*pframecount)=fc->FrameCount;
-									if (opts.debug) { fprintf(stderr,"FileCaptureFromFile: First frame index %d, Last Frame index %d\n",fc->FirstFileIdx,fc->LastFileIdx); }
+									if (debug_mode) { fprintf(stderr,"FileCaptureFromFile: First frame index %d, Last Frame index %d\n",fc->FirstFileIdx,fc->LastFileIdx); }
 	if (fc->FrameCount<=0) {
 		fprintf(stderr,"ERROR in FileCaptureFromFile: no frame number detected to process for file %s\n",fname);
 		fclose(fc->fh);
@@ -186,7 +186,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				fileGet_info(fc, fname, &fc->StartTime_JD);
 				if (stat(fname, &teststat_start)>=0) {
 					fc->StartTime_JD=JD_from_time_t(teststat_start.st_mtime);
-							if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: StartTime_JD=%f\n", fc->StartTime_JD); }
+							if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: StartTime_JD=%f\n", fc->StartTime_JD); }
 				}
 				break;
 		}
@@ -195,7 +195,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
 			exit(EXIT_FAILURE);
 		}
-											if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel,fc->ImageBytes); }
+											if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel,fc->ImageBytes); }
 		if (fc->FrameCount>1) {
 /* Reads information from last file */		
 			fileGet_filename(filename_tmp, fc, fc->LastFileIdx);
@@ -203,7 +203,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				fprintf(stderr, "ERROR in FileCaptureFromFile opening %s file...\n", filename_tmp);
 				exit(EXIT_FAILURE);
 			}
-												if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: opening %s file\n", filename_tmp); }
+												if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: opening %s file\n", filename_tmp); }
 			switch (fc->FileType) {
 				case CAPTURE_FITS:			
 					fileGet_info(fc, filename_tmp, &fc->EndTimeUTC_JD);
@@ -217,7 +217,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 /*				fileGet_info(fc, filename_tmp, &fc->EndTime_JD); */
 					if (stat(filename_tmp, &teststat_end)>=0) {
 						fc->EndTime_JD=JD_from_time_t(teststat_end.st_mtime);
-						if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
+						if (debug_mode) { fprintf(stderr, "FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
 					}
 					break;
 			}
@@ -408,13 +408,13 @@ void fileGet_filename(char *dest, FileCapture *fc, int nb)
 	fileGenerate_number(tmp_string, fc, nb);
 	sprintf(filename_target, "%s%s%s.%s", fc->filename_head,tmp_string,fc->filename_trail,fc->filename_ext);
 	strcat(filename_target,"\0");
-//						if (opts.debug) { fprintf(stderr, "fileGet_filename: Checking filename=%s\n", filename_target); }
+//						if (debug_mode) { fprintf(stderr, "fileGet_filename: Checking filename=%s\n", filename_target); }
 	dir=opendir(fc->filename_folder);
 	if ((dir)!=NULL) {
 		while (((dent=readdir(dir))!=NULL) &&  (found==0)) {
-/*					if (opts.debug) { fprintf(stderr, "fileGet_filename: Checking file =%s vs |%s|%s%s.%s|,%s,%s\n", dent->d_name, filename_target,fc->filename_rac,tmp_string,fc->filename_ext,fc->filename_trail,fc->filename_folder); }	 */
+/*					if (debug_mode) { fprintf(stderr, "fileGet_filename: Checking file =%s vs |%s|%s%s.%s|,%s,%s\n", dent->d_name, filename_target,fc->filename_rac,tmp_string,fc->filename_ext,fc->filename_trail,fc->filename_folder); }	 */
 /*		if (InRstr(dent->d_name,tmp_string)==fc->NumberPos) {*/
-/*					if (opts.debug) { fprintf(stderr, "fileGet_filename: Checking directory filename=%s\n", dent->d_name); }*/
+/*					if (debug_mode) { fprintf(stderr, "fileGet_filename: Checking directory filename=%s\n", dent->d_name); }*/
 		if ((strncmp(dent->d_name,filename_target,strlen(filename_target))==0)
 			|| ((strlen(dent->d_name)==strlen(filename_target))
 			&& (strcmp(left(dent->d_name,strlen(fc->filename_head),tmp_string),left(filename_target,strlen(fc->filename_head),tmp_string2))==0)

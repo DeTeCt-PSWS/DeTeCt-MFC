@@ -22,6 +22,7 @@
 		int param[4]; // width, height, sigma, 0
 	};
 
+	/*
 	struct options {
 		char *filename;
 		char *ofilename;
@@ -70,9 +71,26 @@
 		int ignore; // Ignore incorrect frames
 		int interactive;
 	};
-	typedef struct options OPTS;
+#ifdef __cplusplus
+	extern "C" {
+#endif
+		extern struct options;
+		typedef struct options OPTS;
+		extern OPTS opts;
+#ifdef __cplusplus
+	}
+#endif
+*/
 
-	extern OPTS opts;
+// ***TEST
+#ifdef __cplusplus
+		extern "C" {
+#endif
+			extern int global_C_variable_test;
+#ifdef __cplusplus
+	}
+#endif
+// ***TEST
 
 	//void parse_command_line_options(int argc, char **argv, OPTS *opts);
 

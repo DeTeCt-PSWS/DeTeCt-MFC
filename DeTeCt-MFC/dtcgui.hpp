@@ -27,6 +27,57 @@ extern "C" {
 
 extern std::string full_version;
 
+struct options {
+	char *filename;
+	char *ofilename;
+	char *darkfilename;
+	char *ovfname;
+	char *sfname;
+	char *dirname;
+	int nsaveframe; // Frame number to <ofilename>
+	int ostype; // Source video type to extract frame
+	int ovtype; // Output video type to create
+	double timeImpact; // seconds
+	double incrLumImpact; // mean value factor
+	int incrFrameImpact; // Number of frames
+	double radius; // Impact radio (pixels)
+	unsigned long nframesROI; // Number of frames for ROI calculation
+	unsigned long nframesRef; // Number of frames for ROI calculation
+	unsigned long wROI; // ROI width  (CM centered)
+	unsigned long hROI; // ROI height (CM centered)
+	int bayer; //debayering code
+	double medSize; // Median buffer size
+	double facSize; // Size factor (ROI)
+	double secSize; // Security factor (ROI)
+	double threshold;
+	double learningRate; // "Alpha Blending" learning rate
+	double histScale; // Histogram scale
+	int wait;      // milliseconds
+	int thrWithMask;// Use Mask (!=0) or not (0) for frame reference
+	int viewROI; // View ROI
+	int viewTrk; // View planet tracking
+	int viewDif; // View differential frame
+	int viewRef; // View reference frame
+	int viewMsk; // View mask
+	int viewThr; // View threshold
+	int viewSmo; // View frame after filter application
+	int viewHis; // View differential frame histogram
+	int viewRes; // View final frame
+	int verbose;
+	int debug;
+	int videotest; // Test input video file
+	int ADUdtconly; // Use ADUdtc algorithm only
+	int detail; // Use ADUdtc algorithm only with 2 more images as output
+	int allframes; // Save all intermediate mac frames from ADUdtc algorithm
+	int minframes; // Minimum # of frames to start processing
+	struct Filter filter;
+	int dateonly; // Display date information and stops processing
+	int ignore; // Ignore incorrect frames
+	int interactive;
+};
+typedef struct options OPTS;
+extern OPTS opts;
+
 struct FrameOrder {
 	bool operator()(ITEM* a, ITEM* b) {
 		return a->point->frame < b->point->frame;

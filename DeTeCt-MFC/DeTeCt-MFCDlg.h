@@ -11,10 +11,12 @@
 #include "afxcmn.h"
 #include "resource.h"
 
+#include "dtcgui.hpp"
+
+#define OPTIONS_FILE L"DeTeCt.ini"
+
 //Test WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 #include "WndResizer.h"
-
-
 
 const CString filter = _T("Video/image (*.ser,*.avi,*.wmv,*.m4v,*.as3,*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
 

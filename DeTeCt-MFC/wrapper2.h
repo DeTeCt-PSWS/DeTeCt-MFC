@@ -32,7 +32,6 @@ struct _DtcCapture2
 };
 
 typedef struct _DtcCapture2 DtcCapture2;
-	
 
 	/****************************************************************************************************/
 	/*									Procedures and functions										*/

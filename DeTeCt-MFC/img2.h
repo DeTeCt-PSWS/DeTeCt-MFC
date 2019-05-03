@@ -80,7 +80,7 @@ extern "C" {
 
 	void 			dtcDrawCM(Image image, cv::Point cm);
 	
-	void			dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour);
+	void			dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, int lmax);
 
 	//void			dtcApplyMaskToFrame(cv::Mat img);
 

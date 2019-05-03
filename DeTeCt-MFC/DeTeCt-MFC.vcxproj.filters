@@ -180,9 +180,6 @@
     <ClCompile Include="wrapper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="dtc.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="serfmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>

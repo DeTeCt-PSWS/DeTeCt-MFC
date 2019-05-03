@@ -131,7 +131,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	GetModuleFileName(NULL, exepath, MAX_PATH);
 	CString folder = exepath;
 	folder = folder.Left(folder.ReverseFind(_T('\\')) + 1);
-	folder.Append(L"options.ini");
+	folder.Append(OPTIONS_FILE);
 	_TCHAR optionStr[1000];
 	opts.filename = opts.ofilename = opts.darkfilename = opts.ovfname = opts.sfname = NULL;
 	opts.nsaveframe = 0;
@@ -173,13 +173,14 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.filter.param[1] = 3;
 	opts.filter.param[2] = 0;
 	opts.filter.param[3] = 0;
-	opts.debug = 0;
 	opts.ADUdtconly = 0;
 	opts.detail = ::GetPrivateProfileInt(L"impact", L"detail", 0, folder);
 	opts.allframes = ::GetPrivateProfileInt(L"impact", L"inter", 0, folder);
 	opts.minframes = ::GetPrivateProfileInt(L"other", L"frmin", 0, folder);
 	opts.dateonly = ::GetPrivateProfileInt(L"other", L"dateonly", 0, folder);
 	opts.ignore = ::GetPrivateProfileInt(L"other", L"ignore", 0, folder);
+	opts.debug = ::GetPrivateProfileInt(L"other", L"debug", 0, folder);
+	debug_mode = opts.debug;
 	opts.videotest = 0;
 	opts.wROI = 0;
 	opts.hROI = 0;
@@ -827,7 +828,7 @@ void PrefDialog::OnBnClickedOk()
 	GetModuleFileName(NULL, exepath, MAX_PATH);
 	CString folder = exepath;
 	folder = folder.Left(folder.ReverseFind(_T('\\')) + 1);
-	folder.Append(L"options.ini");
+	folder.Append(OPTIONS_FILE);
 	meanValue.GetWindowTextW(str);
 	opts.incrLumImpact = std::stof(str.GetString());
 	::WritePrivateProfileString(L"impact", L"min_strength", str, folder);
@@ -916,6 +917,8 @@ void PrefDialog::OnBnClickedOk()
 	opts.filter.type = filterSelect.GetCurSel();
 	str.Format(L"%d", opts.filter.type);
 	::WritePrivateProfileString(L"other", L"filter", str, folder);
+	str.Format(L"%d", opts.debug);
+	::WritePrivateProfileString(L"other", L"debug", str, folder);
 	CDialog::OnOK();
 }
 
@@ -1012,6 +1015,8 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 	}
 	if (file.size() <=0) {
 			ss << "No file selected";
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	} else {
 		std::wstringstream ss2;
 //TODO: clearscreen
@@ -1052,8 +1057,6 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 //			ss << "Adding " << file.c_str() << " for analysis";
 //		}
 	}
-	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
-	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	this->RedrawWindow();
 	if (opts.filename > 0) opts.filename = NULL;
 	if (!opts.interactive) OnBnClickedOk();
