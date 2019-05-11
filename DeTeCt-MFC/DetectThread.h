@@ -1,11 +1,11 @@
 #ifndef __DETECTTHREAD_H_
 #define __DETECTTHREAD_H_
 
-#include "afxwin.h"
+//#include "afxwin.h"
 #include "DeTeCt-MFCDlg.h"
-#include "dtcgui.hpp"
-#include <string>
-#include <vector>
+//#include "dtcgui.hpp"
+//#include <string>
+//#include <vector>
 
 struct _ImpactDetectParams {
 	std::vector<std::string> file_list;

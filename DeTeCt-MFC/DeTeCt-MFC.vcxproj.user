@@ -1,10 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>-automati G:\Work\Impact\dtc\movies\ser</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>-automatic G:\Work\Impact\tests\data_set\movies\ser\jupiter_2012_08_04_061411_Clear.ser</LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
   <PropertyGroup>
     <RESOURCE_FILE>DeTeCt-MFC.rc</RESOURCE_FILE>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LocalDebuggerCommandArguments> -automatic G:\Work\Impact\tests\data_set\movies\ser\jupiter_2012_08_04_062019_Clear.ser</LocalDebuggerCommandArguments>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

@@ -22,6 +22,7 @@ extern "C" {
 #include "datation2.h"
 //#include "max2.h"
 #include "dtcas3.h"
+//#include "processes_queue.h"
 
 #include <vector>
 
@@ -73,7 +74,8 @@ struct options {
 	struct Filter filter;
 	int dateonly; // Display date information and stops processing
 	int ignore; // Ignore incorrect frames
-	int interactive;
+	int interactive; // Normal interactive mode or automatic mode
+	int maxinstances; // Maximum number of DeTeCt instances running in parallel
 };
 typedef struct options OPTS;
 extern OPTS opts;

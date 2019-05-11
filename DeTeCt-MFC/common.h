@@ -2,7 +2,7 @@
 #define __COMMON_H__
 
 #include <opencv/highgui.h>
-//#include <opencv2/highgui/highgui.hpp>
+// #include <opencv2/highgui/highgui.hpp>
 
 #include <stdio.h>
 #define MAX_STRING	768

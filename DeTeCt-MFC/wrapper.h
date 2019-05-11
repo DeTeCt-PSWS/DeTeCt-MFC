@@ -2,12 +2,12 @@
 #define __WRAPPER_H__
 
 //#include <opencv/highgui.h>
-#include <opencv2\highgui\highgui.hpp>
+//#include <opencv2\highgui\highgui.hpp>
 
 
 #include "serfmt.h"
 #include "filefmt.h"
-#include "common.h"
+//#include "common.h"
 
 #define CAPTURE_CV		0
 #define CAPTURE_SER		1

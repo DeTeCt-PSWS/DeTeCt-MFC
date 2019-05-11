@@ -3,7 +3,7 @@
 #define __IMG2_H__
 
 #include <opencv/cv.h>
-#include <opencv2\imgproc\imgproc.hpp>
+//#include <opencv2\imgproc\imgproc.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
 extern "C" {

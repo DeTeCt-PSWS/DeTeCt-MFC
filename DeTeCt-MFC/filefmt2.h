@@ -1,11 +1,11 @@
 #pragma once
 #ifndef __FILEFMT_H__
 #define __FILEFMT_H__
-#include "common.h"
-#include "dirent.h"
+//#include "common.h"
+//#include "dirent.h"
 
-#include <opencv2\core\core.hpp>
-#include <opencv2\highgui\highgui.hpp> 
+//#include <opencv2\core\core.hpp>
+//#include <opencv2\highgui\highgui.hpp> 
 
 /**********************************************************************************************//**
  * @struct	_FileCapture

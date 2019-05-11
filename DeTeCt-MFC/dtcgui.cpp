@@ -5,22 +5,24 @@
 /*			DTC	(c) Luis Calderon, Marc Delcroix, Jon Juaristi 2012-			*/
 /*                                                                              */
 /********************************************************************************/
-
-
+#include "afxwin.h"
+#include "processes_queue.h"
+#include "dtcgui.hpp"
+#include <windows.h> //after processes_queue.h
 #include <string>
 #include <vector>
 #include <queue>
 #include <iostream>
 #include <ctime>
 #include <numeric>
-#include <algorithm>
+//#include <algorithm>
 #include <regex>
 
 #include "DeTeCt-MFCDlg.h"
-#include "dtcgui.hpp"
-#include "afxwin.h"
-
 #include <strsafe.h>
+
+
+
 
 /** @brief	Options for the algorithm */
 
@@ -145,7 +147,7 @@ void read_files(std::string folder, std::vector<std::string> *file_list, std::ve
 		else {
 			std::string file(entry->d_name);
 			std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
-			std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+			std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower); //warning C4244
 			if (std::find(supported_videoext.begin(), supported_videoext.end(), extension) != supported_videoext.end()) {
 				file_list->push_back(folder + "\\" + entry->d_name);
 				acquisition_file_list->push_back(folder + "\\" + entry->d_name);
@@ -560,1171 +562,1219 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	std::wstring wlogmessage;
 	CString Clogmessage;
 
-	for (std::string filename : file_list) {
-//gets acquisition file from autostakkert session file
-		std::string extension = filename.substr(filename.find_last_of(".")+1, filename.size()-filename.find_last_of(".")-1);
-		if (extension.compare(autostakkert_extension) == 0) {
-			std::string filename_acquisition;
-			std::vector<cv::Point> cm_list;
+	std::vector<std::string> local_file_list;
+	local_file_list = file_list;
+	do
+	{
+		for (std::string filename : local_file_list) {
+	//gets acquisition file from autostakkert session file
+			std::string extension = filename.substr(filename.find_last_of(".")+1, filename.size()-filename.find_last_of(".")-1);
+			if (extension.compare(autostakkert_extension) == 0) {
+				std::string filename_acquisition;
+				std::vector<cv::Point> cm_list;
 
-			read_autostakkert_file(filename, &filename_acquisition, &cm_list);
-			filename = filename_acquisition;
-		}
-//TODO: usage of cmlist and quality information from as3
-		opts.filename = strdup(filename.c_str());
-		std::string outputFolder = filename.substr(0, filename.find_last_of("\\") + 1);
-		outputFolder = outputFolder.replace(0, scan_folder_path.length() + 1, "");
-		std::replace(outputFolder.begin(), outputFolder.end(), '\\', '_');
-		std::replace(outputFolder.begin(), outputFolder.end(), ' ', '_');
-		std::string folderPath = filename.substr(0, filename.find_last_of("\\") + 1);
-		std::string filePath = filename.substr(filename.find_last_of("\\") + 1, filename.find_last_of("."));
-		filePath = filePath.substr(0, filePath.find_last_of("."));
-		std::string outputfilename = folderPath.append(outputFolder).append(filePath).append(".jpg");
-		opts.ofilename = strdup(outputfilename.c_str());
-		std::wstring fname(filename.begin(), filename.end());
-		std::string short_filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
-
-		std::string message = "-------------- " + short_filename + " start --------------";
-		std::string message2 = "-------------- " + filename + " start --------------";
-		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
-		output_log << getDateTime().str().c_str() << message2.c_str() << "\n";
-		output_log.flush();
-
-		init_string(max_mean_folder_path_filename);
-		init_string(max_mean2_folder_path_filename);
-		init_string(mean_folder_path_filename);
-		init_string(diff_mean_folder_path_filename);
-		init_string(tmpstring);
-
-		std::string detection_folder_path_string(detection_folder_path.begin(), detection_folder_path.end());
-		std::strcpy(max_mean_folder_path_filename, detection_folder_path_string.c_str());
-		std::strcpy(mean_folder_path_filename, detection_folder_path_string.c_str());
-
-		std::string detail_folder_path_string(details_folder_path.begin(), details_folder_path.end());
-		std::strcpy(max_mean2_folder_path_filename, detail_folder_path_string.c_str());
-		std::strcpy(diff_mean_folder_path_filename, detail_folder_path_string.c_str());
-
-		int fps_int = 0;
-		double fps_real = 0;
-		DtcCapture *pCapture;
-		LIST ptlist = { 0,0,NULL,NULL };
-		DTCIMPACT dtc;
-		DTCIMPACT outdtc;
-
-		LIST candidates = { 0, 0, NULL, NULL };
-		LIST impact = { 0, 0, NULL, NULL };
-
-		cv::Mat pFrame; // Input frame
-		cv::Mat pGryMat; // Grey frame
-		cv::Mat pRefMat; // Reference frame
-		cv::Mat pDifMat; // Difference frame
-		cv::Mat pMskMat; // Mask frame
-		cv::Mat pHisMat; // Histogram frame
-		cv::Mat pThrMat; // Threshold frame
-		cv::Mat pSmoMat; // Smooth frame
-		cv::Mat pTrkMat; // Tracking frame
-		cv::Mat pOVdMat; // Output video frame
-		cv::Mat pADUavgMat; // ADU average frame
-		cv::Mat pADUmaxMat; // ADU max frame
-		cv::Mat pADUdtcMat; // ADU detect frame
-		cv::Mat pSmoADUdtcMat; // ADU detect frame (smoothed)
-		cv::Mat pADUavgDiffMat; // ADU average difference frame
-		cv::Mat pADUavgMatFrame; // ADU average frame2
-		cv::Mat pADUdarkMat; // ADU dark frame
-		cv::Mat pFirstFrameROIMat; // Region of interest, obtained from the first frame
-		cv::Rect pFirstFrameROI; // Aforementioned region of interest as a delimited rectangle
-		cv::Mat pROIMat; // Region of interest, obtained for the rest of the frames
-		cv::Rect pROI; // Aforementioned region of interest as a delimited rectangle
-		cv::Rect pFrameROI; // ROI of current frame
-		cv::Mat pAvgMat;
-
-		cv::Mat tempROIMat, tempGryMat; // For matrices in which the ROI covers non-existing data
-
-		cv::Mat previousGrayMat;
-		std::queue<cv::Mat> refFrameQueue; // Queue to make a moving reference frame
-					/* Images to be shown and/or saved */
-		cv::Mat pGryImg;
-		cv::Mat pRefImg;
-		cv::Mat pDifImg;
-		cv::Mat pMskImg;
-		cv::Mat pThrImg;
-		cv::Mat pSmoImg;
-		cv::Mat pHisImg;
-		cv::Mat pTrkImg;
-		cv::Mat pOVdImg;
-		cv::Mat pADUdtcImg;
-		cv::Mat pADUdtcImg2;
-		cv::Mat pADUavgImg;
-		cv::Mat pADUdarkImg;
-
-		int y_shift = 10;
-		int x_shift = 10;
-
-		std::vector<double> xList;
-		std::vector<double> maxList;
-
-		int N = 0;
-		double totalMean =0;
-
-		cv::Point brightestPointOfImpact;
-
-		cv::VideoWriter *pWriter = cv::makePtr<cv::VideoWriter>();
-
-		cv::Rect croi = { 0, 0, 0, 0 };
-
-		cv::Point minPoint = { 0, 0 };
-		cv::Point maxPoint = { 0, 0 };
-		cv::Point firstFrameCm;
-
-		cv::Scalar lum;
-
-		double minLum = 0;
-		double maxLum = 0;
-
-		int nframe = 0;
-		int framecount = 0;
-
-		int pGryImg_height = 0;
-		int pGryImg_width = 0;
-		char ofilenamenormframe[MAX_STRING];
-		char ofilenamemean[MAX_STRING];
-		char ofilenamenorm[MAX_STRING];
-		char ofilenamediffmean[MAX_STRING];
-		char ofilenamemax[MAX_STRING];
-		char ofilenamediff[MAX_STRING];
-
-		init_string(ofilenamenormframe);
-		init_string(ofilenamemean);
-		init_string(ofilenamediffmean);
-		init_string(ofilenamenorm);
-
-		char comment[MAX_STRING];
-		double duration;
-
-		double start_time;
-		double end_time;
-		TIME_TYPE timetype;
-
-		int nb_impact = -1;
-		int frame_error = 0;
-		int frame_errors = 0;
-		int darkfile_ok = 0;
-		lum.val[0] = 0.0;
-		
-		int frame_number;
-
-		std::vector<ITEM*> candidateFrames;
-		std::vector<ITEM*> brightestPoints;
-		std::vector<cv::Mat> frameList;
-		std::vector<cv::Point> cmShifts;
-		std::vector<DiffImage> diffImages;
-		std::vector<uint16_t> maxPtX;
-		std::vector<uint16_t> maxPtY;
-		std::vector<uint8_t> maxPtB;
-		std::vector<uint16_t> frameErrors;
-		std::vector<uint16_t> frameNumbers;
-		cv::Mat xMat;
-		cv::Mat yMat;
-		cv::Mat bMat;
-		cv::Mat impactFrame;
-		cv::Mat pOrigGryMat;
-
-		double firstFrameMean;
-		double currentFrameMean;
-
-		int tempCols = 0;
-		int tempRows = 0;
-
-		try {
-			/*********************************INITIALIZATION******************************************/
-
-			double video_duration = 0.0;
-			begin = clock();
-
-			std::vector<long> frames;
-
-			CDeTeCtMFCDlg::getProgress()->SetStep(1);
-
-			if (!(pCapture = dtcCaptureFromFile2(opts.filename, &framecount))) {
-				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Cannot open file " +
-					(CString)opts.filename);
-				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-				CDeTeCtMFCDlg::getLog()->RedrawWindow();
-				output_log << getDateTime().str().c_str() << "Cannot open file " << opts.filename << "\n";
-				output_log.flush();
-				continue;
+				read_autostakkert_file(filename, &filename_acquisition, &cm_list);
+				filename = filename_acquisition;
 			}
-			switch (pCapture->type) {
-			case CAPTURE_SER:
-				nframe = pCapture->u.sercapture->header.FrameCount;
-				break;
-			case CAPTURE_FITS:
-			case CAPTURE_FILES:
-				nframe = pCapture->u.filecapture->FrameCount;
-				break;
-			default: // CAPTURE_CV
-				nframe = (int)(dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT));
-			}
-			frame_number = nframe;
-			CDeTeCtMFCDlg::getProgress()->SetRange(0, nframe);
-			CDeTeCtMFCDlg::getProgress()->SetPos(0);
-			if ((nframe > 0) && (nframe < opts.minframes)) {
-				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"INFO: only " +
-					(CString)std::to_string(nframe).c_str() + L" frames (minimum is " +
-					(CString)std::to_string(opts.minframes).c_str() + L"), stopping processing");
-				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-				CDeTeCtMFCDlg::getLog()->RedrawWindow();
-				output_log << getDateTime().str().c_str() << "INFO: only " << nframe << " frames (minimum is " << opts.minframes
-					<< "), stopping processing" << "\n";
-				output_log.flush();
-				message = "-------------- " + short_filename + " end --------------";
-				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
-				output_log << getDateTime().str().c_str() << message.c_str() << "\n";
-				output_log.flush();
-				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-				CDeTeCtMFCDlg::getLog()->RedrawWindow();
-				dtcReleaseCapture(pCapture);
-				pCapture = NULL;
-				logmessage = "INFO: only " + std::to_string(nframe) + " frames (minimum is " + std::to_string(opts.minframes) + 
-					"), stopping processing\n";
-				if (!opts.dateonly) {
-					log_messages.push_back(short_filename + ":");
-					log_messages.push_back("    " + logmessage);
-				}
-				continue;
-			}
-			dtcGetDatation(pCapture, opts.filename, nframe, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
-			if (fps_real < 0.02)
-				fps_int = (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FPS);
-			else
-				fps_int = (int)std::floor(0.5 + fps_real);
-			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initializing capture: " +
-				(CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps");
+	//TODO: usage of cmlist and quality information from as3
+			opts.filename = strdup(filename.c_str());
+			std::string outputFolder = filename.substr(0, filename.find_last_of("\\") + 1);
+			outputFolder = outputFolder.replace(0, scan_folder_path.length() + 1, "");
+			std::replace(outputFolder.begin(), outputFolder.end(), '\\', '_');
+			std::replace(outputFolder.begin(), outputFolder.end(), ' ', '_');
+			std::string folderPath = filename.substr(0, filename.find_last_of("\\") + 1);
+			std::string filePath = filename.substr(filename.find_last_of("\\") + 1, filename.find_last_of("."));
+			filePath = filePath.substr(0, filePath.find_last_of("."));
+			std::string outputfilename = folderPath.append(outputFolder).append(filePath).append(".jpg");
+			opts.ofilename = strdup(outputfilename.c_str());
+			std::wstring fname(filename.begin(), filename.end());
+			std::string short_filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+
+			std::string message = "-------------- " + short_filename + " start --------------";
+			std::string message2 = "-------------- " + filename + " start --------------";
+
+			//impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-			CDeTeCtMFCDlg::getLog()->RedrawWindow();
-			output_log << getDateTime().str().c_str() << "Initializing capture:  " << nframe << " frames @ " << fps_int
-				<< " fps" << "\n";
+			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+			output_log << getDateTime().str().c_str() << message2.c_str() << "\n";
 			output_log.flush();
 
-			if (opts.dateonly) {
-				//dtcWriteLog(opts.filename, start_time, end_time, duration, fps_real, timetype, opts.filename, comment, -1, 1);
-				LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, "WARNING, datation info only", 0, 0);
-				dtcWriteLog2(logcation, info);
-				dtcWriteLog2(logcation2, info);
-				dtcReleaseCapture(pCapture);
-				pCapture = NULL;
-				continue;
-			}
-			if (opts.wROI && opts.hROI) {
-				croi = cv::Rect(0, 0, opts.wROI, opts.hROI);
-			} else {
-				croi = dtcGetFileROIcCM(pCapture, opts.ignore, 0);
-				dtcReinitCaptureRead2(&pCapture, opts.filename);
-			}
-	
-			if (opts.viewDif) cv::namedWindow("Initial differential photometry");
-			if (opts.viewRef) cv::namedWindow("Reference frame");
-			if (opts.viewROI) cv::namedWindow("ROI");
-			if (opts.viewTrk) cv::namedWindow("Tracking");
-			if (opts.viewMsk) cv::namedWindow("Mask");
-			if (opts.viewThr) cv::namedWindow("Thresholded differential photometry");
-			if (opts.viewSmo) cv::namedWindow("Smoothed differential photometry");
-			if (opts.viewRes) cv::namedWindow("Resulting differential photometry");
-			if (opts.viewHis) cv::namedWindow("Histogram");
+			init_string(max_mean_folder_path_filename);
+			init_string(max_mean2_folder_path_filename);
+			init_string(mean_folder_path_filename);
+			init_string(diff_mean_folder_path_filename);
+			init_string(tmpstring);
 
-			nframe = 0;
-			if (opts.darkfilename) {
-				if (!(pADUdarkMat = cv::imread(opts.darkfilename, CV_LOAD_IMAGE_GRAYSCALE)).data) {
-					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Warning: cannot read dark frame" +
-						(CString)std::string(opts.darkfilename).c_str());
+			std::string detection_folder_path_string(detection_folder_path.begin(), detection_folder_path.end());
+			std::strcpy(max_mean_folder_path_filename, detection_folder_path_string.c_str());
+			std::strcpy(mean_folder_path_filename, detection_folder_path_string.c_str());
+
+			std::string detail_folder_path_string(details_folder_path.begin(), details_folder_path.end());
+			std::strcpy(max_mean2_folder_path_filename, detail_folder_path_string.c_str());
+			std::strcpy(diff_mean_folder_path_filename, detail_folder_path_string.c_str());
+
+			int fps_int = 0;
+			double fps_real = 0;
+			DtcCapture *pCapture;
+			LIST ptlist = { 0,0,NULL,NULL };
+			DTCIMPACT dtc;
+			DTCIMPACT outdtc;
+
+			LIST candidates = { 0, 0, NULL, NULL };
+			LIST impact = { 0, 0, NULL, NULL };
+
+			cv::Mat pFrame; // Input frame
+			cv::Mat pGryMat; // Grey frame
+			cv::Mat pRefMat; // Reference frame
+			cv::Mat pDifMat; // Difference frame
+			cv::Mat pMskMat; // Mask frame
+			cv::Mat pHisMat; // Histogram frame
+			cv::Mat pThrMat; // Threshold frame
+			cv::Mat pSmoMat; // Smooth frame
+			cv::Mat pTrkMat; // Tracking frame
+			cv::Mat pOVdMat; // Output video frame
+			cv::Mat pADUavgMat; // ADU average frame
+			cv::Mat pADUmaxMat; // ADU max frame
+			cv::Mat pADUdtcMat; // ADU detect frame
+			cv::Mat pSmoADUdtcMat; // ADU detect frame (smoothed)
+			cv::Mat pADUavgDiffMat; // ADU average difference frame
+			cv::Mat pADUavgMatFrame; // ADU average frame2
+			cv::Mat pADUdarkMat; // ADU dark frame
+			cv::Mat pFirstFrameROIMat; // Region of interest, obtained from the first frame
+			cv::Rect pFirstFrameROI; // Aforementioned region of interest as a delimited rectangle
+			cv::Mat pROIMat; // Region of interest, obtained for the rest of the frames
+			cv::Rect pROI; // Aforementioned region of interest as a delimited rectangle
+			cv::Rect pFrameROI; // ROI of current frame
+			cv::Mat pAvgMat;
+
+			cv::Mat tempROIMat, tempGryMat; // For matrices in which the ROI covers non-existing data
+
+			cv::Mat previousGrayMat;
+			std::queue<cv::Mat> refFrameQueue; // Queue to make a moving reference frame
+						/* Images to be shown and/or saved */
+			cv::Mat pGryImg;
+			cv::Mat pRefImg;
+			cv::Mat pDifImg;
+			cv::Mat pMskImg;
+			cv::Mat pThrImg;
+			cv::Mat pSmoImg;
+			cv::Mat pHisImg;
+			cv::Mat pTrkImg;
+			cv::Mat pOVdImg;
+			cv::Mat pADUdtcImg;
+			cv::Mat pADUdtcImg2;
+			cv::Mat pADUavgImg;
+			cv::Mat pADUdarkImg;
+
+			int y_shift = 10;
+			int x_shift = 10;
+
+			std::vector<double> xList;
+			std::vector<double> maxList;
+
+			int N = 0;
+			double totalMean =0;
+
+			cv::Point brightestPointOfImpact;
+
+			cv::VideoWriter *pWriter = cv::makePtr<cv::VideoWriter>();
+
+			cv::Rect croi = { 0, 0, 0, 0 };
+
+			cv::Point minPoint = { 0, 0 };
+			cv::Point maxPoint = { 0, 0 };
+			cv::Point firstFrameCm;
+
+			cv::Scalar lum;
+
+			double minLum = 0;
+			double maxLum = 0;
+
+			int nframe = 0;
+			int framecount = 0;
+
+			int pGryImg_height = 0;
+			int pGryImg_width = 0;
+			char ofilenamenormframe[MAX_STRING];
+			char ofilenamemean[MAX_STRING];
+			char ofilenamenorm[MAX_STRING];
+			char ofilenamediffmean[MAX_STRING];
+			char ofilenamemax[MAX_STRING];
+			char ofilenamediff[MAX_STRING];
+
+			init_string(ofilenamenormframe);
+			init_string(ofilenamemean);
+			init_string(ofilenamediffmean);
+			init_string(ofilenamenorm);
+
+			char comment[MAX_STRING];
+			double duration;
+
+			double start_time;
+			double end_time;
+			TIME_TYPE timetype;
+
+			int nb_impact = -1;
+			int frame_error = 0;
+			int frame_errors = 0;
+			int darkfile_ok = 0;
+			lum.val[0] = 0.0;
+		
+			int frame_number;
+
+			std::vector<ITEM*> candidateFrames;
+			std::vector<ITEM*> brightestPoints;
+			std::vector<cv::Mat> frameList;
+			std::vector<cv::Point> cmShifts;
+			std::vector<DiffImage> diffImages;
+			std::vector<uint16_t> maxPtX;
+			std::vector<uint16_t> maxPtY;
+			std::vector<uint8_t> maxPtB;
+			std::vector<uint16_t> frameErrors;
+			std::vector<uint16_t> frameNumbers;
+			cv::Mat xMat;
+			cv::Mat yMat;
+			cv::Mat bMat;
+			cv::Mat impactFrame;
+			cv::Mat pOrigGryMat;
+
+			double firstFrameMean;
+			double currentFrameMean;
+
+			int tempCols = 0;
+			int tempRows = 0;
+
+			try {
+				/*********************************INITIALIZATION******************************************/
+
+				double video_duration = 0.0;
+				begin = clock();
+
+				std::vector<long> frames;
+
+				CDeTeCtMFCDlg::getProgress()->SetStep(1);
+
+				if (!(pCapture = dtcCaptureFromFile2(opts.filename, &framecount))) {
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Cannot open file " +
+						(CString)opts.filename);
 					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 					CDeTeCtMFCDlg::getLog()->RedrawWindow();
-					output_log << getDateTime().str().c_str() << "Warning: cannot read dark frame:  " << opts.darkfilename << "\n";
+					output_log << getDateTime().str().c_str() << "Cannot open file " << opts.filename << "\n";
 					output_log.flush();
-					darkfile_ok = 0;
-				} else {
-					darkfile_ok = 1;
+					continue;
 				}
-			}
-
-			/*********************************CAPTURE READING******************************************/
-			while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
-				cv::medianBlur(pFrame, pFrame, 3);
-				video_duration += (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC);
-				nframe++;
-				if (!(frame_error) == 0) {
-					frame_errors += 1;
-				} else {
-					init_string(ofilenamemax);
-					init_string(ofilenamediff);
-					//init_string(comment);
-					init_string(max_folder_path_filename);
-					init_string(diff_folder_path_filename);
-					std::strcpy(max_folder_path_filename, detail_folder_path_string.c_str());
-					std::strcpy(diff_folder_path_filename, detail_folder_path_string.c_str());
-					cv::Point cm;
-					cv::Rect roi;
-					DiffImage diffImage;
-					pGryMat = dtcGetGrayMat(&pFrame, pCapture);
-					cv::medianBlur(pGryMat, pGryMat, 1);
-					//dtcApplyMaskToFrame(pGryMat);
-					//cv::GaussianBlur(pGryMat, pGryMat, cv::Size(1, 1), 1);
-					if (darkfile_ok == 1) {
-						if ((pADUdarkMat.rows != pGryMat.rows) || (pADUdarkMat.cols != pGryMat.cols)) {
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Warning: dark frame " +
-								(CString)std::string(opts.darkfilename).c_str() + L" differs from the frame properties " +
-								(CString)std::to_string(pADUdarkMat.rows).c_str() + L" vs " +
-								(CString)std::to_string(pGryMat.rows).c_str() + L" rows, " +
-								(CString)std::to_string(pADUdarkMat.cols).c_str() + L" vs " +
-								(CString)std::to_string(pGryMat.cols).c_str() + L" cols");
-							CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-							CDeTeCtMFCDlg::getLog()->RedrawWindow();
-							output_log << getDateTime().str().c_str() << "Warning: dark frame  " << opts.darkfilename <<
-								" differs from the frame properties " << pADUdarkMat.rows << " vs " << pGryMat.rows << "rows, "
-								<< pADUdarkMat.cols << " vs " << pGryMat.cols << " cols " << "\n";
-							output_log.flush();
-							darkfile_ok = 0;
-						} else {
-							cv::Mat pGryDarkMat;
-							pGryDarkMat = cv::Mat(pGryMat.size(), pGryMat.type());
-							cv::subtract(pGryMat, pADUdarkMat, pGryDarkMat);
-							cv::threshold(pGryDarkMat, pGryMat, 0, 0, CV_THRESH_TOZERO);
-							pGryDarkMat.release();
-							pGryDarkMat = NULL;
-						}
+				switch (pCapture->type) {
+				case CAPTURE_SER:
+					nframe = pCapture->u.sercapture->header.FrameCount;
+					break;
+				case CAPTURE_FITS:
+				case CAPTURE_FILES:
+					nframe = pCapture->u.filecapture->FrameCount;
+					break;
+				default: // CAPTURE_CV
+					nframe = (int)(dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT));
+				}
+				frame_number = nframe;
+				CDeTeCtMFCDlg::getProgress()->SetRange(0, nframe);
+				CDeTeCtMFCDlg::getProgress()->SetPos(0);
+				if ((nframe > 0) && (nframe < opts.minframes)) {
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"INFO: only " +
+						(CString)std::to_string(nframe).c_str() + L" frames (minimum is " +
+						(CString)std::to_string(opts.minframes).c_str() + L"), stopping processing");
+					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+					CDeTeCtMFCDlg::getLog()->RedrawWindow();
+					output_log << getDateTime().str().c_str() << "INFO: only " << nframe << " frames (minimum is " << opts.minframes
+						<< "), stopping processing" << "\n";
+					output_log.flush();
+					message = "-------------- " + short_filename + " end --------------";
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+					output_log << getDateTime().str().c_str() << message.c_str() << "\n";
+					output_log.flush();
+					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+					CDeTeCtMFCDlg::getLog()->RedrawWindow();
+					dtcReleaseCapture(pCapture);
+					pCapture = NULL;
+					logmessage = "INFO: only " + std::to_string(nframe) + " frames (minimum is " + std::to_string(opts.minframes) + 
+						"), stopping processing\n";
+					if (!opts.dateonly) {
+						log_messages.push_back(short_filename + ":");
+						log_messages.push_back("    " + logmessage);
 					}
+					continue;
+				}
+				dtcGetDatation(pCapture, opts.filename, nframe, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
+				if (fps_real < 0.02)
+					fps_int = (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FPS);
+				else
+					fps_int = (int)std::floor(0.5 + fps_real);
+				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initializing capture: " +
+					(CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps");
+				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+				CDeTeCtMFCDlg::getLog()->RedrawWindow();
+				output_log << getDateTime().str().c_str() << "Initializing capture:  " << nframe << " frames @ " << fps_int
+					<< " fps" << "\n";
+				output_log.flush();
 
-					/*******************FIRST FRAME PROCESSING*******************/
-					if (nframe == 1) {
-						pGryMat.copyTo(pFirstFrameROIMat);
+				if (opts.dateonly) {
+					//dtcWriteLog(opts.filename, start_time, end_time, duration, fps_real, timetype, opts.filename, comment, -1, 1);
+					message = "-------------- " + short_filename + " end --------------";
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+					output_log << getDateTime().str().c_str() << message.c_str() << "\n";
+					LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, "WARNING, datation info only", 0, 0);
+					dtcWriteLog2(logcation, info);
+					dtcWriteLog2(logcation2, info);
+					dtcReleaseCapture(pCapture);
+					pCapture = NULL;
+					continue;
+				}
+				if (opts.wROI && opts.hROI) {
+					croi = cv::Rect(0, 0, opts.wROI, opts.hROI);
+				} else {
+					croi = dtcGetFileROIcCM(pCapture, opts.ignore, 0);
+					dtcReinitCaptureRead2(&pCapture, opts.filename);
+				}
+	
+				if (opts.viewDif) cv::namedWindow("Initial differential photometry");
+				if (opts.viewRef) cv::namedWindow("Reference frame");
+				if (opts.viewROI) cv::namedWindow("ROI");
+				if (opts.viewTrk) cv::namedWindow("Tracking");
+				if (opts.viewMsk) cv::namedWindow("Mask");
+				if (opts.viewThr) cv::namedWindow("Thresholded differential photometry");
+				if (opts.viewSmo) cv::namedWindow("Smoothed differential photometry");
+				if (opts.viewRes) cv::namedWindow("Resulting differential photometry");
+				if (opts.viewHis) cv::namedWindow("Histogram");
+
+				nframe = 0;
+				if (opts.darkfilename) {
+					if (!(pADUdarkMat = cv::imread(opts.darkfilename, CV_LOAD_IMAGE_GRAYSCALE)).data) {
+						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Warning: cannot read dark frame" +
+							(CString)std::string(opts.darkfilename).c_str());
+						CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+						CDeTeCtMFCDlg::getLog()->RedrawWindow();
+						output_log << getDateTime().str().c_str() << "Warning: cannot read dark frame:  " << opts.darkfilename << "\n";
+						output_log.flush();
+						darkfile_ok = 0;
+					} else {
+						darkfile_ok = 1;
+					}
+				}
+
+				/*********************************CAPTURE READING******************************************/
+				while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
+					cv::medianBlur(pFrame, pFrame, 3);
+					video_duration += (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC);
+					nframe++;
+					if (!(frame_error) == 0) {
+						frame_errors += 1;
+					} else {
+						init_string(ofilenamemax);
+						init_string(ofilenamediff);
+						//init_string(comment);
+						init_string(max_folder_path_filename);
+						init_string(diff_folder_path_filename);
+						std::strcpy(max_folder_path_filename, detail_folder_path_string.c_str());
+						std::strcpy(diff_folder_path_filename, detail_folder_path_string.c_str());
+						cv::Point cm;
+						cv::Rect roi;
+						DiffImage diffImage;
+						pGryMat = dtcGetGrayMat(&pFrame, pCapture);
+						cv::medianBlur(pGryMat, pGryMat, 1);
+						//dtcApplyMaskToFrame(pGryMat);
+						//cv::GaussianBlur(pGryMat, pGryMat, cv::Size(1, 1), 1);
+						if (darkfile_ok == 1) {
+							if ((pADUdarkMat.rows != pGryMat.rows) || (pADUdarkMat.cols != pGryMat.cols)) {
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Warning: dark frame " +
+									(CString)std::string(opts.darkfilename).c_str() + L" differs from the frame properties " +
+									(CString)std::to_string(pADUdarkMat.rows).c_str() + L" vs " +
+									(CString)std::to_string(pGryMat.rows).c_str() + L" rows, " +
+									(CString)std::to_string(pADUdarkMat.cols).c_str() + L" vs " +
+									(CString)std::to_string(pGryMat.cols).c_str() + L" cols");
+								CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+								CDeTeCtMFCDlg::getLog()->RedrawWindow();
+								output_log << getDateTime().str().c_str() << "Warning: dark frame  " << opts.darkfilename <<
+									" differs from the frame properties " << pADUdarkMat.rows << " vs " << pGryMat.rows << "rows, "
+									<< pADUdarkMat.cols << " vs " << pGryMat.cols << " cols " << "\n";
+								output_log.flush();
+								darkfile_ok = 0;
+							} else {
+								cv::Mat pGryDarkMat;
+								pGryDarkMat = cv::Mat(pGryMat.size(), pGryMat.type());
+								cv::subtract(pGryMat, pADUdarkMat, pGryDarkMat);
+								cv::threshold(pGryDarkMat, pGryMat, 0, 0, CV_THRESH_TOZERO);
+								pGryDarkMat.release();
+								pGryDarkMat = NULL;
+							}
+						}
+
+						/*******************FIRST FRAME PROCESSING*******************/
+						if (nframe == 1) {
+							pGryMat.copyTo(pFirstFrameROIMat);
+							pGryMat.convertTo(pGryMat, CV_8U);
+
+							pFirstFrameROIMat = dtcApplyMask(pFirstFrameROIMat);
+							//dtcApplyMaskToFrame(pFirstFrameROIMat);
+							//pFirstFrameROIMat.copyTo(pFirstFrameROIMat, dtcGetMask(pFirstFrameROIMat));
+							if (croi.x < 0) croi.x = 0;
+							if (croi.y < 0) croi.y = 0;
+							if (croi.x + croi.width > pFirstFrameROIMat.cols) croi.width = pFirstFrameROIMat.cols - croi.x;
+							if (croi.y + croi.height > pFirstFrameROIMat.rows) croi.height = pFirstFrameROIMat.rows - croi.y;
+
+							firstFrameCm.x = croi.x + croi.width / 2;
+							firstFrameCm.y = croi.y + croi.height / 2;
+
+							pFirstFrameROI = cv::Rect(croi);
+							pFirstFrameROIMat = dtcReduceMatToROI(pGryMat, pFirstFrameROI);
+
+							if (!opts.wait && (opts.viewROI || opts.viewTrk || opts.viewDif || opts.viewRef ||
+								opts.viewThr || opts.viewSmo || opts.viewRes || opts.viewHis)) {
+								if (fps_int > 0) {
+									opts.wait = (int)(1000 / std::ceil(fps_int));
+								} else {
+									opts.wait = (int)(1000 / 25);
+								}
+							}
+
+							nb_impact = 0;
+							//init_list(&ptlist, (fps_int * opts.timeImpact));
+							init_list(&ptlist, frame_number);
+							init_dtc_struct(&dtc);
+							init_dtc_struct(&outdtc);
+							init_list(&impact, frame_number);
+							init_list(&candidates, frame_number);
+
+							pDifMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+							pRefMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+
+							pADUavgMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
+							pADUavgDiffMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
+							pADUmaxMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
+							if ((opts.ofilename) && (opts.allframes)) {
+								pADUdtcMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+								pADUavgMatFrame = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+							}
+							if (opts.thrWithMask || opts.viewMsk || (opts.ovfname && (opts.ovtype == OTYPE_MSK))) {
+								pMskMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+							}
+							if (opts.viewThr) {
+								pThrMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+							}
+							if (opts.filter.type >= 0 || opts.viewSmo) {
+								pSmoMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+							}
+							if (opts.viewTrk || (opts.ovtype == OTYPE_TRK && opts.ovfname)) {
+								pTrkMat = cv::Mat(pFrame.size(), CV_32F);
+							}
+							pAvgMat = cv::Mat(pFirstFrameROIMat.size(), CV_64F);
+
+							firstFrameMean = cv::mean(pFirstFrameROIMat)[0];
+							pFirstFrameROIMat.convertTo(pRefMat, CV_32F);
+							cv::Rect bigROI = pFirstFrameROI + cv::Size(x_shift, y_shift);
+							pROIMat = cv::Mat::zeros(bigROI.size(), pFirstFrameROIMat.type());
+							tempGryMat = cv::Mat::zeros(pFirstFrameROI.size(), pFirstFrameROIMat.type());
+						}
+						/*******************EVERY FRAME PROCESSING*******************/
 						pGryMat.convertTo(pGryMat, CV_8U);
 
-						pFirstFrameROIMat = dtcApplyMask(pFirstFrameROIMat);
-						//dtcApplyMaskToFrame(pFirstFrameROIMat);
-						//pFirstFrameROIMat.copyTo(pFirstFrameROIMat, dtcGetMask(pFirstFrameROIMat));
-						if (croi.x < 0) croi.x = 0;
-						if (croi.y < 0) croi.y = 0;
-						if (croi.x + croi.width > pFirstFrameROIMat.cols) croi.width = pFirstFrameROIMat.cols - croi.x;
-						if (croi.y + croi.height > pFirstFrameROIMat.rows) croi.height = pFirstFrameROIMat.rows - croi.y;
+						cv::Mat maskedGryMat = dtcApplyMask(pGryMat.clone());
 
-						firstFrameCm.x = croi.x + croi.width / 2;
-						firstFrameCm.y = croi.y + croi.height / 2;
-
-						pFirstFrameROI = cv::Rect(croi);
-						pFirstFrameROIMat = dtcReduceMatToROI(pGryMat, pFirstFrameROI);
-
-						if (!opts.wait && (opts.viewROI || opts.viewTrk || opts.viewDif || opts.viewRef ||
-							opts.viewThr || opts.viewSmo || opts.viewRes || opts.viewHis)) {
-							if (fps_int > 0) {
-								opts.wait = (int)(1000 / std::ceil(fps_int));
-							} else {
-								opts.wait = (int)(1000 / 25);
-							}
-						}
-
-						nb_impact = 0;
-						//init_list(&ptlist, (fps_int * opts.timeImpact));
-						init_list(&ptlist, frame_number);
-						init_dtc_struct(&dtc);
-						init_dtc_struct(&outdtc);
-						init_list(&impact, frame_number);
-						init_list(&candidates, frame_number);
-
-						pDifMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-						pRefMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-
-						pADUavgMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
-						pADUavgDiffMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
-						pADUmaxMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
-						if ((opts.ofilename) && (opts.allframes)) {
-							pADUdtcMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-							pADUavgMatFrame = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-						}
-						if (opts.thrWithMask || opts.viewMsk || (opts.ovfname && (opts.ovtype == OTYPE_MSK))) {
-							pMskMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-						}
-						if (opts.viewThr) {
-							pThrMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-						}
-						if (opts.filter.type >= 0 || opts.viewSmo) {
-							pSmoMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-						}
-						if (opts.viewTrk || (opts.ovtype == OTYPE_TRK && opts.ovfname)) {
-							pTrkMat = cv::Mat(pFrame.size(), CV_32F);
-						}
-						pAvgMat = cv::Mat(pFirstFrameROIMat.size(), CV_64F);
-
-						firstFrameMean = cv::mean(pFirstFrameROIMat)[0];
-						pFirstFrameROIMat.convertTo(pRefMat, CV_32F);
-						cv::Rect bigROI = pFirstFrameROI + cv::Size(x_shift, y_shift);
-						pROIMat = cv::Mat::zeros(bigROI.size(), pFirstFrameROIMat.type());
-						tempGryMat = cv::Mat::zeros(pFirstFrameROI.size(), pFirstFrameROIMat.type());
-					}
-					/*******************EVERY FRAME PROCESSING*******************/
-					pGryMat.convertTo(pGryMat, CV_8U);
-
-					cv::Mat maskedGryMat = dtcApplyMask(pGryMat.clone());
-
-					//pGryMat.copyTo(pGryMat, dtcGetMask(pGryMat.clone()));
+						//pGryMat.copyTo(pGryMat, dtcGetMask(pGryMat.clone()));
 					
-					cm = dtcGetGrayMatCM(maskedGryMat);
+						cm = dtcGetGrayMatCM(maskedGryMat);
 
-					currentFrameMean = cv::mean(pGryMat)[0];
+						currentFrameMean = cv::mean(pGryMat)[0];
 					
-					//if ((cm.x <= 0) || (cm.y <= 0) || ((firstFrameMean / 10) > currentFrameMean)) {		
-					//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean <= (0.2 * firstFrameMean))) {
-					//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean == 0.0)) {
-					//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean <= (0.1 * firstFrameMean))) {
+						//if ((cm.x <= 0) || (cm.y <= 0) || ((firstFrameMean / 10) > currentFrameMean)) {		
+						//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean <= (0.2 * firstFrameMean))) {
+						//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean == 0.0)) {
+						//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean <= (0.1 * firstFrameMean))) {
 					
-					if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean < 5.0)) {
-						frame_errors++;
-					} else {
-						pFrameROI = dtcGetGrayImageROIcCM(maskedGryMat, cm, opts.medSize, opts.facSize, opts.secSize);
-
-						pROI.x = cm.x - (pFirstFrameROI.width / 2);
-						pROI.y = cm.y - (pFirstFrameROI.height / 2);
-						pROI.width = pFirstFrameROI.width;
-						pROI.height = pFirstFrameROI.height;
-
-						int tlDeltaX = -x_shift * 3;
-						int tlDeltaY = -y_shift * 3;
-
-						int brDeltaX = pGryMat.cols + (x_shift * 3);
-						int brDeltaY = pGryMat.rows + (y_shift * 3);
-
-						if ((pROI.tl().x < tlDeltaX) || (pROI.tl().y < tlDeltaY) ||
-							(pROI.br().x > brDeltaX) || (pROI.br().y > brDeltaY)) {
+						if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean < 5.0)) {
 							frame_errors++;
 						} else {
-							cv::Point inflationPoint(-x_shift, -y_shift);
-							cv::Size inflationSize(x_shift, y_shift);
-							pFrameROI += inflationPoint;
-							pFrameROI += inflationSize;
-							pROI += inflationPoint;
-							pROI += inflationSize;
+							pFrameROI = dtcGetGrayImageROIcCM(maskedGryMat, cm, opts.medSize, opts.facSize, opts.secSize);
 
-							//pROIMat = cv::Mat::zeros(pROI.size(), pFirstFrameROIMat.type());
-							pROIMat.setTo(cv::Scalar::all(0));
+							pROI.x = cm.x - (pFirstFrameROI.width / 2);
+							pROI.y = cm.y - (pFirstFrameROI.height / 2);
+							pROI.width = pFirstFrameROI.width;
+							pROI.height = pFirstFrameROI.height;
 
-							if (pROI.x < 0) pROI.x = 0;
-							if (pROI.y < 0) pROI.y = 0;
-							if (pROI.width + pROI.x > pGryMat.cols) pROI.width = pGryMat.cols - pROI.x;
-							if (pROI.height + pROI.y > pGryMat.rows) pROI.height = pGryMat.rows - pROI.y;
+							int tlDeltaX = -x_shift * 3;
+							int tlDeltaY = -y_shift * 3;
 
-							tempROIMat = dtcReduceMatToROI(pGryMat, pROI);
+							int brDeltaX = pGryMat.cols + (x_shift * 3);
+							int brDeltaY = pGryMat.rows + (y_shift * 3);
 
-							//DBOUT("tempROIMat size: " << tempROIMat.cols << "x" << tempROIMat.rows << "\n");
+							if ((pROI.tl().x < tlDeltaX) || (pROI.tl().y < tlDeltaY) ||
+								(pROI.br().x > brDeltaX) || (pROI.br().y > brDeltaY)) {
+								frame_errors++;
+							} else {
+								cv::Point inflationPoint(-x_shift, -y_shift);
+								cv::Size inflationSize(x_shift, y_shift);
+								pFrameROI += inflationPoint;
+								pFrameROI += inflationSize;
+								pROI += inflationPoint;
+								pROI += inflationSize;
 
-							tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
-							tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
+								//pROIMat = cv::Mat::zeros(pROI.size(), pFirstFrameROIMat.type());
+								pROIMat.setTo(cv::Scalar::all(0));
+
+								if (pROI.x < 0) pROI.x = 0;
+								if (pROI.y < 0) pROI.y = 0;
+								if (pROI.width + pROI.x > pGryMat.cols) pROI.width = pGryMat.cols - pROI.x;
+								if (pROI.height + pROI.y > pGryMat.rows) pROI.height = pGryMat.rows - pROI.y;
+
+								tempROIMat = dtcReduceMatToROI(pGryMat, pROI);
+
+								//DBOUT("tempROIMat size: " << tempROIMat.cols << "x" << tempROIMat.rows << "\n");
+
+								tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
+								tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
 								
-							tempROIMat.copyTo(pROIMat(cv::Rect(tempCols, tempRows,
-								tempROIMat.cols, tempROIMat.rows)));
+								tempROIMat.copyTo(pROIMat(cv::Rect(tempCols, tempRows,
+									tempROIMat.cols, tempROIMat.rows)));
 					
-							//DBOUT("pROIMat size: " << pROIMat.cols << "x" << pROIMat.rows << "\n");
+								//DBOUT("pROIMat size: " << pROIMat.cols << "x" << pROIMat.rows << "\n");
 
-							if (pGryMat.type() != CV_32F)
-								pGryMat.convertTo(pGryMat, CV_32F);
-							if (pFirstFrameROIMat.type() != CV_32F)
-								pFirstFrameROIMat.convertTo(pFirstFrameROIMat, CV_32F);
-							if (pROIMat.type() != CV_32F)
-								pROIMat.convertTo(pROIMat, CV_32F);
+								if (pGryMat.type() != CV_32F)
+									pGryMat.convertTo(pGryMat, CV_32F);
+								if (pFirstFrameROIMat.type() != CV_32F)
+									pFirstFrameROIMat.convertTo(pFirstFrameROIMat, CV_32F);
+								if (pROIMat.type() != CV_32F)
+									pROIMat.convertTo(pROIMat, CV_32F);
 
-							//x and y are top left (tl) coordinates of the ROI
-							roi = dtcCorrelateROI(pROIMat, pFirstFrameROIMat, pROI.tl(), pFirstFrameROI.size());
-							pROI = roi;
-							if (pROI.x < 0) pROI.x = 0;
-							if (pROI.y < 0) pROI.y = 0;
-							//if ((roi.x + roi.width > pFirstFrameROI.cols) )
-							//tempGryMat = cv::Mat::zeros(roi.size(), pGryMat.type());
-							tempGryMat.setTo(cv::Scalar::all(0));
-							if (pROI.width + pROI.x > pGryMat.cols) pROI.width = pGryMat.cols - pROI.x;
-							if (pROI.height + pROI.y > pGryMat.rows) pROI.height = pGryMat.rows - pROI.y;
-							pGryMat = dtcReduceMatToROI(pGryMat, pROI);
-							tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
-							tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
-//DBOUT("Frame          : " << nframe << "\n");
-//DBOUT("x y            : " << tempCols << " " << tempRows << "\n");
-//DBOUT("tempGryMat size: " << tempGryMat.cols << "x" << tempGryMat.rows << "\n");
-//DBOUT("pGryMat size   : " << pGryMat.cols << "x" << pGryMat.rows << "\n");
-//DBOUT("----------------\n");
+								//x and y are top left (tl) coordinates of the ROI
+								roi = dtcCorrelateROI(pROIMat, pFirstFrameROIMat, pROI.tl(), pFirstFrameROI.size());
+								pROI = roi;
+								if (pROI.x < 0) pROI.x = 0;
+								if (pROI.y < 0) pROI.y = 0;
+								//if ((roi.x + roi.width > pFirstFrameROI.cols) )
+								//tempGryMat = cv::Mat::zeros(roi.size(), pGryMat.type());
+								tempGryMat.setTo(cv::Scalar::all(0));
+								if (pROI.width + pROI.x > pGryMat.cols) pROI.width = pGryMat.cols - pROI.x;
+								if (pROI.height + pROI.y > pGryMat.rows) pROI.height = pGryMat.rows - pROI.y;
+								pGryMat = dtcReduceMatToROI(pGryMat, pROI);
+								tempCols = pROI.br().x > pGryMat.cols ? 0 : pROIMat.cols - tempROIMat.cols;
+								tempRows = pROI.br().y > pGryMat.rows ? 0 : pROIMat.rows - tempROIMat.rows;
+	//DBOUT("Frame          : " << nframe << "\n");
+	//DBOUT("x y            : " << tempCols << " " << tempRows << "\n");
+	//DBOUT("tempGryMat size: " << tempGryMat.cols << "x" << tempGryMat.rows << "\n");
+	//DBOUT("pGryMat size   : " << pGryMat.cols << "x" << pGryMat.rows << "\n");
+	//DBOUT("----------------\n");
 
-/*** Following added to avoid writing outside of matrix size - algorithm correctness to be checked ? ***/
-							tempCols = MIN(tempCols, tempGryMat.cols - pGryMat.cols);
-							tempRows = MIN(tempRows, tempGryMat.rows - pGryMat.rows);
+	/*** Following added to avoid writing outside of matrix size - algorithm correctness to be checked ? ***/
+								tempCols = MIN(tempCols, tempGryMat.cols - pGryMat.cols);
+								tempRows = MIN(tempRows, tempGryMat.rows - pGryMat.rows);
 
-							pGryMat.copyTo(tempGryMat(cv::Rect(tempCols, tempRows, pGryMat.cols, pGryMat.rows)));
+								pGryMat.copyTo(tempGryMat(cv::Rect(tempCols, tempRows, pGryMat.cols, pGryMat.rows)));
 							
-							tempGryMat.copyTo(pGryMat);
+								tempGryMat.copyTo(pGryMat);
 
-//DBOUT("pGryMat final size: " << pGryMat.cols << "x" << pGryMat.rows << "\n");
-//DBOUT("pFirstFrameROIMat size: " << pFirstFrameROIMat.cols << "x" << pFirstFrameROIMat.rows << "\n");
+	//DBOUT("pGryMat final size: " << pGryMat.cols << "x" << pGryMat.rows << "\n");
+	//DBOUT("pFirstFrameROIMat size: " << pFirstFrameROIMat.cols << "x" << pFirstFrameROIMat.rows << "\n");
 						
-							double similarity = dtcGetSimilarity(pFirstFrameROIMat, pGryMat)[0];			
+								double similarity = dtcGetSimilarity(pFirstFrameROIMat, pGryMat)[0];			
 
-							if (similarity <= 0.5) {
-								DBOUT("Slightly wrong frame " << nframe << "\n");
-							}
+								if (similarity <= 0.5) {
+									DBOUT("Slightly wrong frame " << nframe << "\n");
+								}
 
-							/* Normalise image */
-							pGryMat *= (firstFrameMean / cv::mean(pGryMat)[0]);
-							pGryMat.convertTo(pGryMat, CV_32F);
-							refFrameQueue.push(pGryMat);
+								/* Normalise image */
+								pGryMat *= (firstFrameMean / cv::mean(pGryMat)[0]);
+								pGryMat.convertTo(pGryMat, CV_32F);
+								refFrameQueue.push(pGryMat);
 
-							pDifMat = pGryMat - pRefMat;
+								pDifMat = pGryMat - pRefMat;
 
-							cv::Mat ifDif; // intelligent median
-							cv::medianBlur(pDifMat, ifDif, 1);
+								cv::Mat ifDif; // intelligent median
+								cv::medianBlur(pDifMat, ifDif, 1);
 							
-							double maxDifVal = 0;
+								double maxDifVal = 0;
 
-							cv::minMaxLoc(pDifMat, NULL, &maxDifVal, NULL, NULL);
-							//DBOUT("Max of Dif mat: " << maxDifVal << "\n");
+								cv::minMaxLoc(pDifMat, NULL, &maxDifVal, NULL, NULL);
+								//DBOUT("Max of Dif mat: " << maxDifVal << "\n");
 
-							//cv::imshow("Median blurred dif mask", ifDif);
-							//cv::waitKey(1);
+								//cv::imshow("Median blurred dif mask", ifDif);
+								//cv::waitKey(1);
 
-							//cv::threshold(ifDif, ifDif, 40.0, 0.0, cv::THRESH_TOZERO);
+								//cv::threshold(ifDif, ifDif, 40.0, 0.0, cv::THRESH_TOZERO);
 
-							cv::Mat ifMask = ifDif - pDifMat > 5;
+								cv::Mat ifMask = ifDif - pDifMat > 5;
 							
-							cv::Mat pDifMat2 = pDifMat.clone();
-							//pDifMat2.copyTo(pDifMat, ifMask);
+								cv::Mat pDifMat2 = pDifMat.clone();
+								//pDifMat2.copyTo(pDifMat, ifMask);
 
-							ifMask.release();
-							ifDif.release();
-							pDifMat2.release();
+								ifMask.release();
+								ifDif.release();
+								pDifMat2.release();
 
-							if (pDifMat.data) {
-								if (opts.viewDif) {
+								if (pDifMat.data) {
+									if (opts.viewDif) {
+										cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
+										pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
+										pDifImg.convertTo(pDifImg, CV_8U);
+										cv::imshow("Initial differential photometry", pDifImg);
+										cv::waitKey(1);
+										pDifImg.release();
+										pDifImg = NULL;
+									}
+									if (nframe == opts.nsaveframe && opts.ofilename && opts.ostype == OTYPE_DIF) {
+										cv::imwrite(opts.ofilename, pDifMat, img_save_params);
+									}
+								}
+
+
+								//cv::threshold(pDifMat, pThrMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
+								//cv::threshold(pDifMat, pDifMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
+
+								if (opts.filter.type > 0) {
+									switch (opts.filter.type) {
+									case FILTER_BLUR:
+										//Size 5x5
+										cv::blur(pDifMat, pDifMat, cv::Size(opts.filter.param[0], opts.filter.param[0]));
+										break;
+									case FILTER_MEDIAN:
+										//Size 5
+										cv::medianBlur(pDifMat, pDifMat, opts.filter.param[0]);
+										break;
+									case FILTER_GAUSSIAN:
+										//Size 5x5 Sigma 0
+										cv::GaussianBlur(pDifMat, pDifMat, cv::Size(opts.filter.param[0],
+											opts.filter.param[1]), opts.filter.param[2]);
+										break;
+									}
+								}
+
+								pDifMat.copyTo(pSmoMat);
+
+								if (opts.viewSmo && pSmoMat.data) {
+									//pSmoMat.convertTo(pSmoImg, CV_8U);
+									cv::minMaxLoc(pSmoMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pSmoMat.convertTo(pSmoImg, -1, 255.0 / maxLum, 0);
+									pSmoImg.convertTo(pSmoImg, CV_8U);
+									cv::imshow("Smoothed differential photometry", pSmoImg);
+									cv::waitKey(1);
+								}
+
+								if (pMskMat.data) {
+									cv::threshold(pDifMat, pMskMat, 0.0, 255.0, CV_THRESH_BINARY_INV);
+								}
+
+								if (opts.viewMsk && pMskMat.data) {
+									//pMskMat.convertTo(pMskImg, CV_8U);
+									cv::minMaxLoc(pMskMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pMskMat.convertTo(pMskImg, -1, 255.0 / maxLum, 0);
+									pMskImg.convertTo(pMskImg, CV_8U);
+									cv::imshow("Mask", pMskImg);
+									cv::waitKey(1);
+								}
+	
+								//cv::blur(pDifMat, pDifMat, cv::Size(3,3));
+								//cv::threshold(pDifMat, pDifMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
+	
+								double mean = cv::mean(pDifMat)[0];
+								totalMean += mean;
+								double x = std::abs(double(maxLum) / double(mean)) - 1;
+								if (x >= 0.7) {
+									N++;
+									xList.push_back(x);
+								}
+	
+								/*ADUdtc algorithm******************************************/
+								cv::add(pADUavgMat, pGryMat, pADUavgMat);
+								cv::add(pADUavgDiffMat, pDifMat, pADUavgDiffMat);
+								cv::max(pADUmaxMat, pGryMat, pADUmaxMat);
+								if (opts.ofilename && opts.allframes) {
+									pADUavgMat.convertTo(pADUavgMatFrame, -1, 1.0 / (nframe - frame_errors), 0);
+									pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 1.0 / (nframe - frame_errors), 0);
+									cv::subtract(pADUmaxMat, pADUavgMatFrame, pADUdtcMat);
+									cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
+									strncpy(ofilenamemax, opts.ofilename, strlen(opts.ofilename) - 4);
+									ofilenamemax[std::strlen(opts.ofilename) - 4] = '\0';
+									sprintf(ofilenamemax, "%s_dtc_max_frame%05d.jpg", ofilenamemax, nframe);
+									std::strcat(max_folder_path_filename, right(ofilenamemax, strlen(ofilenamemax) - InRstr(ofilenamemax,
+										"\\"), tmpstring));
+									cv::imwrite(max_folder_path_filename, pADUdtcMat, img_save_params);
+									cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
+									strncpy(ofilenamediff, opts.ofilename, strlen(opts.ofilename) - 4);
+									ofilenamediff[std::strlen(opts.ofilename) - 4] = '\0';
+									sprintf(ofilenamediff, "%s_dtc_diff_frame%05d.jpg", ofilenamediff, nframe);
+									std::strcat(diff_folder_path_filename, right(ofilenamediff, strlen(ofilenamediff) - 
+										InRstr(ofilenamediff, "\\"), tmpstring));
 									cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
 									pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
 									pDifImg.convertTo(pDifImg, CV_8U);
-									cv::imshow("Initial differential photometry", pDifImg);
-									cv::waitKey(1);
+									cv::imwrite(diff_folder_path_filename, pDifImg, img_save_params);
 									pDifImg.release();
 									pDifImg = NULL;
 								}
-								if (nframe == opts.nsaveframe && opts.ofilename && opts.ostype == OTYPE_DIF) {
-									cv::imwrite(opts.ofilename, pDifMat, img_save_params);
-								}
-							}
 
-
-							//cv::threshold(pDifMat, pThrMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
-							//cv::threshold(pDifMat, pDifMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
-
-							if (opts.filter.type > 0) {
-								switch (opts.filter.type) {
-								case FILTER_BLUR:
-									//Size 5x5
-									cv::blur(pDifMat, pDifMat, cv::Size(opts.filter.param[0], opts.filter.param[0]));
-									break;
-								case FILTER_MEDIAN:
-									//Size 5
-									cv::medianBlur(pDifMat, pDifMat, opts.filter.param[0]);
-									break;
-								case FILTER_GAUSSIAN:
-									//Size 5x5 Sigma 0
-									cv::GaussianBlur(pDifMat, pDifMat, cv::Size(opts.filter.param[0],
-										opts.filter.param[1]), opts.filter.param[2]);
-									break;
-								}
-							}
-
-							pDifMat.copyTo(pSmoMat);
-
-							if (opts.viewSmo && pSmoMat.data) {
-								//pSmoMat.convertTo(pSmoImg, CV_8U);
-								cv::minMaxLoc(pSmoMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pSmoMat.convertTo(pSmoImg, -1, 255.0 / maxLum, 0);
-								pSmoImg.convertTo(pSmoImg, CV_8U);
-								cv::imshow("Smoothed differential photometry", pSmoImg);
-								cv::waitKey(1);
-							}
-
-							if (pMskMat.data) {
-								cv::threshold(pDifMat, pMskMat, 0.0, 255.0, CV_THRESH_BINARY_INV);
-							}
-
-							if (opts.viewMsk && pMskMat.data) {
-								//pMskMat.convertTo(pMskImg, CV_8U);
-								cv::minMaxLoc(pMskMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pMskMat.convertTo(pMskImg, -1, 255.0 / maxLum, 0);
-								pMskImg.convertTo(pMskImg, CV_8U);
-								cv::imshow("Mask", pMskImg);
-								cv::waitKey(1);
-							}
+								cv::threshold(pDifMat, pThrMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
+								cv::threshold(pDifMat, pDifMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
 	
-							//cv::blur(pDifMat, pDifMat, cv::Size(3,3));
-							//cv::threshold(pDifMat, pDifMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
-	
-							double mean = cv::mean(pDifMat)[0];
-							totalMean += mean;
-							double x = std::abs(double(maxLum) / double(mean)) - 1;
-							if (x >= 0.7) {
-								N++;
-								xList.push_back(x);
-							}
-	
-							/*ADUdtc algorithm******************************************/
-							cv::add(pADUavgMat, pGryMat, pADUavgMat);
-							cv::add(pADUavgDiffMat, pDifMat, pADUavgDiffMat);
-							cv::max(pADUmaxMat, pGryMat, pADUmaxMat);
-							if (opts.ofilename && opts.allframes) {
-								pADUavgMat.convertTo(pADUavgMatFrame, -1, 1.0 / (nframe - frame_errors), 0);
-								pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 1.0 / (nframe - frame_errors), 0);
-								cv::subtract(pADUmaxMat, pADUavgMatFrame, pADUdtcMat);
-								cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
-								strncpy(ofilenamemax, opts.ofilename, strlen(opts.ofilename) - 4);
-								ofilenamemax[std::strlen(opts.ofilename) - 4] = '\0';
-								sprintf(ofilenamemax, "%s_dtc_max_frame%05d.jpg", ofilenamemax, nframe);
-								std::strcat(max_folder_path_filename, right(ofilenamemax, strlen(ofilenamemax) - InRstr(ofilenamemax,
-									"\\"), tmpstring));
-								cv::imwrite(max_folder_path_filename, pADUdtcMat, img_save_params);
-								cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
-								strncpy(ofilenamediff, opts.ofilename, strlen(opts.ofilename) - 4);
-								ofilenamediff[std::strlen(opts.ofilename) - 4] = '\0';
-								sprintf(ofilenamediff, "%s_dtc_diff_frame%05d.jpg", ofilenamediff, nframe);
-								std::strcat(diff_folder_path_filename, right(ofilenamediff, strlen(ofilenamediff) - 
-									InRstr(ofilenamediff, "\\"), tmpstring));
 								cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
-								pDifImg.convertTo(pDifImg, CV_8U);
-								cv::imwrite(diff_folder_path_filename, pDifImg, img_save_params);
-								pDifImg.release();
-								pDifImg = NULL;
-							}
-
-							cv::threshold(pDifMat, pThrMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
-							cv::threshold(pDifMat, pDifMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
 	
-							cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
-	
-							if (opts.viewThr && pThrMat.data) {
-								//pThrMat.convertTo(pThrImg, CV_8U);
-								cv::minMaxLoc(pThrMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pThrMat.convertTo(pThrImg, -1, 255.0 / maxLum, 0);
-								pThrImg.convertTo(pThrImg, CV_8U);
-								cv::imshow("Thresholded differential photometry", pThrImg);
-								cv::waitKey(1);
-							}
-
-							if (opts.viewRef && pRefMat.data) {
-								//pRefMat.convertTo(pRefImg, CV_8U);
-								cv::minMaxLoc(pRefMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pRefMat.convertTo(pRefImg, -1, 255.0 / maxLum, 0);
-								pRefImg.convertTo(pRefImg, CV_8U);
-								cv::imshow("Reference frame", pRefImg);
-								cv::waitKey(1);
-							}
-
-							pMskMat.convertTo(pMskMat, CV_8U);
-							if (nframe > 1) {
-								if (nframe <= opts.nframesRef) {
-									cv::accumulateWeighted(pGryMat, pRefMat, 1 / nframe, opts.thrWithMask ? pMskMat : cv::noArray());
-								} else {
-									cv::add(pRefMat, pGryMat / opts.nframesRef, pRefMat, opts.thrWithMask ? pMskMat : cv::noArray());
-									cv::Mat frontMat = refFrameQueue.front();
-									cv::subtract(pRefMat, frontMat / opts.nframesRef, pRefMat,
-										opts.thrWithMask ? pMskMat : cv::noArray());
-									frontMat.release();
-									refFrameQueue.pop();
-								}
-							}
-							if (pDifMat.data && opts.viewRes) {
-								cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
-								pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
-								pDifImg.convertTo(pDifImg, CV_8U);
-								cv::imshow("Resulting differential photometry", pDifImg);
-								cv::waitKey(1);
-							}
-							if (opts.viewHis || (opts.ovfname && (opts.ovtype == OTYPE_HIS))) {
-								pHisImg = dtcGetHistogramImage(pDifMat, opts.histScale, opts.threshold);
-								if (opts.viewHis) {
-									cv::imshow("Histogram", pHisImg);
+								if (opts.viewThr && pThrMat.data) {
+									//pThrMat.convertTo(pThrImg, CV_8U);
+									cv::minMaxLoc(pThrMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pThrMat.convertTo(pThrImg, -1, 255.0 / maxLum, 0);
+									pThrImg.convertTo(pThrImg, CV_8U);
+									cv::imshow("Thresholded differential photometry", pThrImg);
 									cv::waitKey(1);
 								}
-							}
 
-							cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
-							brightestPoints.push_back(create_item(create_point(nframe - frame_errors, maxLum, maxPoint.x, maxPoint.y)));
-							maxPtB.push_back(maxLum);
-							maxPtX.push_back(maxPoint.x);
-							maxPtY.push_back(maxPoint.y);
-							frameErrors.push_back(nframe - frame_errors);
-							frameNumbers.push_back(nframe);
-	
-							if (opts.viewROI && pGryMat.data) {
-								pGryMat.convertTo(pGryImg, CV_8U);
-								cv::imshow("ROI", pGryImg);
-								cv::waitKey(1);
-							}
-							if (pTrkMat.data && opts.viewTrk) {
-								pFrame.copyTo(pTrkMat);
-								pTrkMat.convertTo(pTrkMat, CV_8UC3);
-								if (pFrame.channels() == 1)
-									cv::cvtColor(pTrkMat, pTrkMat, CV_GRAY2BGR);
-								Image img;
-								img.frame = pTrkMat;
-								img.roi = roi;
-								dtcDrawCM(img, cm);
-								cv::imshow("Tracking", img.frame);
-								cv::waitKey(1);
-							}
-							if (opts.ovfname && opts.ovtype) {
-								switch (opts.ovtype) {
-								case OTYPE_DIF: pOVdMat = pDifMat; break;
-								case OTYPE_TRK: pOVdMat = pTrkMat; break;
-								case OTYPE_ROI: pOVdMat = pGryMat; break;
-								case OTYPE_HIS: pOVdMat = pHisImg; break;
-								case OTYPE_MSK: pOVdMat = pMskMat; break;
+								if (opts.viewRef && pRefMat.data) {
+									//pRefMat.convertTo(pRefImg, CV_8U);
+									cv::minMaxLoc(pRefMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pRefMat.convertTo(pRefImg, -1, 255.0 / maxLum, 0);
+									pRefImg.convertTo(pRefImg, CV_8U);
+									cv::imshow("Reference frame", pRefImg);
+									cv::waitKey(1);
 								}
-								pWriter = dtcWriteVideo(opts.ovfname, *pWriter, pCapture, pOVdMat);
+
+								pMskMat.convertTo(pMskMat, CV_8U);
+								if (nframe > 1) {
+									if (nframe <= opts.nframesRef) {
+										cv::accumulateWeighted(pGryMat, pRefMat, 1 / nframe, opts.thrWithMask ? pMskMat : cv::noArray());
+									} else {
+										cv::add(pRefMat, pGryMat / opts.nframesRef, pRefMat, opts.thrWithMask ? pMskMat : cv::noArray());
+										cv::Mat frontMat = refFrameQueue.front();
+										cv::subtract(pRefMat, frontMat / opts.nframesRef, pRefMat,
+											opts.thrWithMask ? pMskMat : cv::noArray());
+										frontMat.release();
+										refFrameQueue.pop();
+									}
+								}
+								if (pDifMat.data && opts.viewRes) {
+									cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
+									pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
+									pDifImg.convertTo(pDifImg, CV_8U);
+									cv::imshow("Resulting differential photometry", pDifImg);
+									cv::waitKey(1);
+								}
+								if (opts.viewHis || (opts.ovfname && (opts.ovtype == OTYPE_HIS))) {
+									pHisImg = dtcGetHistogramImage(pDifMat, opts.histScale, opts.threshold);
+									if (opts.viewHis) {
+										cv::imshow("Histogram", pHisImg);
+										cv::waitKey(1);
+									}
+								}
+
+								cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
+								brightestPoints.push_back(create_item(create_point(nframe - frame_errors, maxLum, maxPoint.x, maxPoint.y)));
+								maxPtB.push_back(maxLum);
+								maxPtX.push_back(maxPoint.x);
+								maxPtY.push_back(maxPoint.y);
+								frameErrors.push_back(nframe - frame_errors);
+								frameNumbers.push_back(nframe);
+	
+								if (opts.viewROI && pGryMat.data) {
+									pGryMat.convertTo(pGryImg, CV_8U);
+									cv::imshow("ROI", pGryImg);
+									cv::waitKey(1);
+								}
+								if (pTrkMat.data && opts.viewTrk) {
+									pFrame.copyTo(pTrkMat);
+									pTrkMat.convertTo(pTrkMat, CV_8UC3);
+									if (pFrame.channels() == 1)
+										cv::cvtColor(pTrkMat, pTrkMat, CV_GRAY2BGR);
+									Image img;
+									img.frame = pTrkMat;
+									img.roi = roi;
+									dtcDrawCM(img, cm);
+									cv::imshow("Tracking", img.frame);
+									cv::waitKey(1);
+								}
+								if (opts.ovfname && opts.ovtype) {
+									switch (opts.ovtype) {
+									case OTYPE_DIF: pOVdMat = pDifMat; break;
+									case OTYPE_TRK: pOVdMat = pTrkMat; break;
+									case OTYPE_ROI: pOVdMat = pGryMat; break;
+									case OTYPE_HIS: pOVdMat = pHisImg; break;
+									case OTYPE_MSK: pOVdMat = pMskMat; break;
+									}
+									pWriter = dtcWriteVideo(opts.ovfname, *pWriter, pCapture, pOVdMat);
+								}
+								if (opts.wait && (cvWaitKey(opts.wait) == 27)) {
+									break;
+								}
+								pGryImg_height = pGryMat.rows;
+								pGryImg_width = pGryMat.cols;
 							}
-							if (opts.wait && (cvWaitKey(opts.wait) == 27)) {
-								break;
-							}
-							pGryImg_height = pGryMat.rows;
-							pGryImg_width = pGryMat.cols;
+						}
+
+					}
+
+					CDeTeCtMFCDlg::getProgress()->StepIt();
+					CDeTeCtMFCDlg::getProgress()->UpdateWindow();
+				}
+
+				/*********************************FINAL PROCESSING******************************************/
+				refFrameQueue = std::queue<cv::Mat>();
+				totalMean /= (nframe - frame_errors);
+
+				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+					L"Differential photometry done, running impact detection...");
+				CDeTeCtMFCDlg::getLog()->RedrawWindow();
+				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+				output_log << getDateTime().str().c_str() << "Differential photometry done, running impact detection..." << "\n";
+				output_log.flush();
+
+				if (opts.darkfilename) {
+					if (darkfile_ok == 1) {
+						pADUdarkMat.release();
+						pADUdarkMat = NULL;
+					}
+				}
+
+				int radius = std::min(std::min(20.0, pGryMat.rows / 10.0), pGryMat.cols / 10.0);
+				radius = radius > 5 ? radius : 5; //std::max gives error
+
+	//			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Running impact detection... ");
+	//			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+	//			CDeTeCtMFCDlg::getLog()->RedrawWindow();
+				output_log << getDateTime().str().c_str() << "Running impact detection..." << "\n";
+				output_log.flush();
+
+				/*if (fps_real == 0) {
+					fps_real = double(nframe / duration);
+					fps_int = (int)fps_real;
+				}*/
+
+				/*if (duration == 0) {
+					duration = double(video_duration / 1000.0);
+					if (fps_real == 0) {
+						fps_real = double(nframe / duration);
+						fps_int = (int)fps_real;
+					}
+				}*/
+
+				ITEM* maxDtcImg = NULL; // Detection image
+				ITEM* maxDtcImp = create_item(create_point(0, 0, 0, 0)); // Algorithm
+			
+				bMat = cv::Mat(cv::Size(1, nframe), CV_8UC1, maxPtB.data());
+				//cv::medianBlur(bMat, bMat, 3);
+				//maxPtB = bMat.data;
+
+				/*for (int i = 0; i < nframe; i++) {
+					add_tail_item(&ptlist, create_item(create_point(i + 1 - frameErrors[i], maxPtB[i], maxPtX[i], maxPtY[i])));
+					maxList.push_back(maxPtB[i]);
+				}*/
+
+				std::ofstream output_csv(filename.append(".csv"));
+				output_csv << "x,y,B\n";
+				for (int i = 0; i < (nframe - frame_errors); i++) {
+					add_tail_item(&ptlist, create_item(create_point(i + 1, maxPtB[i], maxPtX[i], maxPtY[i])));
+					output_csv << (int) maxPtX[i] << "," << (int) maxPtY[i] << "," << (int) maxPtB[i] << "\n";
+					//add_tail_item(&ptlist, create_item(create_point(frameErrors[i], maxPtB[i], maxPtX[i], maxPtY[i])));
+					maxList.push_back(maxPtB[i]);
+				}
+				output_csv.close();
+
+				double accum = 0, maxAccum = 0, maxBright = 0, maxMean = 0, brightness_factor = 0, brightnessFactor = 0,
+					stdDevAccum = 0, stdev = 0;
+			
+				if (maxList.size() > 0) {
+
+					accum = std::accumulate(xList.begin(), xList.end(), 0.0);
+					maxAccum = std::accumulate(maxList.begin(), maxList.end(), 0.0);
+					maxBright = (double) *(std::max_element(maxList.begin(), maxList.end()));
+					maxMean = maxAccum / maxList.size();
+					brightness_factor = (maxBright / (maxMean + opts.threshold)) - 1;
+					//double brightness_factor = (maxBright / (maxMean + opts.threshold));
+					//DBOUT("Brightness factor 1: " << brightness_factor << "\n");
+					//brightness_factor = (maxBright / (maxMean + opts.threshold)) - (1 / opts.threshold);
+					//DBOUT("Brightness factor 2: " << brightness_factor << "\n");
+					brightnessFactor = maxMean / totalMean;
+					stdDevAccum = 0.0;
+					std::for_each(maxList.begin(), maxList.end(), [&](const double d) {
+						stdDevAccum += (d - maxMean) * (d - maxMean);
+					});
+
+					stdev = sqrt(stdDevAccum / (maxList.size() - 1));
+				}
+
+				bMat.release();
+
+				if (ptlist.size <= ptlist.maxsize && ptlist.size > opts.incrFrameImpact)
+					nb_impact += detect_impact(&dtc, &outdtc, maxMean, &ptlist, &maxDtcImp, fps_int, radius, opts.incrLumImpact,
+						opts.incrFrameImpact);
+
+				delete_list(&ptlist);
+
+				//(&outdtc)->nMaxFrame = frameNumbers[(&outdtc)->nMaxFrame];
+				//(&outdtc)->nMinFrame = frameNumbers[(&outdtc)->nMinFrame];
+				//(&outdtc)->MaxFrame = frameNumbers[(&outdtc)->MaxFrame];
+
+				double impact_frames = (&outdtc)->nMaxFrame - (&outdtc)->nMinFrame;
+				double log10_value = impact_frames != 0 ? std::log10((impact_frames / (opts.incrFrameImpact)) * 10) : 0;
+				double confidence = 0;
+				if (log10_value>0) confidence = (brightness_factor / opts.incrLumImpact) * log10_value;
+				//double confidence = (stdev / opts.incrLumImpact) * log10_value;
+
+				if (nframe > 0) {
+					if (opts.ofilename && opts.allframes) {
+						pADUdtcMat.release();
+						pADUdtcMat = NULL;
+						pADUavgMatFrame.release();
+						pADUavgMatFrame = NULL;
+						pADUavgDiffMat.release();
+						pADUavgDiffMat = NULL;
+					}
+					if (opts.ovfname && opts.ovtype) {
+						if (pWriter) {
+							pWriter->release();
+							pWriter = nullptr;
 						}
 					}
 
-				}
+					/*ADUdtc algorithm******************************************/
+					/*Mean image*/
+					pADUavgMat.convertTo(pADUavgMat, CV_32F);
+					pADUavgDiffMat.convertTo(pADUavgDiffMat, CV_32F);
+					pADUmaxMat.convertTo(pADUmaxMat, CV_32F);
+					//pGryMat.convertTo(pGryMat, CV_32FC1);
+					pADUavgMat.convertTo(pADUavgMat, -1, 1.0 / (nframe - frame_errors), 0);
+					cv::minMaxLoc(pADUavgMat, &minLum, &maxLum, &minPoint, &maxPoint); /*Max-mean image*/
+					pADUdtcMat = cv::Mat(pGryImg_height, pGryImg_width, CV_32F);
+					cv::subtract(pADUmaxMat, pADUavgMat, pADUdtcMat); /*Max-mean image*/
+					//dtcApplyMaskToFrame(pADUdtcMat);
+					pADUavgMat.convertTo(pADUavgMat, -1, 255.0 / maxLum, 0);
+					pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 1.0 / (nframe - frame_errors), 0);
+					cv::minMaxLoc(pADUavgDiffMat, &minLum, &maxLum, &minPoint, &maxPoint); /*Max-mean image*/
+					pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 255.0 / maxLum, 0);
 
-				CDeTeCtMFCDlg::getProgress()->StepIt();
-				CDeTeCtMFCDlg::getProgress()->UpdateWindow();
-			}
-
-			/*********************************FINAL PROCESSING******************************************/
-			refFrameQueue = std::queue<cv::Mat>();
-			totalMean /= (nframe - frame_errors);
-
-			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-				L"Differential photometry done, running impact detection...");
-			CDeTeCtMFCDlg::getLog()->RedrawWindow();
-			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-			output_log << getDateTime().str().c_str() << "Differential photometry done, running impact detection..." << "\n";
-			output_log.flush();
-
-			if (opts.darkfilename) {
-				if (darkfile_ok == 1) {
-					pADUdarkMat.release();
-					pADUdarkMat = NULL;
-				}
-			}
-
-			int radius = std::min(std::min(20.0, pGryMat.rows / 10.0), pGryMat.cols / 10.0);
-			radius = radius > 5 ? radius : 5; //std::max gives error
-
-//			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Running impact detection... ");
-//			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-//			CDeTeCtMFCDlg::getLog()->RedrawWindow();
-			output_log << getDateTime().str().c_str() << "Running impact detection..." << "\n";
-			output_log.flush();
-
-			/*if (fps_real == 0) {
-				fps_real = double(nframe / duration);
-				fps_int = (int)fps_real;
-			}*/
-
-			/*if (duration == 0) {
-				duration = double(video_duration / 1000.0);
-				if (fps_real == 0) {
-					fps_real = double(nframe / duration);
-					fps_int = (int)fps_real;
-				}
-			}*/
-
-			ITEM* maxDtcImg = NULL; // Detection image
-			ITEM* maxDtcImp = create_item(create_point(0, 0, 0, 0)); // Algorithm
-			
-			bMat = cv::Mat(cv::Size(1, nframe), CV_8UC1, maxPtB.data());
-			//cv::medianBlur(bMat, bMat, 3);
-			//maxPtB = bMat.data;
-
-			/*for (int i = 0; i < nframe; i++) {
-				add_tail_item(&ptlist, create_item(create_point(i + 1 - frameErrors[i], maxPtB[i], maxPtX[i], maxPtY[i])));
-				maxList.push_back(maxPtB[i]);
-			}*/
-
-			std::ofstream output_csv(filename.append(".csv"));
-			output_csv << "x,y,B\n";
-			for (int i = 0; i < (nframe - frame_errors); i++) {
-				add_tail_item(&ptlist, create_item(create_point(i + 1, maxPtB[i], maxPtX[i], maxPtY[i])));
-				output_csv << (int) maxPtX[i] << "," << (int) maxPtY[i] << "," << (int) maxPtB[i] << "\n";
-				//add_tail_item(&ptlist, create_item(create_point(frameErrors[i], maxPtB[i], maxPtX[i], maxPtY[i])));
-				maxList.push_back(maxPtB[i]);
-			}
-			output_csv.close();
-
-			double accum = 0, maxAccum = 0, maxBright = 0, maxMean = 0, brightness_factor = 0, brightnessFactor = 0,
-				stdDevAccum = 0, stdev = 0;
-			
-			if (maxList.size() > 0) {
-
-				accum = std::accumulate(xList.begin(), xList.end(), 0.0);
-				maxAccum = std::accumulate(maxList.begin(), maxList.end(), 0.0);
-				maxBright = (double) *(std::max_element(maxList.begin(), maxList.end()));
-				maxMean = maxAccum / maxList.size();
-				brightness_factor = (maxBright / (maxMean + opts.threshold)) - 1;
-				//double brightness_factor = (maxBright / (maxMean + opts.threshold));
-				//DBOUT("Brightness factor 1: " << brightness_factor << "\n");
-				//brightness_factor = (maxBright / (maxMean + opts.threshold)) - (1 / opts.threshold);
-				//DBOUT("Brightness factor 2: " << brightness_factor << "\n");
-				brightnessFactor = maxMean / totalMean;
-				stdDevAccum = 0.0;
-				std::for_each(maxList.begin(), maxList.end(), [&](const double d) {
-					stdDevAccum += (d - maxMean) * (d - maxMean);
-				});
-
-				stdev = sqrt(stdDevAccum / (maxList.size() - 1));
-			}
-
-			bMat.release();
-
-			if (ptlist.size <= ptlist.maxsize && ptlist.size > opts.incrFrameImpact)
-				nb_impact += detect_impact(&dtc, &outdtc, maxMean, &ptlist, &maxDtcImp, fps_int, radius, opts.incrLumImpact,
-					opts.incrFrameImpact);
-
-			delete_list(&ptlist);
-
-			//(&outdtc)->nMaxFrame = frameNumbers[(&outdtc)->nMaxFrame];
-			//(&outdtc)->nMinFrame = frameNumbers[(&outdtc)->nMinFrame];
-			//(&outdtc)->MaxFrame = frameNumbers[(&outdtc)->MaxFrame];
-
-			double impact_frames = (&outdtc)->nMaxFrame - (&outdtc)->nMinFrame;
-			double log10_value = impact_frames != 0 ? std::log10((impact_frames / (opts.incrFrameImpact)) * 10) : 0;
-			double confidence = 0;
-			if (log10_value>0) confidence = (brightness_factor / opts.incrLumImpact) * log10_value;
-			//double confidence = (stdev / opts.incrLumImpact) * log10_value;
-
-			if (nframe > 0) {
-				if (opts.ofilename && opts.allframes) {
-					pADUdtcMat.release();
-					pADUdtcMat = NULL;
-					pADUavgMatFrame.release();
-					pADUavgMatFrame = NULL;
-					pADUavgDiffMat.release();
-					pADUavgDiffMat = NULL;
-				}
-				if (opts.ovfname && opts.ovtype) {
-					if (pWriter) {
-						pWriter->release();
-						pWriter = nullptr;
-					}
-				}
-
-				/*ADUdtc algorithm******************************************/
-				/*Mean image*/
-				pADUavgMat.convertTo(pADUavgMat, CV_32F);
-				pADUavgDiffMat.convertTo(pADUavgDiffMat, CV_32F);
-				pADUmaxMat.convertTo(pADUmaxMat, CV_32F);
-				//pGryMat.convertTo(pGryMat, CV_32FC1);
-				pADUavgMat.convertTo(pADUavgMat, -1, 1.0 / (nframe - frame_errors), 0);
-				cv::minMaxLoc(pADUavgMat, &minLum, &maxLum, &minPoint, &maxPoint); /*Max-mean image*/
-				pADUdtcMat = cv::Mat(pGryImg_height, pGryImg_width, CV_32F);
-				cv::subtract(pADUmaxMat, pADUavgMat, pADUdtcMat); /*Max-mean image*/
-				//dtcApplyMaskToFrame(pADUdtcMat);
-				pADUavgMat.convertTo(pADUavgMat, -1, 255.0 / maxLum, 0);
-				pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 1.0 / (nframe - frame_errors), 0);
-				cv::minMaxLoc(pADUavgDiffMat, &minLum, &maxLum, &minPoint, &maxPoint); /*Max-mean image*/
-				pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 255.0 / maxLum, 0);
-
-				snprintf(ofilenamemean, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
-				ofilenamemean[std::strlen(ofilenamemean)] = '\0';
-				strcat(ofilenamemean, "_dtc_mean.jpg");
-				/*Max-mean normalized image*/
-				pADUavgMat.convertTo(pADUavgMat, CV_8U);
-				//cv::imwrite(ofilenamemean, pADUavgMat);
-				std::strcat(mean_folder_path_filename, right(ofilenamemean, strlen(ofilenamemean) - InRstr(ofilenamemean,
-					"\\"), tmpstring));
-				cv::imwrite(mean_folder_path_filename, pADUavgMat, img_save_params);
-				if (opts.detail) {
 					snprintf(ofilenamemean, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
 					ofilenamemean[std::strlen(ofilenamemean)] = '\0';
 					strcat(ofilenamemean, "_dtc_mean.jpg");
 					/*Max-mean normalized image*/
-					//pADUavgMat.convertTo(pADUavgMat, CV_8U);
-					cv::imwrite(ofilenamemean, pADUavgMat);
+					pADUavgMat.convertTo(pADUavgMat, CV_8U);
+					//cv::imwrite(ofilenamemean, pADUavgMat);
 					std::strcat(mean_folder_path_filename, right(ofilenamemean, strlen(ofilenamemean) - InRstr(ofilenamemean,
 						"\\"), tmpstring));
-					cv::imwrite(mean_folder_path_filename, pADUavgMat);
-					snprintf(ofilenamediffmean, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
-					ofilenamediffmean[std::strlen(ofilenamediffmean)] = '\0';
-					strcat(ofilenamediffmean, "_dtc_diff_mean.jpg");
+					cv::imwrite(mean_folder_path_filename, pADUavgMat, img_save_params);
+					if (opts.detail) {
+						snprintf(ofilenamemean, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
+						ofilenamemean[std::strlen(ofilenamemean)] = '\0';
+						strcat(ofilenamemean, "_dtc_mean.jpg");
+						/*Max-mean normalized image*/
+						//pADUavgMat.convertTo(pADUavgMat, CV_8U);
+						cv::imwrite(ofilenamemean, pADUavgMat);
+						std::strcat(mean_folder_path_filename, right(ofilenamemean, strlen(ofilenamemean) - InRstr(ofilenamemean,
+							"\\"), tmpstring));
+						cv::imwrite(mean_folder_path_filename, pADUavgMat);
+						snprintf(ofilenamediffmean, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
+						ofilenamediffmean[std::strlen(ofilenamediffmean)] = '\0';
+						strcat(ofilenamediffmean, "_dtc_diff_mean.jpg");
+						/*Max-mean normalized image*/
+						pADUavgDiffMat.convertTo(pADUavgDiffMat, CV_8U);
+						//cv::imwrite(ofilenamemean, pADUavgDiffMat);
+						std::strcat(diff_mean_folder_path_filename, right(ofilenamediffmean, strlen(ofilenamediffmean) -
+							InRstr(ofilenamediffmean, "\\"), tmpstring));
+						cv::imwrite(diff_mean_folder_path_filename, pADUavgDiffMat, img_save_params);
+					}
+					/*Max-mean image*/
+					cv::medianBlur(pADUdtcMat, pSmoADUdtcMat, 3);
+					cv::minMaxLoc(pSmoADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
+					pSmoADUdtcMat.release();
+					(ITEM*) (maxDtcImg) = create_item(create_point(0, 0, maxPoint.x, maxPoint.y));
+					cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
 					/*Max-mean normalized image*/
-					pADUavgDiffMat.convertTo(pADUavgDiffMat, CV_8U);
-					//cv::imwrite(ofilenamemean, pADUavgDiffMat);
-					std::strcat(diff_mean_folder_path_filename, right(ofilenamediffmean, strlen(ofilenamediffmean) -
-						InRstr(ofilenamediffmean, "\\"), tmpstring));
-					cv::imwrite(diff_mean_folder_path_filename, pADUavgDiffMat, img_save_params);
-				}
-				/*Max-mean image*/
-				cv::medianBlur(pADUdtcMat, pSmoADUdtcMat, 3);
-				cv::minMaxLoc(pSmoADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
-				pSmoADUdtcMat.release();
-				(ITEM*) (maxDtcImg) = create_item(create_point(0, 0, maxPoint.x, maxPoint.y));
-				cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
-				/*Max-mean normalized image*/
-				pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
-				double distance = sqrt(pow(maxDtcImg->point->x - maxDtcImp->point->x, 2) +
-					pow(maxDtcImg->point->y - maxDtcImp->point->y, 2));
-				snprintf(ofilenamenorm, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
-				ofilenamenorm[strlen(opts.ofilename) - 4] = '\0';
-				strcat(ofilenamenorm, DTC_MAX_MEAN1_SUFFIX);
-				std::strcat(max_mean_folder_path_filename, right(ofilenamenorm, strlen(ofilenamenorm) - InRstr(ofilenamenorm,
-					"\\"), tmpstring));
-				pADUdtcMat.convertTo(pADUdtcImg, CV_8UC3);
-				cv::cvtColor(pADUdtcImg, pADUdtcImg, CV_GRAY2BGR);
-
-				if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0))
-					dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
-				dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
-
-				cv::imwrite(max_mean_folder_path_filename, pADUdtcImg, img_save_params);
-
-				pADUdtcMat.convertTo(impactFrame, CV_8U);
-				//double maxLum2;
-				//cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum2, &minPoint, &maxPoint);
-				/*Max-mean non normalized image*/
-				if (opts.detail) {
-					if (maxLum > 255)
-						pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / (255.0*255.0), 0);
-					else
-						pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / 255.0, 0);
-					//cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum2, &minPoint, &maxPoint);
-					cv::Mat pADUdtcMatSmooth;
-					if (pADUdtcMat.type() != CV_32F)
-						pADUdtcMat.convertTo(pADUdtcMat, CV_32F);
-					pADUdtcMat.copyTo(pADUdtcMatSmooth);
-					cv::blur(pADUdtcMatSmooth, pADUdtcMatSmooth, cv::Size(5, 5));
-					cv::minMaxLoc(pADUdtcMatSmooth, &minLum, &maxLum, &minPoint, &maxPoint);
-					pADUdtcMatSmooth.release();
-					pADUdtcMatSmooth = NULL;
-					pADUavgMat.convertTo(pADUavgMat, CV_8U);
-					pADUmaxMat.convertTo(pADUmaxMat, CV_8U);
-					//pGryMat.convertTo(pGryMat, CV_8UC1);
+					pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
+					double distance = sqrt(pow(maxDtcImg->point->x - maxDtcImp->point->x, 2) +
+						pow(maxDtcImg->point->y - maxDtcImp->point->y, 2));
 					snprintf(ofilenamenorm, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
 					ofilenamenorm[strlen(opts.ofilename) - 4] = '\0';
-					strcat(ofilenamenorm, DTC_MAX_MEAN2_SUFFIX);
-					std::strcat(max_mean2_folder_path_filename, right(ofilenamenorm, strlen(ofilenamenorm) - InRstr(ofilenamenorm,
+					strcat(ofilenamenorm, DTC_MAX_MEAN1_SUFFIX);
+					std::strcat(max_mean_folder_path_filename, right(ofilenamenorm, strlen(ofilenamenorm) - InRstr(ofilenamenorm,
 						"\\"), tmpstring));
-
-					pADUdtcMat.convertTo(pADUdtcImg2, CV_8UC3);
-					cv::cvtColor(pADUdtcImg2, pADUdtcImg2, CV_GRAY2BGR);
+					pADUdtcMat.convertTo(pADUdtcImg, CV_8UC3);
+					cv::cvtColor(pADUdtcImg, pADUdtcImg, CV_GRAY2BGR);
 
 					if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0))
-						dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
-					dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
-					cv::imwrite(max_mean2_folder_path_filename, pADUdtcImg2, img_save_params);
-				}
+						dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
+					dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
 
-				if (nb_impact > 0) {
-					outdtc.nMinFrame = frameNumbers[outdtc.nMinFrame];
-					outdtc.nMaxFrame = frameNumbers[outdtc.nMaxFrame];
-					outdtc.MaxFrame = frameNumbers[outdtc.MaxFrame];
-					if (distance <= 30) {
-						if (!opts.ADUdtconly) {
-							logmessage = std::to_string(nb_impact) + " potential impact(s) from frames " +
-								std::to_string(outdtc.nMinFrame) + " to " + std::to_string(outdtc.nMaxFrame) + " (max @ " +
-								std::to_string(outdtc.MaxFrame) + "). Confidence: " + std::to_string(confidence) + ".";
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								(CString)std::to_string(nb_impact).c_str() + L" potential impact(s) detected in frames ranging from " +
-								(CString)std::to_string(outdtc.nMinFrame).c_str() + L" to " +
-								(CString)std::to_string(outdtc.nMaxFrame).c_str() + L" (max @ " +
-								(CString)std::to_string(outdtc.MaxFrame).c_str() + L"). Confidence: " +
-								(CString)std::to_string(confidence).c_str() + L".");
-							output_log << getDateTime().str().c_str() << nb_impact << " potential impact(s) detected in frames ranging from "
-								<< outdtc.nMinFrame << " to " << outdtc.nMaxFrame << " (max @ " << outdtc.MaxFrame <<
-								"). Confidence: " << confidence << ".\n";
-							output_log.flush();
+					cv::imwrite(max_mean_folder_path_filename, pADUdtcImg, img_save_params);
+
+					cv::imshow("Detection image", pADUdtcImg); // moved up
+					
+					pADUdtcMat.convertTo(impactFrame, CV_8U);
+					//double maxLum2;
+					//cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum2, &minPoint, &maxPoint);
+					/*Max-mean non normalized image*/
+					if (opts.detail) {
+						if (maxLum > 255)
+							pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / (255.0*255.0), 0);
+						else
+							pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / 255.0, 0);
+						//cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum2, &minPoint, &maxPoint);
+						cv::Mat pADUdtcMatSmooth;
+						if (pADUdtcMat.type() != CV_32F)
+							pADUdtcMat.convertTo(pADUdtcMat, CV_32F);
+						pADUdtcMat.copyTo(pADUdtcMatSmooth);
+						cv::blur(pADUdtcMatSmooth, pADUdtcMatSmooth, cv::Size(5, 5));
+						cv::minMaxLoc(pADUdtcMatSmooth, &minLum, &maxLum, &minPoint, &maxPoint);
+						pADUdtcMatSmooth.release();
+						pADUdtcMatSmooth = NULL;
+						pADUavgMat.convertTo(pADUavgMat, CV_8U);
+						pADUmaxMat.convertTo(pADUmaxMat, CV_8U);
+						//pGryMat.convertTo(pGryMat, CV_8UC1);
+						snprintf(ofilenamenorm, strlen(opts.ofilename) - 4, "%s", opts.ofilename);
+						ofilenamenorm[strlen(opts.ofilename) - 4] = '\0';
+						strcat(ofilenamenorm, DTC_MAX_MEAN2_SUFFIX);
+						std::strcat(max_mean2_folder_path_filename, right(ofilenamenorm, strlen(ofilenamenorm) - InRstr(ofilenamenorm,
+							"\\"), tmpstring));
+
+						pADUdtcMat.convertTo(pADUdtcImg2, CV_8UC3);
+						cv::cvtColor(pADUdtcImg2, pADUdtcImg2, CV_GRAY2BGR);
+
+						if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0))
+							dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
+						dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
+						cv::imwrite(max_mean2_folder_path_filename, pADUdtcImg2, img_save_params);
+					}
+
+					if (nb_impact > 0) {
+						outdtc.nMinFrame = frameNumbers[outdtc.nMinFrame];
+						outdtc.nMaxFrame = frameNumbers[outdtc.nMaxFrame];
+						outdtc.MaxFrame = frameNumbers[outdtc.MaxFrame];
+						if (distance <= 30) {
+							if (!opts.ADUdtconly) {
+								logmessage = std::to_string(nb_impact) + " potential impact(s) from frames " +
+									std::to_string(outdtc.nMinFrame) + " to " + std::to_string(outdtc.nMaxFrame) + " (max @ " +
+									std::to_string(outdtc.MaxFrame) + "). Confidence: " + std::to_string(confidence) + ".";
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									(CString)std::to_string(nb_impact).c_str() + L" potential impact(s) detected in frames ranging from " +
+									(CString)std::to_string(outdtc.nMinFrame).c_str() + L" to " +
+									(CString)std::to_string(outdtc.nMaxFrame).c_str() + L" (max @ " +
+									(CString)std::to_string(outdtc.MaxFrame).c_str() + L"). Confidence: " +
+									(CString)std::to_string(confidence).c_str() + L".");
+								output_log << getDateTime().str().c_str() << nb_impact << " potential impact(s) detected in frames ranging from "
+									<< outdtc.nMinFrame << " to " << outdtc.nMaxFrame << " (max @ " << outdtc.MaxFrame <<
+									"). Confidence: " << confidence << ".\n";
+								output_log.flush();
+							} else {
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									(CString)std::to_string(nb_impact).c_str() + L" impacts detected.");
+								logmessage = std::to_string(nb_impact) + " impacts detected.";
+								output_log << getDateTime().str().c_str() << nb_impact << " impacts detected." << "\n";
+								output_log.flush();
+							}
 						} else {
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								(CString)std::to_string(nb_impact).c_str() + L" impacts detected.");
-							logmessage = std::to_string(nb_impact) + " impacts detected.";
-							output_log << getDateTime().str().c_str() << nb_impact << " impacts detected." << "\n";
-							output_log.flush();
+							confidence /= 4;
+							if (!opts.ADUdtconly) {
+								logmessage = std::to_string(nb_impact) + " potential impact(s) from frames " +
+									std::to_string(outdtc.nMinFrame) + " to " + std::to_string(outdtc.nMaxFrame) + " (max @ " +
+									std::to_string(outdtc.MaxFrame) + "). Confidence: " + std::to_string(confidence) +
+									"\nWARNING: impact detection algorithm and detection images are inconsistent" +
+									"\nPlease check detection image";
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									(CString)std::to_string(nb_impact).c_str() + L" potential impact(s) detected in frames ranging from " +
+									(CString)std::to_string(outdtc.nMinFrame).c_str() + L" to " +
+									(CString)std::to_string(outdtc.nMaxFrame).c_str() + L" (max @ " +
+									(CString)std::to_string(outdtc.MaxFrame).c_str() + L"). Confidence: " +
+									(CString)std::to_string(confidence).c_str() + L".");
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									+L" WARNING: impact detection algorithm "
+									+ L"and detection images are inconsistent.");
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									+L" Please check detection image.");
+								output_log << getDateTime().str().c_str() << nb_impact << " detected in frames ranging from "
+									<< outdtc.nMinFrame << " to " << outdtc.nMaxFrame << " (max @ " << outdtc.MaxFrame <<
+									"). Confidence: " << confidence << ".\n";
+								output_log << getDateTime().str().c_str() << "WARNING: impact detection algorithm and detection "
+									<< "images are inconsistent.\n";
+								output_log << getDateTime().str().c_str() << "Please check detection image.\n";
+								output_log.flush();
+							} else {
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									(CString)std::to_string(nb_impact).c_str() + L" impacts detected " +
+									L"with inconsistencies with the detection image.");
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									+L"WARNING: impact detection algorithm "
+									+ L"and detection images are inconsistent.");
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
+									+L" Please check detection image.");
+								logmessage = std::to_string(nb_impact) + " impacts detected" +
+									"\nWARNING: impact detection algorithm and detection images are inconsistent" +
+									"\nPlease check detection image";
+								output_log << getDateTime().str().c_str() << nb_impact << " impacts detected\n";
+								output_log << getDateTime().str().c_str() << nb_impact << " WARNING: impact detection algorithm "<<
+									"and detection images are inconsistent.\n";
+								output_log << getDateTime().str().c_str() << nb_impact << " Please check detection image.\n";
+								output_log.flush();
+							}
 						}
 					} else {
-						confidence /= 4;
-						if (!opts.ADUdtconly) {
-							logmessage = std::to_string(nb_impact) + " potential impact(s) from frames " +
-								std::to_string(outdtc.nMinFrame) + " to " + std::to_string(outdtc.nMaxFrame) + " (max @ " +
-								std::to_string(outdtc.MaxFrame) + "). Confidence: " + std::to_string(confidence) +
-								"\nWARNING: impact detection algorithm and detection images are inconsistent" +
-								"\nPlease check detection image";
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								(CString)std::to_string(nb_impact).c_str() + L" potential impact(s) detected in frames ranging from " +
-								(CString)std::to_string(outdtc.nMinFrame).c_str() + L" to " +
-								(CString)std::to_string(outdtc.nMaxFrame).c_str() + L" (max @ " +
-								(CString)std::to_string(outdtc.MaxFrame).c_str() + L"). Confidence: " +
-								(CString)std::to_string(confidence).c_str() + L".");
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								+L" WARNING: impact detection algorithm "
-								+ L"and detection images are inconsistent.");
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								+L" Please check detection image.");
-							output_log << getDateTime().str().c_str() << nb_impact << " detected in frames ranging from "
-								<< outdtc.nMinFrame << " to " << outdtc.nMaxFrame << " (max @ " << outdtc.MaxFrame <<
-								"). Confidence: " << confidence << ".\n";
-							output_log << getDateTime().str().c_str() << "WARNING: impact detection algorithm and detection "
-								<< "images are inconsistent.\n";
-							output_log << getDateTime().str().c_str() << "Please check detection image.\n";
-							output_log.flush();
-						} else {
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								(CString)std::to_string(nb_impact).c_str() + L" impacts detected " +
-								L"with inconsistencies with the detection image.");
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								+L"WARNING: impact detection algorithm "
-								+ L"and detection images are inconsistent.");
-							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() +
-								+L" Please check detection image.");
-							logmessage = std::to_string(nb_impact) + " impacts detected" +
-								"\nWARNING: impact detection algorithm and detection images are inconsistent" +
-								"\nPlease check detection image";
-							output_log << getDateTime().str().c_str() << nb_impact << " impacts detected\n";
-							output_log << getDateTime().str().c_str() << nb_impact << " WARNING: impact detection algorithm "<<
-								"and detection images are inconsistent.\n";
-							output_log << getDateTime().str().c_str() << nb_impact << " Please check detection image.\n";
-							output_log.flush();
-						}
+						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"No impacts have been detected.");
+						logmessage = "No impacts have been detected.";
+						output_log << getDateTime().str().c_str() << "No impacts have been detected" << "\n";
+						output_log.flush();
 					}
-				} else {
-					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"No impacts have been detected.");
-					logmessage = "No impacts have been detected.";
-					output_log << getDateTime().str().c_str() << "No impacts have been detected" << "\n";
+					end = clock();
+					log_messages.push_back(short_filename + ":");
+					std::stringstream str(logmessage);
+					std::string line;
+					while (std::getline(str, line)) log_messages.push_back("    " + line);
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Computation time: " +
+						(CString)std::to_string(int(end - begin) / CLOCKS_PER_SEC).c_str() + " seconds," + L" showing detection image"
+						+ L" (automatically closed in 3 seconds)...");
+					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+					CDeTeCtMFCDlg::getLog()->RedrawWindow();
+					output_log << getDateTime().str().c_str() << "Computation time: " << std::to_wstring(int(end - begin) / CLOCKS_PER_SEC)
+						<< " seconds." << "\n";
+					output_log << getDateTime().str().c_str() << "Showing detection image" << " (automatically closed in 3 seconds)...."
+						<< "\n";
 					output_log.flush();
+
+//					cv::imshow("Detection image", pADUdtcImg);
+//					cv::waitKey(3000);
+//					cv::destroyWindow("Detection image");
+
+					pGryMat.release();
+					pGryMat = NULL;
+
+					pADUdarkMat.release();
+					pADUdarkMat = NULL;
+					pADUavgMat.release();
+					pADUavgMat = NULL;
+					pADUmaxMat.release();
+					pADUmaxMat = NULL;
+					pADUdtcMat.release();
+					pADUdtcMat = NULL;
+					pADUdtcImg.release();
+					pADUdtcImg = NULL;
+					pADUdtcImg2.release();
+					pADUdtcImg2 = NULL;
+
+					if (opts.ignore)
+						dtcCorrectDatation((DtcCapture*)pCapture, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
+					std::string location = filename.substr(0, filename.find_last_of("\\") + 1);
+
+					LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence);
+					dtcWriteLog2(logcation, info);
+					dtcWriteLog2(logcation2, info);
+
+					/*FINAL CLEANING**************************************/
+					if (opts.viewDif) cv::destroyWindow("Initial differential photometry");
+					if (opts.viewRef) cv::destroyWindow("Reference frame");
+					if (opts.viewROI) cv::destroyWindow("ROI");
+					if (opts.viewTrk) cv::destroyWindow("Tracking");
+					if (opts.viewMsk) cv::destroyWindow("Mask");
+					if (opts.viewThr) cv::destroyWindow("Thresholded differential photometry");
+					if (opts.viewSmo) cv::destroyWindow("Smoothed differential photometry");
+					if (opts.viewRes) cv::destroyWindow("Resulting differential photometry");
+					if (opts.viewHis) cv::destroyWindow("Histogram");
+
+					if (opts.thrWithMask || opts.viewMsk || (opts.ovfname && (opts.ovtype == OTYPE_MSK))) {
+						pMskMat.release();
+						pMskMat = NULL;
+						pMskImg.release();
+						pMskImg = NULL;
+					}
+					if (opts.viewThr) {
+						pThrMat.release();
+						pThrMat = NULL;
+						pThrImg.release();
+						pThrImg = NULL;
+					}
+					if (opts.filter.type >= 0 || opts.viewSmo) {
+						pSmoMat.release();
+						pSmoMat = NULL;
+						pSmoImg.release();
+						pSmoImg = NULL;
+					}
+					if (opts.viewTrk || (opts.ovtype == OTYPE_TRK && opts.ovfname)) {
+						pTrkMat.release();
+						pTrkMat = NULL;
+						pTrkImg.release();
+						pTrkImg = NULL;
+					}
+					if (opts.viewDif || opts.viewRes || opts.viewHis || (opts.ovfname && (opts.ovtype == OTYPE_DIF ||
+						opts.ovtype == OTYPE_HIS))) {
+						pDifMat.release();
+						pDifMat = NULL;
+						pDifImg.release();
+						pDifImg = NULL;
+					}
+					pRefMat.release();
+					pRefMat = NULL;
+					pRefImg.release();
+					pRefImg = NULL;
+					if (opts.viewHis || (opts.ovfname && (opts.ovtype == OTYPE_HIS))) {
+						pHisImg.release();
+						pHisImg = NULL;
+					}
+					pFirstFrameROIMat.release();
+					pFirstFrameROIMat = NULL;
+					pROIMat.release();
+					pROIMat = NULL;
+					tempROIMat.release();
+					tempROIMat = NULL;
+					tempGryMat.release();
+					tempGryMat = NULL;
+
+					cv::waitKey(3000); // put at the end
+					cv::destroyWindow("Detection image"); // put at the end
 				}
-				end = clock();
-				log_messages.push_back(short_filename + ":");
-				std::stringstream str(logmessage);
-				std::string line;
-				while (std::getline(str, line)) log_messages.push_back("    " + line);
-				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Computation time: " +
-					(CString)std::to_string(int(end - begin) / CLOCKS_PER_SEC).c_str() + " seconds," + L" showing detection image"
-					+ L" (automatically closed in 4 seconds)...");
+				dtcReleaseCapture(pCapture);
+				pCapture = NULL;
+
+			}
+			catch (std::exception& e) {
+				std::string exception_message(e.what());
+				output_log << getDateTime().str().c_str() << "ERROR: " << std::wstring(exception_message.begin(),
+					exception_message.end()) << "\n";
+				output_log.flush();
+				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"ERROR: ");
+				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)std::string(e.what()).c_str());
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 				CDeTeCtMFCDlg::getLog()->RedrawWindow();
-				output_log << getDateTime().str().c_str() << "Computation time: " << std::to_wstring(int(end - begin) / CLOCKS_PER_SEC)
-					<< " seconds." << "\n";
-				output_log << getDateTime().str().c_str() << "Showing detection image" << " (automatically closed in 4 seconds)...."
-					<< "\n";
-				output_log.flush();
-
-				cv::imshow("Detection image", pADUdtcImg);
-				cv::waitKey(4000);
-
-				cv::destroyWindow("Detection image");
-
-				pGryMat.release();
-				pGryMat = NULL;
-
-				pADUdarkMat.release();
-				pADUdarkMat = NULL;
-				pADUavgMat.release();
-				pADUavgMat = NULL;
-				pADUmaxMat.release();
-				pADUmaxMat = NULL;
-				pADUdtcMat.release();
-				pADUdtcMat = NULL;
-				pADUdtcImg.release();
-				pADUdtcImg = NULL;
-				pADUdtcImg2.release();
-				pADUdtcImg2 = NULL;
-
-				if (opts.ignore)
-					dtcCorrectDatation((DtcCapture*)pCapture, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
-				std::string location = filename.substr(0, filename.find_last_of("\\") + 1);
-
-				LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence);
-				dtcWriteLog2(logcation, info);
-				dtcWriteLog2(logcation2, info);
-
-				/*FINAL CLEANING**************************************/
-				if (opts.viewDif) cv::destroyWindow("Initial differential photometry");
-				if (opts.viewRef) cv::destroyWindow("Reference frame");
-				if (opts.viewROI) cv::destroyWindow("ROI");
-				if (opts.viewTrk) cv::destroyWindow("Tracking");
-				if (opts.viewMsk) cv::destroyWindow("Mask");
-				if (opts.viewThr) cv::destroyWindow("Thresholded differential photometry");
-				if (opts.viewSmo) cv::destroyWindow("Smoothed differential photometry");
-				if (opts.viewRes) cv::destroyWindow("Resulting differential photometry");
-				if (opts.viewHis) cv::destroyWindow("Histogram");
-
-				if (opts.thrWithMask || opts.viewMsk || (opts.ovfname && (opts.ovtype == OTYPE_MSK))) {
-					pMskMat.release();
-					pMskMat = NULL;
-					pMskImg.release();
-					pMskImg = NULL;
-				}
-				if (opts.viewThr) {
-					pThrMat.release();
-					pThrMat = NULL;
-					pThrImg.release();
-					pThrImg = NULL;
-				}
-				if (opts.filter.type >= 0 || opts.viewSmo) {
-					pSmoMat.release();
-					pSmoMat = NULL;
-					pSmoImg.release();
-					pSmoImg = NULL;
-				}
-				if (opts.viewTrk || (opts.ovtype == OTYPE_TRK && opts.ovfname)) {
-					pTrkMat.release();
-					pTrkMat = NULL;
-					pTrkImg.release();
-					pTrkImg = NULL;
-				}
-				if (opts.viewDif || opts.viewRes || opts.viewHis || (opts.ovfname && (opts.ovtype == OTYPE_DIF ||
-					opts.ovtype == OTYPE_HIS))) {
-					pDifMat.release();
-					pDifMat = NULL;
-					pDifImg.release();
-					pDifImg = NULL;
-				}
-				pRefMat.release();
-				pRefMat = NULL;
-				pRefImg.release();
-				pRefImg = NULL;
-				if (opts.viewHis || (opts.ovfname && (opts.ovtype == OTYPE_HIS))) {
-					pHisImg.release();
-					pHisImg = NULL;
-				}
-				pFirstFrameROIMat.release();
-				pFirstFrameROIMat = NULL;
-				pROIMat.release();
-				pROIMat = NULL;
-				tempROIMat.release();
-				tempROIMat = NULL;
-				tempGryMat.release();
-				tempGryMat = NULL;
+				logmessage = "ERROR: " + std::string(e.what());
+				log_messages.push_back(short_filename + ":");
+				log_messages.push_back("    " + logmessage);
 			}
-			dtcReleaseCapture(pCapture);
-			pCapture = NULL;
-		}
-		catch (std::exception& e) {
-			std::string exception_message(e.what());
-			output_log << getDateTime().str().c_str() << "ERROR: " << std::wstring(exception_message.begin(),
-				exception_message.end()) << "\n";
-			output_log.flush();
-			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"ERROR: ");
-			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)std::string(e.what()).c_str());
+			message = "--------- " + short_filename + " analysis done ---------";
+			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+			output_log << getDateTime().str().c_str() << message.c_str() << "\n";
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 			CDeTeCtMFCDlg::getLog()->RedrawWindow();
-			logmessage = "ERROR: " + std::string(e.what());
-			log_messages.push_back(short_filename + ":");
-			log_messages.push_back("    " + logmessage);
+
+			if (opts.filename) {
+				CString objectname(opts.filename);
+				RemoveFromQueue(objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX));
+			}
 		}
-		message = "--------- " + short_filename + " analysis done ---------";
-		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
-		output_log << getDateTime().str().c_str() << message.c_str() << "\n";
-		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-		CDeTeCtMFCDlg::getLog()->RedrawWindow();
-	}
+		if (opts.dirname) {
+			CString objectname(opts.dirname);
+			RemoveFromQueue(objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX));
+		}
+		local_file_list = std::vector<std::string>();
+		
+		if (!opts.interactive) {
+			CString objectname;
+			if (PopFromQueue(&objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX))) {
+				std::ifstream file(objectname);
+				if (file) {
+					CT2A objectnamechar(objectname);
+					opts.filename = objectnamechar;
+					file.close();
+					local_file_list.push_back(std::string(opts.filename));
+				}
+				else {
+					DIR *folder_object;
+					CT2A objectnamechar(objectname);
+					if (folder_object = opendir(objectnamechar)) {
+						opts.dirname = objectnamechar;
+						std::string path = std::string(opts.dirname);
+						read_files(path, &file_list, &local_file_list);
+					}
+				}
+			}
+		}
+	} while (local_file_list.size() > 0);
 	SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
 	//CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Analysis has been done");
 	//output_log << getDateTime().str().c_str() << "Analysis has been done" << "\n";
@@ -1732,11 +1782,11 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	//dtcWriteWholeLog(logcation.c_str(), logs);
 	//dtcWriteWholeLog(logcation2.c_str(), logs);
 	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Log file is available at " +
-		(CString)logcation.c_str() + L"\\DeTeCt.log");
+		DeTeCt_additional_filename(CString(logcation.c_str()), DTC_LOG_SUFFIX));
 	if (opts.dateonly) CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis was performed\n");
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
-	output_log << getDateTime().str().c_str() << "Log file is available at " << logcation.c_str() << "\\DeTeCt.log" << "\n";
+	output_log << getDateTime().str().c_str() << "Log file is available at " << DeTeCt_additional_filename(CString(logcation.c_str()), DTC_LOG_SUFFIX) << "\n";
 	if (opts.dateonly) output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";
 	output_log.close();
 	std::wstring output_log_file2(scan_folder_path.begin(), scan_folder_path.end());
@@ -1747,6 +1797,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	output_log2 << output_log_in.rdbuf();
 	if (opts.dateonly) output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";output_log2.close();
 //DBOUT("Interactive=" << opts.interactive << "\n");
+
 	if (opts.interactive) {
 		email->DoModal();
 	} else {

@@ -1,8 +1,8 @@
 #ifndef __DATATION_H__
 #define __DATATION_H__
 
-#include <time.h>
-#include "common.h"
+//#include <time.h>
+//#include "common.h"
 #include "wrapper.h"
 
 
@@ -22,7 +22,7 @@
 	void 	dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pDuration, double *pfps, TIME_TYPE *ptimetype, char *comment);
 	void 	dtcCorrectDatation(DtcCapture *capture, double *pstart_time, double *pend_time, double *pDuration, double *pfps, TIME_TYPE *ptimetype, char *comment);
 
-	void 	dtcWriteLog(const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print);
+	//void 	dtcWriteLog(const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print);
 
 	void 	dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const int nbframes, double *pstart_time, double *pend_time, double *pDuration, double *pfps);
 	int 	dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment);

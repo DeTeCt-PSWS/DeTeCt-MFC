@@ -8,11 +8,11 @@
 	#error "include 'stdafx.h' before including this file for PCH"
 #endif
 
-#include "auxfunc.h"
-#include "resource.h"		// main symbols
+//#include "auxfunc.h"
+//#include "resource.h"		// main symbols
 #include "DeTeCt-MFCDlg.h"
 
-#include "dtcgui.hpp"
+//#include "dtcgui.hpp"
 
 // CDeTeCtMFCApp:
 // See DeTeCt-MFC.cpp for the implementation of this class

@@ -11,11 +11,12 @@
 
 
 #include "common.h"
-#include <stdint.h>
+//#include <stdint.h>
 #include <cstdbool>
-#include <opencv2\highgui\highgui.hpp>
+//#include <opencv2\highgui\highgui.hpp>
 //#include <opencv2\imgproc\imgproc.hpp>
-#include <opencv2\core\core.hpp>
+//#include <opencv2\core\core.hpp>
+
 // SER format FileID
 #define SER_FILEID		"LUCAM-RECORDER"
 

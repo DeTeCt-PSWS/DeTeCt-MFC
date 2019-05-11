@@ -1,12 +1,12 @@
 #ifndef __DTC_H__
 #define __DTC_H__
 
-#include "common.h"
+//#include "common.h"
 #include "cmdline.h"
 
 #define PROGNAME  "DeTeCt"
 #define LONGNAME  "jovian impact DeTeCtion"
-#define VERSION_NB   "3.1.6"
+#define VERSION_NB   "3.1.7"
 #define VERSION_DATE "(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -34,6 +34,10 @@
 #define DTC_MAX_SUFFIX  "_dtc_max.jpg"
 #define MEAN_SUFFIX  "_mean.jpg"
 #define DTC_SUFFIX  "_dtc.jpg"
+
+#define DTC_QUEUE_SUFFIX L"_processes_queue.lst"
+#define DTC_INI_SUFFIX L".ini"
+#define DTC_LOG_SUFFIX L".log"
 
 #define DTC_MAX_FRAME_PREFIX  "_dtc_max_frame"
 #define DTC_DIFF_FRAME_PREFIX  "_dtc_diff_frame"

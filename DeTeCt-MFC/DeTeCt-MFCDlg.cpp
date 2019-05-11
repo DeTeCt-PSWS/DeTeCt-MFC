@@ -13,6 +13,9 @@
 #include <thread>
 #include <string>
 
+#include "common.h"
+#include "processes_queue.h"
+
 #ifdef _DEBUG
 
 /**********************************************************************************************//**
@@ -127,60 +130,59 @@ END_MESSAGE_MAP()
 CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_DETECTMFC_DIALOG, pParent)
 {
-	wchar_t exepath[1000];
-	GetModuleFileName(NULL, exepath, MAX_PATH);
-	CString folder = exepath;
-	folder = folder.Left(folder.ReverseFind(_T('\\')) + 1);
-	folder.Append(OPTIONS_FILE);
+	CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(DTC_INI_SUFFIX);
+
 	_TCHAR optionStr[1000];
+
 	opts.filename = opts.ofilename = opts.darkfilename = opts.ovfname = opts.sfname = NULL;
 	opts.nsaveframe = 0;
 	opts.ostype = OTYPE_NO;
 	opts.ovtype = OTYPE_NO;
 	::GetPrivateProfileString(L"impact", L"min_strength", L"0.3", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		folder);
+		DeTeCtQueueFilename);
 	opts.timeImpact = std::stod(optionStr);
 	opts.incrLumImpact = std::stod(optionStr);
-	opts.incrFrameImpact = ::GetPrivateProfileInt(L"impact", L"frames", 5, folder);
-	opts.radius = ::GetPrivateProfileInt(L"impact", L"radius", 10, folder);
+	opts.incrFrameImpact = ::GetPrivateProfileInt(L"impact", L"frames", 5, DeTeCtQueueFilename);
+	opts.radius = ::GetPrivateProfileInt(L"impact", L"radius", 10, DeTeCtQueueFilename);
 	opts.nframesROI = 1;
-	opts.nframesRef = ::GetPrivateProfileInt(L"other", L"refmin", 50, folder);
-	opts.bayer = ::GetPrivateProfileInt(L"other", L"debayer", 0, folder);
-	opts.medSize = ::GetPrivateProfileInt(L"roi", L"medbuf", 5, folder);
+	opts.nframesRef = ::GetPrivateProfileInt(L"other", L"refmin", 50, DeTeCtQueueFilename);
+	opts.bayer = ::GetPrivateProfileInt(L"other", L"debayer", 0, DeTeCtQueueFilename);
+	opts.medSize = ::GetPrivateProfileInt(L"roi", L"medbuf", 5, DeTeCtQueueFilename);
 	opts.wait = 1;
 	::GetPrivateProfileString(L"roi", L"sizfac", L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		folder);
+		DeTeCtQueueFilename);
 	opts.facSize = std::stod(optionStr);
 	::GetPrivateProfileString(L"roi", L"secfac", L"1.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		folder);
+		DeTeCtQueueFilename);
 	opts.secSize = std::stod(optionStr);
-	opts.threshold = ::GetPrivateProfileInt(L"impact", L"thresh", 0, folder);
+	opts.threshold = ::GetPrivateProfileInt(L"impact", L"thresh", 0, DeTeCtQueueFilename);
 	opts.learningRate = 0.0;
-	opts.thrWithMask = ::GetPrivateProfileInt(L"impact", L"mask", 0, folder);
+	opts.thrWithMask = ::GetPrivateProfileInt(L"impact", L"mask", 0, DeTeCtQueueFilename);
 	opts.histScale = 1;
-	opts.viewROI = ::GetPrivateProfileInt(L"view", L"roi", 0, folder);
-	opts.viewTrk = ::GetPrivateProfileInt(L"view", L"trk", 0, folder);
-	opts.viewDif = ::GetPrivateProfileInt(L"view", L"dif", 0, folder);
-	opts.viewRef = ::GetPrivateProfileInt(L"view", L"ref", 0, folder);
-	opts.viewThr = ::GetPrivateProfileInt(L"view", L"thr", 0, folder);
-	opts.viewSmo = ::GetPrivateProfileInt(L"view", L"smo", 0, folder);
-	opts.viewRes = ::GetPrivateProfileInt(L"view", L"res", 0, folder);
-	opts.viewHis = ::GetPrivateProfileInt(L"view", L"his", 0, folder);
-	opts.viewMsk = ::GetPrivateProfileInt(L"view", L"msk", 0, folder);
+	opts.viewROI = ::GetPrivateProfileInt(L"view", L"roi", 0, DeTeCtQueueFilename);
+	opts.viewTrk = ::GetPrivateProfileInt(L"view", L"trk", 0, DeTeCtQueueFilename);
+	opts.viewDif = ::GetPrivateProfileInt(L"view", L"dif", 0, DeTeCtQueueFilename);
+	opts.viewRef = ::GetPrivateProfileInt(L"view", L"ref", 0, DeTeCtQueueFilename);
+	opts.viewThr = ::GetPrivateProfileInt(L"view", L"thr", 0, DeTeCtQueueFilename);
+	opts.viewSmo = ::GetPrivateProfileInt(L"view", L"smo", 0, DeTeCtQueueFilename);
+	opts.viewRes = ::GetPrivateProfileInt(L"view", L"res", 0, DeTeCtQueueFilename);
+	opts.viewHis = ::GetPrivateProfileInt(L"view", L"his", 0, DeTeCtQueueFilename);
+	opts.viewMsk = ::GetPrivateProfileInt(L"view", L"msk", 0, DeTeCtQueueFilename);
 	opts.verbose = 0;
-	opts.filter.type = ::GetPrivateProfileInt(L"other", L"filter", 1, folder);
+	opts.filter.type = ::GetPrivateProfileInt(L"other", L"filter", 1, DeTeCtQueueFilename);
 	opts.filter.param[0] = 3;
 	opts.filter.param[1] = 3;
 	opts.filter.param[2] = 0;
 	opts.filter.param[3] = 0;
 	opts.ADUdtconly = 0;
-	opts.detail = ::GetPrivateProfileInt(L"impact", L"detail", 0, folder);
-	opts.allframes = ::GetPrivateProfileInt(L"impact", L"inter", 0, folder);
-	opts.minframes = ::GetPrivateProfileInt(L"other", L"frmin", 0, folder);
-	opts.dateonly = ::GetPrivateProfileInt(L"other", L"dateonly", 0, folder);
-	opts.ignore = ::GetPrivateProfileInt(L"other", L"ignore", 0, folder);
-	opts.debug = ::GetPrivateProfileInt(L"other", L"debug", 0, folder);
+	opts.detail = ::GetPrivateProfileInt(L"impact", L"detail", 1, DeTeCtQueueFilename);
+	opts.allframes = ::GetPrivateProfileInt(L"impact", L"inter", 0, DeTeCtQueueFilename);
+	opts.minframes = ::GetPrivateProfileInt(L"other", L"frmin", 0, DeTeCtQueueFilename);
+	opts.dateonly = ::GetPrivateProfileInt(L"other", L"dateonly", 0, DeTeCtQueueFilename);
+	opts.ignore = ::GetPrivateProfileInt(L"other", L"ignore", 0, DeTeCtQueueFilename);
+	opts.debug = ::GetPrivateProfileInt(L"other", L"debug", 0, DeTeCtQueueFilename);
 	debug_mode = opts.debug;
+	opts.maxinstances = ::GetPrivateProfileInt(L"other", L"maxinstances", 1, DeTeCtQueueFilename);
 	opts.videotest = 0;
 	opts.wROI = 0;
 	opts.hROI = 0;
@@ -359,8 +361,8 @@ HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
 	}
 
 	//Call directly file/directory addition if option passed to exe
-	if (opts.dirname > 0) OnFileOpen32771();
-	else if (opts.filename > 0) OnFileOpenfile();
+	if (opts.dirname) OnFileOpen32771();
+	else if (opts.filename) OnFileOpenfile();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -496,7 +498,7 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 	std::string path;
 	std::wstringstream ss;
 
-	if (opts.dirname > 0) {
+	if (opts.dirname) {
 		path = std::string(opts.dirname);
 	}
 	else {
@@ -512,6 +514,7 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 
 		scan_folder_path = path;
 //TODO: clearscreen
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
 		ss2 << "Resetting file list and scanning " << folder_path << " for files to be analysed...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
@@ -550,7 +553,6 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	this->RedrawWindow();
-	if (opts.dirname > 0) opts.dirname = NULL;
 	if (!opts.interactive) OnBnClickedOk();
 }
 
@@ -824,101 +826,101 @@ END_MESSAGE_MAP()
 void PrefDialog::OnBnClickedOk()
 {
 	CString str;
-	wchar_t exepath[1000];
-	GetModuleFileName(NULL, exepath, MAX_PATH);
-	CString folder = exepath;
-	folder = folder.Left(folder.ReverseFind(_T('\\')) + 1);
-	folder.Append(OPTIONS_FILE);
+
+	CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(DTC_INI_SUFFIX);
+
 	meanValue.GetWindowTextW(str);
 	opts.incrLumImpact = std::stof(str.GetString());
-	::WritePrivateProfileString(L"impact", L"min_strength", str, folder);
+	::WritePrivateProfileString(L"impact", L"min_strength", str, DeTeCtQueueFilename);
 	str.Empty();
 	impactFrameNum.GetWindowTextW(str);
 	opts.nframesRef = std::stoi(str.GetString());
-	::WritePrivateProfileString(L"other", L"refmin", str, folder);
+	::WritePrivateProfileString(L"other", L"refmin", str, DeTeCtQueueFilename);
 	str.Empty();
 	impactMinTime.GetWindowTextW(str);
 	opts.incrFrameImpact = std::stoi(str.GetString());
-	::WritePrivateProfileString(L"impact", L"frames", str, folder);
+	::WritePrivateProfileString(L"impact", L"frames", str, DeTeCtQueueFilename);
 	str.Empty();
 	impactRadius.GetWindowTextW(str);
 	opts.radius = std::stod(str.GetString());
-	::WritePrivateProfileString(L"impact", L"radius", str, folder);
+	::WritePrivateProfileString(L"impact", L"radius", str, DeTeCtQueueFilename);
 	str.Empty();
 	impactBrightThresh.GetWindowTextW(str);
 	opts.threshold = std::stod(str.GetString());
-	::WritePrivateProfileString(L"impact", L"thresh", str, folder);
+	::WritePrivateProfileString(L"impact", L"thresh", str, DeTeCtQueueFilename);
 	str.Empty();
 	roiSizeFactor.GetWindowTextW(str);
 	opts.facSize = std::stof(str.GetString());
-	::WritePrivateProfileString(L"roi", L"sizfac", str, folder);
+	::WritePrivateProfileString(L"roi", L"sizfac", str, DeTeCtQueueFilename);
 	str.Empty();
 	roiSecFactor.GetWindowTextW(str);
 	opts.secSize = std::stof(str.GetString());
-	::WritePrivateProfileString(L"roi", L"secfac", str, folder);
+	::WritePrivateProfileString(L"roi", L"secfac", str, DeTeCtQueueFilename);
 	str.Empty();
 	roiMedianBufSize.GetWindowTextW(str);
 	opts.medSize = std::stol(str.GetString());
-	::WritePrivateProfileString(L"roi", L"medbuf", str, folder);
+	::WritePrivateProfileString(L"roi", L"medbuf", str, DeTeCtQueueFilename);
 	str.Empty();
 	minimumFrames.GetWindowTextW(str);
 	opts.minframes = std::stoi(str.GetString());
-	::WritePrivateProfileString(L"other", L"frmin", str, folder);
+	::WritePrivateProfileString(L"other", L"frmin", str, DeTeCtQueueFilename);
 	str.Empty();
 	histScale.GetWindowTextW(str);
 	opts.histScale = std::stod(str.GetString());
-	::WritePrivateProfileString(L"other", L"histscale", str, folder);
+	::WritePrivateProfileString(L"other", L"histscale", str, DeTeCtQueueFilename);
 	str.Empty();
 	opts.thrWithMask = applyMask.GetCheck();
 	str.Format(L"%d", opts.thrWithMask);
-	::WritePrivateProfileString(L"impact", L"mask", str, folder);
+	::WritePrivateProfileString(L"impact", L"mask", str, DeTeCtQueueFilename);
 	opts.detail = detailedADUdtc.GetCheck();
 	str.Format(L"%d", opts.detail);
-	::WritePrivateProfileString(L"impact", L"detail", str, folder);
+	::WritePrivateProfileString(L"impact", L"detail", str, DeTeCtQueueFilename);
 	opts.allframes = saveIntFramesADUdtc.GetCheck();
 	str.Format(L"%d", opts.allframes);
-	::WritePrivateProfileString(L"impact", L"inter", str, folder);
+	::WritePrivateProfileString(L"impact", L"inter", str, DeTeCtQueueFilename);
 	opts.viewROI = showROI.GetCheck();
 	str.Format(L"%d", opts.viewROI);
-	::WritePrivateProfileString(L"view", L"roi", str, folder);
+	::WritePrivateProfileString(L"view", L"roi", str, DeTeCtQueueFilename);
 	opts.viewTrk = showTrack.GetCheck();
 	str.Format(L"%d", opts.viewTrk);
-	::WritePrivateProfileString(L"view", L"trk", str, folder);
+	::WritePrivateProfileString(L"view", L"trk", str, DeTeCtQueueFilename);
 	opts.viewRef = showRef.GetCheck();
 	str.Format(L"%d", opts.viewRef);
-	::WritePrivateProfileString(L"view", L"ref", str, folder);
+	::WritePrivateProfileString(L"view", L"ref", str, DeTeCtQueueFilename);
 	opts.viewMsk = showMask.GetCheck();
 	str.Format(L"%d", opts.viewMsk);
-	::WritePrivateProfileString(L"view", L"msk", str, folder);
+	::WritePrivateProfileString(L"view", L"msk", str, DeTeCtQueueFilename);
 	opts.viewThr = showThresh.GetCheck();
 	str.Format(L"%d", opts.viewThr);
-	::WritePrivateProfileString(L"view", L"thr", str, folder);
+	::WritePrivateProfileString(L"view", L"thr", str, DeTeCtQueueFilename);
 	opts.viewSmo = showSmooth.GetCheck();
 	str.Format(L"%d", opts.viewSmo);
-	::WritePrivateProfileString(L"view", L"smo", str, folder);
+	::WritePrivateProfileString(L"view", L"smo", str, DeTeCtQueueFilename);
 	opts.viewRes = showResult.GetCheck();
 	str.Format(L"%d", opts.viewRes);
-	::WritePrivateProfileString(L"view", L"res", str, folder);
+	::WritePrivateProfileString(L"view", L"res", str, DeTeCtQueueFilename);
 	opts.viewDif = showDif.GetCheck();
 	str.Format(L"%d", opts.viewDif);
-	::WritePrivateProfileString(L"view", L"dif", str, folder);
+	::WritePrivateProfileString(L"view", L"dif", str, DeTeCtQueueFilename);
 	opts.viewHis = showHist.GetCheck();
 	str.Format(L"%d", opts.viewHis);
-	::WritePrivateProfileString(L"view", L"his", str, folder);
+	::WritePrivateProfileString(L"view", L"his", str, DeTeCtQueueFilename);
 	opts.dateonly = datesOnly.GetCheck();
 	str.Format(L"%d", opts.dateonly);
-	::WritePrivateProfileString(L"other", L"dateonly", str, folder);
+	::WritePrivateProfileString(L"other", L"dateonly", str, DeTeCtQueueFilename);
 	opts.ignore = ignoreIncorrectFrames.GetCheck();
 	str.Format(L"%d", opts.ignore);
-	::WritePrivateProfileString(L"other", L"ignore", str, folder);
+	::WritePrivateProfileString(L"other", L"ignore", str, DeTeCtQueueFilename);
 	//int bayerCodes[] = { 0, cv::COLOR_BayerBG2RGB, cv::COLOR_BayerGB2RGB, cv::COLOR_BayerRG2RGB, cv::COLOR_BayerGR2RGB };
 	str.Format(L"%d", opts.bayer);
-	::WritePrivateProfileString(L"other", L"debayer", str, folder);
+	::WritePrivateProfileString(L"other", L"debayer", str, DeTeCtQueueFilename);
 	opts.filter.type = filterSelect.GetCurSel();
 	str.Format(L"%d", opts.filter.type);
-	::WritePrivateProfileString(L"other", L"filter", str, folder);
+	::WritePrivateProfileString(L"other", L"filter", str, DeTeCtQueueFilename);
 	str.Format(L"%d", opts.debug);
-	::WritePrivateProfileString(L"other", L"debug", str, folder);
+	::WritePrivateProfileString(L"other", L"debug", str, DeTeCtQueueFilename);
+	str.Format(L"%d", opts.maxinstances);
+	::WritePrivateProfileString(L"other", L"maxinstances", str, DeTeCtQueueFilename);
 	CDialog::OnOK();
 }
 
@@ -999,66 +1001,64 @@ void CAboutDlg::OnBnClickedMfclink1()
 
 void CDeTeCtMFCDlg::OnFileOpenfile()
 {
-	file_list = {};
-	std::wstringstream ss;
-	std::wstring file_path;
-	std::string file;
-	CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
+		file_list = {};
+		std::wstringstream ss,ssint, ssopt;
+		std::wstring file_path;
+		std::string file;
+		CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
 
-	if (opts.filename > 0) {
-		file = std::string(opts.filename);
-	} else {
-		if (dialog.DoModal() == IDOK) {
-			file_path = std::wstring(dialog.GetPathName().GetString());
-			file = std::string(file_path.begin(), file_path.end());
-		}
-	}
-	if (file.size() <=0) {
+		if (opts.filename) file = std::string(opts.filename);
+		else if (dialog.DoModal() == IDOK) {
+				file_path = std::wstring(dialog.GetPathName().GetString());
+				file = std::string(file_path.begin(), file_path.end());
+			}
+		if (file.size() <= 0) {
 			ss << "No file selected";
 			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-	} else {
-		std::wstringstream ss2;
-//TODO: clearscreen
-		ss2 << "Resetting file list for analysis";
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
-		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-
-		bool fileexists = FALSE;
-		std::string filename_acquisition;
-
-		std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
-		if (extension.compare(autostakkert_extension) == 0) {
-			std::vector<cv::Point> cm_list;
-
-			read_autostakkert_file(file, &filename_acquisition, &cm_list);
-			std::ifstream filetest(filename_acquisition);
-			if (filetest) fileexists = TRUE;
-			filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
 		}
-		if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
-			scan_folder_path = file.substr(0, file.find_last_of("\\"));
-			file_list.push_back(file);
-			file = file.substr(file.find_last_of("\\") + 1, file.length());
-			if (extension.compare(autostakkert_extension) != 0) ss << "Adding " << file.c_str() << " for analysis";
-			else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
-		}
-		else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
-			file = file.substr(file.find_last_of("\\") + 1, file.length());
-			ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
-		}
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
-		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+		else {
+			std::wstringstream ss2;
+			//TODO: clearscreen
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
+			ss2 << "Resetting file list for analysis";
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 
-//		if (opts.filename > 0) {
-//			ss << "Adding automatically " << file.c_str() << " for analysis";
-//		}
-//		else {
-//			ss << "Adding " << file.c_str() << " for analysis";
-//		}
-	}
-	this->RedrawWindow();
-	if (opts.filename > 0) opts.filename = NULL;
+			bool fileexists = FALSE;
+			std::string filename_acquisition;
+
+			std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+			if (extension.compare(autostakkert_extension) == 0) {
+				std::vector<cv::Point> cm_list;
+
+				read_autostakkert_file(file, &filename_acquisition, &cm_list);
+				std::ifstream filetest(filename_acquisition);
+				if (filetest) fileexists = TRUE;
+				filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+			}
+			if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
+				scan_folder_path = file.substr(0, file.find_last_of("\\"));
+				file_list.push_back(file);
+				file = file.substr(file.find_last_of("\\") + 1, file.length());
+				if (extension.compare(autostakkert_extension) != 0) ss << "Adding " << file.c_str() << " for analysis";
+				else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+			}
+			else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
+				file = file.substr(file.find_last_of("\\") + 1, file.length());
+				ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+			}
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+
+			//		if (opts.filename) {
+			//			ss << "Adding automatically " << file.c_str() << " for analysis";
+			//		}
+			//		else {
+			//			ss << "Adding " << file.c_str() << " for analysis";
+			//		}
+		}
+		this->RedrawWindow();
 	if (!opts.interactive) OnBnClickedOk();
 }
 
@@ -1100,7 +1100,7 @@ void PrefDialog::OnBnClickedButton1()
 	ss << std::fixed << std::setprecision(2) << 0.8;
 	histScale.SetWindowText(ss.str().c_str());
 	applyMask.SetCheck(0);
-	detailedADUdtc.SetCheck(0);
+	detailedADUdtc.SetCheck(1);
 	saveIntFramesADUdtc.SetCheck(0);
 	showROI.SetCheck(0);
 	showTrack.SetCheck(0);

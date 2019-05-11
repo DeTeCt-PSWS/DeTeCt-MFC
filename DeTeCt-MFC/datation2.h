@@ -2,8 +2,8 @@
 #ifndef __DATATION_H_
 #define __DATATION_H_
 
-#include "datation.h"
-#include <iostream>
+//#include "datation.h"
+//#include <iostream>
 #include <fstream>
 
 /**********************************************************************************************//**
@@ -16,7 +16,7 @@
  * @date	2017-05-12
  **************************************************************************************************/
 
-#define DETECTLOGNAME "DeTeCt.log"
+//#define DETECTLOGNAME "DeTeCt.log"
 
 struct _LogInfo {
 	char *filename;

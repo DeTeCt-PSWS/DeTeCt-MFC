@@ -563,7 +563,7 @@ void dtcCorrectDatation(DtcCapture *capture, double *pstart_time, double *pend_t
 /*****************************************************************************************/
 /*****************Logs capture scan date information in dtc.log***************************/
 /*****************************************************************************************/
-
+/*
 void dtcWriteLog(const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print)
 {
 	FILE *dtclogfile;
@@ -675,6 +675,7 @@ void dtcWriteLog(const char *dtcexename, const double start_time, const double e
 		printf("(%s)\n", comment);
 	}
 }
+*/
 
 /*****************************************************************************************/
 /*******************Gets datation from file system information****************************/

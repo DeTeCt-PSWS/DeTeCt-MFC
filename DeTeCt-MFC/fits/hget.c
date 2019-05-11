@@ -1,4 +1,4 @@
-#pragma warning(disable : 4244 4267 4131)
+#pragma warning(disable : 4244 4267 4131 4706)
 
 /*** File libwcs/hget.c
  *** May 19, 2011

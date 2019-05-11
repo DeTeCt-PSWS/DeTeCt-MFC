@@ -279,6 +279,7 @@
     <ClInclude Include="dtcgui.hpp" />
     <ClInclude Include="auxfunc.h" />
     <ClInclude Include="img2.h" />
+    <ClInclude Include="processes_queue.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="serfmt.h" />
     <ClInclude Include="stdafx.h" />
@@ -308,6 +309,7 @@
     <ClCompile Include="dtcgui.cpp" />
     <ClCompile Include="img2.cpp" />
     <ClCompile Include="max.c" />
+    <ClCompile Include="processes_queue.cpp" />
     <ClCompile Include="SendEmailDlg.cpp" />
     <ClCompile Include="serfmt.c" />
     <ClCompile Include="stdafx.cpp">

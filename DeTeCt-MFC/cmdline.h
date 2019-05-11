@@ -1,7 +1,7 @@
 #ifndef __CMDLINE_H__
 #define __CMDLINE_H__
 
-#include "common.h"
+//#include "common.h"
 
 #define OTYPE_NO		0
 #define OTYPE_DIF		1

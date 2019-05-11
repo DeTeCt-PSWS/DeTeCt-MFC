@@ -1,8 +1,8 @@
 #ifndef __FILEFMT_H__
 #define __FILEFMT_H__
-#include "common.h"
+//#include "common.h"
 
-#include <opencv/highgui.h>
+//#include <opencv/highgui.h>
 #include "dirent.h"
 
 	struct _FileCapture

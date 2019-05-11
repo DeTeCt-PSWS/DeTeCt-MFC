@@ -13,6 +13,7 @@
 #include <fstream>
 //#include <sstream>
 //#include <cstdio>
+#include "processes_queue.h"
 
 #include <experimental/filesystem>
 namespace filesys = std::experimental::filesystem;
@@ -76,10 +77,10 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	std::string month_string;
 	std::string day;
 	std::string months[] = { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
-
+	std::string DeTeCtName = "DeTeCt.exe";
 	opts.interactive = TRUE;
 
-/* builds full program name with version, compilation date and platform */
+/*** builds full program name with version, compilation date and platform ***/
 	compilation_date.append(__DATE__);
 	month_string = compilation_date.substr(0, 3);
 	for (i = 0; i < 12; i++) {
@@ -101,12 +102,12 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	full_version.append(month);
 	full_version.append(day);
 	full_version.append("_" DETECT_TARGET);
-	//" (" __DATE__ ")");
-
+	
+/*** Analyse command line parameters ***/
 	for (CString sItem = commandLineArgument.Tokenize(L" ", i); i >= 0; sItem = commandLineArgument.Tokenize(L" ", i)) {
 		commandParametres.Add(sItem);
 	}
-	for (int j = 1; j < commandParametres.GetCount(); j++) {
+	for (int j = 0; j < commandParametres.GetCount(); j++) {
 		CString parameter = commandParametres.GetAt(j);
 		std::wstring wparam(parameter);
 		std::string param(wparam.begin(), wparam.end());
@@ -114,12 +115,16 @@ BOOL CDeTeCtMFCApp::InitInstance()
 		while (param.find('\n') != std::string::npos) {
 			param.erase(param.find('\n'), 2);
 		}
-
+//CString SuffixString(DTC_QUEUE_SUFFIX);
+//CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(SuffixString);
+//PushToQueue(L"Interactive?", DeTeCtQueueFilename);
+//PushToQueue(parameter, DeTeCtQueueFilename);
 		if (starts_with(param, "-")) {
 			DBOUT("option : " << param.c_str() << "\n");
 			if (starts_with(param, "-automatic")) {
 				opts.interactive = FALSE;
-			}
+//PushToQueue(L"Automatic", DeTeCtQueueFilename);
+			} //else PushToQueue(L"Interactive", DeTeCtQueueFilename);
 		}
 		else {
 			object = param;
@@ -159,71 +164,94 @@ BOOL CDeTeCtMFCApp::InitInstance()
 			}
 		}
 	}
-	if (opts.filename > 0) {
-		DBOUT("file = " << opts.filename << "\n");
+	if ((!opts.interactive) && (!opts.filename) && (!opts.dirname)) {
+		CString objectname; 
+		if (PopFromQueue(&objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX))) {
+			std::ifstream file(objectname);
+			CT2A tmp(objectname);
+			if (file) {
+				opts.filename = new char[strlen(tmp)+1];
+				strcpy(opts.filename, tmp);
+				opts.filename[strlen(tmp)] = '\0';
+			} else {
+				DIR *folder_object;
+				if (folder_object = opendir(tmp)) {
+					opts.dirname = new char[strlen(tmp)+1];
+					strcpy(opts.dirname, tmp);
+					opts.dirname[strlen(tmp)] = '\0';
+				}
+			}
+		}
 	}
-	if (opts.dirname > 0) {
-		DBOUT("folder = " << target_folder.c_str() << "\n");
+	if (opts.filename) DBOUT("file = " << opts.filename << "\n");
+	if (opts.dirname) DBOUT("folder = " << opts.dirname << "\n");
+
+/*** Check if DeTeCt is already running ***/
+	int DeTeCt_processes_nb = DectectInstancesNumber();
+	DBOUT("Maximum DeTeCt processes = " << opts.maxinstances << "\n");
+	DBOUT("Number of DeTeCt processes = " << DeTeCt_processes_nb << "\n");
+// tests if logging file/folder to process needed
+	if ((DeTeCt_processes_nb > opts.maxinstances) && (!opts.interactive)) {
+//log processes to be done and exits
+		CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX);
+		if (opts.filename) {
+			CString objectname(opts.filename);
+			if (!IsAlreadyQueued(objectname, DeTeCtQueueFilename)) PushToQueue(objectname, DeTeCtQueueFilename);
+			else DBOUT("file already queued\n");
+		} else if (opts.dirname) {
+			CString objectname(opts.dirname);
+			if (!IsAlreadyQueued(objectname, DeTeCtQueueFilename)) PushToQueue(objectname, DeTeCtQueueFilename);
+			else DBOUT("directory already queued\n");
+		}		
+		return FALSE;
 	}
-	//Sleep(5000); 
+
 //clock_t start = clock();
-//detect_autostakkert(file);
 //clock_t end = clock();
 
 // InitCommonControlsEx() is required on Windows XP if an application
-	// manifest specifies use of ComCtl32.dll version 6 or later to enable
-	// visual styles.  Otherwise, any window creation will fail.
+// manifest specifies use of ComCtl32.dll version 6 or later to enable
+// visual styles.  Otherwise, any window creation will fail.
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
-	// Set this to include all the common control classes you want to use
-	// in your application.
+// Set this to include all the common control classes you want to use in your application.
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;
 	InitCommonControlsEx(&InitCtrls);
 
 	CWinApp::InitInstance();
 
-	// Standard initialization
-	// If you are not using these features and wish to reduce the size
-	// of your final executable, you should remove from the following
-	// the specific initialization routines you do not need
-	// Change the registry key under which our settings are stored
-	// TODO: You should modify this string to be something appropriate
-	// such as the name of your company or organization
+// Standard initialization
+// If you are not using these features and wish to reduce the size of your final executable, you should remove from the following
+// the specific initialization routines you do not need
+// Change the registry key under which our settings are stored
+// TODO: You should modify this string to be something appropriate such as the name of your company or organization
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
-	//CDeTeCtMFCDlg dlg;
 	m_pMainWnd = &dlg;
 	INT_PTR nResponse = dlg.DoModal();
 
 	HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
-	//   void DisableMinimizeButton(HWND hWnd)   {
-	//	   SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
-	//   }
-
-	//   void EnableMinimizeButton(HWND hWnd) {
+//   void DisableMinimizeButton(HWND hWnd)   {
+//	   SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+//   }
+//   void EnableMinimizeButton(HWND hWnd) {
 	SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) | WS_MINIMIZEBOX);
 	//   }
 
-	//   void DisableMaximizeButton(HWND hWnd) {
-	//	   SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
-	//   }
-
-	//   void EnableMaximizeButton(HWND hWnd) {
+//   void DisableMaximizeButton(HWND hWnd) {
+//	   SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+//   }
+//   void EnableMaximizeButton(HWND hWnd) {
 	SetWindowLong(hWnd, GWL_STYLE, GetWindowLong(hWnd, GWL_STYLE) | WS_MAXIMIZEBOX);
-	//   }
-
-
-
+//   }
 
 	if (nResponse == IDOK)
 	{
-		// TODO: Place code here to handle when the dialog is
-		//  dismissed with OK
+		// TODO: Place code here to handle when the dialog is  dismissed with OK
 	}
 	else if (nResponse == IDCANCEL)
 	{
-		// TODO: Place code here to handle when the dialog is
-		//  dismissed with Cancel
+		// TODO: Place code here to handle when the dialog is dismissed with Cancel
 	}
 	else if (nResponse == -1)
 	{
@@ -234,8 +262,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	ControlBarCleanUp();
 #endif
 
-	// Since the dialog has been closed, return FALSE so that we exit the
-	//  application, rather than start the application's message pump.
+	// Since the dialog has been closed, return FALSE so that we exit the application, rather than start the application's message pump.
 	return TRUE;
 }
 

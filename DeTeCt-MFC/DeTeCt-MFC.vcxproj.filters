@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="libraries">
+      <UniqueIdentifier>{cdd7bf5a-6bdd-4c17-a554-25497af09472}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -112,6 +115,9 @@
     <ClInclude Include="wrapper3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="processes_queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeTeCt-MFC.cpp">
@@ -192,6 +198,9 @@
     <ClCompile Include="wrapper3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="processes_queue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DeTeCt-MFC.rc">
@@ -202,7 +211,9 @@
     <None Include="res\DeTeCtMFC.rc2">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="fits\libfits.dll" />
+    <None Include="fits\libfits.dll">
+      <Filter>libraries</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DeTeCt-MFC.ico">

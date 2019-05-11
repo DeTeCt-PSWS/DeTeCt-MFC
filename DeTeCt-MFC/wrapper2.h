@@ -2,12 +2,12 @@
 #ifndef __WRAPPER2_H__
 #define __WRAPPER2_H__
 
-#include <opencv2\highgui\highgui.hpp>
+//#include <opencv2\highgui\highgui.hpp>
 
 extern "C" {
-	#include "serfmt.h"
-	#include "filefmt.h"
-	#include "common.h"
+	//#include "serfmt.h"
+	//#include "filefmt.h"
+	//#include "common.h"
 }
 
 #define CAPTURE_CV		0

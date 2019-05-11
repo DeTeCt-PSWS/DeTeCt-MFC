@@ -3,17 +3,15 @@
 //
 
 #pragma once
-#include "afxwin.h"
-#include <string>
-#include <iostream>
-#include <stdio.h>
-#include <vector>
+//#include "afxwin.h"
+//#include <string>
+//#include <iostream>
+//#include <stdio.h>
+//#include <vector>
 #include "afxcmn.h"
 #include "resource.h"
 
 #include "dtcgui.hpp"
-
-#define OPTIONS_FILE L"DeTeCt.ini"
 
 //Test WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 #include "WndResizer.h"

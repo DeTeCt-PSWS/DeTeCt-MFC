@@ -4,14 +4,20 @@
  * @brief	Implements the datation 2 class.
  **************************************************************************************************/
 
-#include "datation2.h"
-#include "dtc.h"
-#include "dtcgui.hpp"
 #include <chrono>
 #include <ctime>
 #include <sstream> 
 #include <string>
 #include <iomanip>
+
+#include "processes_queue.h"
+#include "dtcgui.hpp"
+
+#include <Windows.h> //after processes_queue.h
+
+#include "datation2.h"
+#include "dtc.h"
+
 
 /**********************************************************************************************//**
  * @fn	void fprint_jd_wj(std::ofstream *stream, const double jd)
@@ -193,10 +199,9 @@ void dtcWriteWholeLog(std::string location, const char *dtcexename, const double
  **************************************************************************************************/
 void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 	
-	location.append("\\");
-	location.append(DETECTLOGNAME);
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString(location.c_str()), DTC_LOG_SUFFIX));
 
-	std::ofstream output_file(location);
+	std::ofstream output_file(DeTeCtLogFilename);
 
 	output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 	output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
@@ -254,12 +259,11 @@ void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 }
 
 void dtcWriteLogHeader(std::string location) {
-	location.append("\\");
-	location.append(DETECTLOGNAME);
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString(location.c_str()), DTC_LOG_SUFFIX));
 
 	std::ofstream output_file;
 	
-	output_file.open(location);
+	output_file.open(DeTeCtLogFilename);
 
 	output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 	output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
@@ -267,10 +271,9 @@ void dtcWriteLogHeader(std::string location) {
 }
 
 void dtcCloseLog(std::string location) {
-	location.append("\\");
-	location.append(DETECTLOGNAME);
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString(location.c_str()), DTC_LOG_SUFFIX));
 
-	std::ofstream output_file(location);
+	std::ofstream output_file(DeTeCtLogFilename);
 
 	output_file.close();
 }
@@ -290,18 +293,21 @@ void dtcCloseLog(std::string location) {
 * @param	videos_info	List of the information describing the algorithm output.
 																								**************************************************************************************************/
 void dtcWriteLog2(std::string location, LogInfo video_info) {
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString (location.c_str()), DTC_LOG_SUFFIX)); 
 
-	location.append("\\");
-	location.append(DETECTLOGNAME);
+	std::ofstream output_file(DeTeCtLogFilename, std::ios_base::app);
 
-	std::ofstream output_file(location, std::ios_base::app);
-
-	output_file << std::setprecision(4) << std::fixed << video_info.certainty << "		";
-	if (video_info.nb_impact >= 0)
-		output_file << " " << video_info.nb_impact << "       ; ";
-	else
-		output_file << "Not known ";
-
+	if (!opts.dateonly) {
+		output_file << std::setprecision(4) << std::fixed << video_info.certainty << "		";
+		if (video_info.nb_impact >= 0)
+			output_file << " " << video_info.nb_impact << "       ; ";
+		else
+			output_file << "Not known ";
+	}
+	else {
+		output_file << "N/A   		";
+		output_file << " N/A     ; ";
+	}
 	fprint_jd_wj(&output_file, video_info.start_time);
 	switch (video_info.timetype) {
 	case UT:
