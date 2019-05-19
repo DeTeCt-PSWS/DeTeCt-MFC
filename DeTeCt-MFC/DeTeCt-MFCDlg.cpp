@@ -183,6 +183,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.debug = ::GetPrivateProfileInt(L"other", L"debug", 0, DeTeCtQueueFilename);
 	debug_mode = opts.debug;
 	opts.maxinstances = ::GetPrivateProfileInt(L"other", L"maxinstances", 1, DeTeCtQueueFilename);
+	opts.reprocessing = ::GetPrivateProfileInt(L"other", L"reprocessing", 1, DeTeCtQueueFilename);
 	opts.videotest = 0;
 	opts.wROI = 0;
 	opts.hROI = 0;
@@ -246,7 +247,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 
-	//Test WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
+	//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 	BOOL bOk;
 	int x_size, y_size;
 
@@ -348,17 +349,12 @@ HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
 */
 
 	// TODO: Add extra initialization here
-	std::wstringstream ss2,ss3;
+	std::wstringstream ss2;
 	StreamDeTeCtOSversions(&ss2);
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
-	if (opts.dateonly) {
-		ss3 << "WARNING, datation info only monde on, no detection analysis will be performed";
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
-	}
-	if (!opts.interactive) {
-		ss3 << "Automatic mode on";
-		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
-	}
+	if (opts.dateonly) impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "WARNING, datation info only monde on, no detection analysis will be performed");
+	if (!opts.interactive) impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "Automatic mode on");
+	if (!opts.reprocessing) impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "No reprocessing mode on");
 
 	//Call directly file/directory addition if option passed to exe
 	if (opts.dirname) OnFileOpen32771();
@@ -1186,12 +1182,32 @@ void SendEmailDlg::DoDataExchange(CDataExchange* pDX)
 BOOL SendEmailDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing) 
+	BOOL bOk = m_resizer.Hook(this);
+	ASSERT(bOk);
+
+	int x_size = 734-18;
+	int y_size = 364-36;
+	bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
+	ASSERT(bOk);
+
+	//   bOk = m_resizer.SetMaximumSize(_T("_root"), CSize(700, 700));
+	//   ASSERT(bOk);
+
+	m_resizer.SetShowResizeGrip(TRUE);
+	bOk = m_resizer.InvokeOnResized();
+	ASSERT(bOk);
+
+	//end
+
 	for (std::string msg : messages) {
 		std::wstring wmsg = std::wstring(msg.begin(), msg.end());
 		CString Cmsg = CString(wmsg.c_str(), wmsg.length());
 		outputLog.AddString(Cmsg);
 	}
 	return TRUE;
+
 }
 
 

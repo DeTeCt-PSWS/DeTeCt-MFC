@@ -79,6 +79,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	std::string months[] = { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
 	std::string DeTeCtName = "DeTeCt.exe";
 	opts.interactive = TRUE;
+	opts.reprocessing = TRUE;
 
 /*** builds full program name with version, compilation date and platform ***/
 	compilation_date.append(__DATE__);
@@ -121,10 +122,10 @@ BOOL CDeTeCtMFCApp::InitInstance()
 //PushToQueue(parameter, DeTeCtQueueFilename);
 		if (starts_with(param, "-")) {
 			DBOUT("option : " << param.c_str() << "\n");
-			if (starts_with(param, "-automatic")) {
-				opts.interactive = FALSE;
-//PushToQueue(L"Automatic", DeTeCtQueueFilename);
-			} //else PushToQueue(L"Interactive", DeTeCtQueueFilename);
+			if (starts_with(param, "-automatic")) opts.interactive = FALSE;
+			else if (starts_with(param, "-interactive"))  opts.interactive = TRUE;	
+			else if (starts_with(param, "-noreprocessing")) opts.reprocessing = FALSE;
+			else if (starts_with(param, "-reprocessing")) opts.reprocessing = TRUE;
 		}
 		else {
 			object = param;

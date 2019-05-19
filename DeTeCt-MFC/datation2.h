@@ -49,13 +49,15 @@ typedef struct _LogInfo LogInfo;
 
 void dtcWriteLogHeader(std::string location);
 
-void dtcCloseLog(std::string location);
+//void dtcCloseLog(std::string location);
 
-void dtcWriteLog2(std::string location, LogInfo video_info);
+void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *logline);
 
-void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info);
+//void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info);
 
 void fprint_jd_wj(std::ofstream *stream, const double jd);
+
+void fprint_jd_wj_string(std::stringstream *stream, const double jd);
 
 std::stringstream getRunTime();
 

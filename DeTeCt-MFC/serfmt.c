@@ -55,65 +55,127 @@ SerCapture *serCaptureFromFile(const char *fname)
 
 		pread = buffer;
 
+		//1_FileID
+		//Format: String Length : 14 Byte(14 ASCII characters)
+		//Content : "LUCAM-RECORDER"
 		memcpy(sc->header.FileID, pread, SER_FILEID_SIZE);
-		//printf("--- FileID pread: [%p]\n", pread);
-		//serPrintStr(pread, 60); printf("\n");
 		pread += SER_FILEID_SIZE;
 
+		//2_LuID
+		//Format: Integer_32(little - endian
+		//Length : 4 Byte
+		//Content : Lumenera camera series ID(currently unused; default = 0)
 		memcpy(ptmp, pread, SER_LUID_SIZE);
-		//printf("--- LuID pread: [%p]\n", pread);
-		//serPrintStr(ptmp, SER_LUID_SIZE); printf("\n");
 		sc->header.LuID = *((int *)pread);
 		pread += SER_LUID_SIZE;
 
+		//3_ColorID
+		//	Format : Integer_32(little - endian)
+		//	Length : 4 Byte
+		//	Content : MONO = 0
+		//	BAYER_RGGB = 8
+		//	BAYER_GRBG = 9
+		//	BAYER_GBRG = 10
+		//	BAYER_BGGR = 11
+		//	BAYER_CYYM = 16
+		//	BAYER_YCMY = 17
+		//	BAYER_YMCY = 18
+		//	BAYER_MYYC = 19
+		//	RGB = 100
+		//	BGR = 101
 		memcpy(ptmp, pread, SER_COLORID_SIZE);
-		//printf("--- ColorID pread: [%p]\n", pread);
-		//serPrintStr(ptmp, SER_COLORID_SIZE); printf("\n");
 		sc->header.ColorID = *((int *)pread);
 		pread += SER_COLORID_SIZE;
 
+		//4_LittleEndian
+		//Format: Integer_32(little - endian)
+		//Length : 4 Byte
+		//Content :	0 (FALSE) for big - endian byte order in 16 bit image data
+		//			1 (TRUE) for little - endian byte order in 16 bit image data
 		memcpy(ptmp, pread, SER_LITTLEENDIAN_SIZE);
-		//printf("--- LittleEndian pread: [%p]\n", pread);
-		//serPrintStr(ptmp, SER_LITTLEENDIAN_SIZE); printf("\n");	
 		sc->header.LittleEndian = *((int *)pread);
 		pread += SER_LITTLEENDIAN_SIZE;
 
+		//5_ImageWidth
+		//Format: Integer_32(little - endian)
+		//Length : 4 Byte
+		//Content : Width of every image in pixel
 		memcpy(ptmp, pread, SER_IMAGEWIDTH_SIZE);
-		//printf("--- ImageWidth pread: [%p]\n", pread);
-		//serPrintStr(ptmp, SER_IMAGEWIDTH_SIZE); printf("\n");
 		sc->header.ImageWidth = *((int *)pread);
 		pread += SER_IMAGEWIDTH_SIZE;
 
+		//6_ImageHeight
+		//Format: Integer_32(little - endian)
+		//Length : 4 Byte
+		//Content : Height of every image in pixel
 		memcpy(ptmp, pread, SER_IMAGEHEIGHT_SIZE);
-		//printf("--- ImageHeight pread: [%p]\n", pread);
-		//serPrintStr(ptmp, SER_IMAGEHEIGHT_SIZE); printf("\n");
 		sc->header.ImageHeight = *((int *)pread);
 		pread += SER_IMAGEHEIGHT_SIZE;
 
+		/*7_PixelDepthPerPlane
+			Format : Integer_32(little - endian)
+			Length : 4 Byte
+			Content : True bit depth per pixel per plane
+				3_ColorID			NumberOfPlanes
+				MONO … BAYER_MYYC		1
+				RGB, BGR				3
+			7_PixelDepthPerPlane	BytesPerPixel
+			1..8					1 * NumberOfPlanes
+			9..16					2 * NumberOfPlanes*/
 		memcpy(ptmp, pread, SER_PIXELDEPTH_SIZE);
-		//printf("--- PixelDepth pread: [%p]\n", pread);
-		//serPrintStr(ptmp, SER_PIXELDEPTH_SIZE); printf("\n");
 		sc->header.PixelDepth = *((int *)pread);
 		pread += SER_PIXELDEPTH_SIZE;
 
+		/*8_FrameCount
+		Format: Integer_32 (little-endian)
+		Length: 4 Byte
+		Content: Number of image frames in SER file*/
 		memcpy(ptmp, pread, SER_FRAMECOUNT_SIZE);
 		sc->header.FrameCount = *((int *)pread);
 		pread += SER_FRAMECOUNT_SIZE;
 
+		/*9_Observer
+		Format: String
+		Length: 40 Byte (40 ASCII characters {32…126 dec.}, fill unused characters with 0 dec.)
+		Content: Name of observer*/
 		memcpy(sc->header.Observer, pread, SER_OBSERVER_SIZE);
 		pread += SER_OBSERVER_SIZE;
 
+		/*10_Instrument
+		Format: String
+		Length: 40 Byte (40 ASCII characters {32…126 dec.}, fill unused characters with 0 dec.)
+		Content: Name of used camera*/
 		memcpy(sc->header.Instrument, pread, SER_INSTRUMENT_SIZE);
 		pread += SER_INSTRUMENT_SIZE;
 
+		/*11_Telescope
+		Format: String
+		Length: 40 Byte (40 ASCII characters {32…126 dec.}, fill unused characters with 0 dec.)
+		Content: Name of used telescope*/
 		memcpy(sc->header.Telescope, pread, SER_TELESCOPE_SIZE);
 		pread += SER_TELESCOPE_SIZE;
 
+		/*12_DateTime
+		Format : Date / Integer_64(little - endian)
+		Length : 8 Byte
+		Content : Start time of image stream(local time)
+				If 12_DateTime <= 0 then 12_DateTime is invalid and the SER file does not contain a Time stamp trailer.*/
 		memcpy(sc->header.DateTime, pread, SER_DATETIME_SIZE);
 		pread += SER_DATETIME_SIZE;
 
+		/*13_DateTime_UTC
+		Format: Date / Integer_64 (little-endian)
+		Length: 8 Byte
+		Content: Start time of image stream in UTC*/
 		memcpy(sc->header.DateTimeUTC, pread, SER_DATETIMEUTC_SIZE);
 		pread += SER_DATETIMEUTC_SIZE;
+
+		/*Image Data
+			Image data starts at File start offset decimal 178
+			Size of every image frame in byte is: 5_ImageWidth x 6_ImageHeigth x BytePerPixel
+		Trailer in detail
+			Trailer starts at byte offset: 178 + 8_FrameCount x 5_ImageWidth x 6_ImageHeigth x BytePerPixel.
+			Trailer contains Date / Integer_64 (little-endian) time stamps in UTC for every image frame.*/
 
 		depth = sc->header.PixelDepth > 8 ? IPL_DEPTH_16U : IPL_DEPTH_8U;
 
@@ -225,8 +287,14 @@ void serReadTimeStamps(SerCapture *sc)
 	int timezone=0;
 	double starttime;
 	double endtime;
+	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
+	double JD_max = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
+	
+// Save positions
+	long offset = _ftelli64(sc->fh);
+	int frame_old = sc->frame;
 
-											if (debug_mode) {
+							if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: StartTime  ");
 												fprint_jd(stderr,sc->StartTime_JD);
 												fprintf(stderr,"\n");
@@ -234,12 +302,17 @@ void serReadTimeStamps(SerCapture *sc)
 												fprint_jd(stderr,sc->StartTimeUTC_JD);
 												fprintf(stderr,"\n\n");
 											}
+	
+//Position to beginning of TimeStamps zone
+	//Trailer starts at byte offset : 178 + 8_FrameCount x 5_ImageWidth x 6_ImageHeigth x BytePerPixel.
+
+	_fseeki64(sc->fh, SER_HEADER_SIZE + sc->header.FrameCount*sc->ImageBytes, SEEK_SET);
+	sc->frame = sc->header.FrameCount;
 	while ((TimeStamp_nframe<sc->header.FrameCount) && (serQueryTimeStamp(sc))) {
 		if (TimeStamp_nframe==0) {
 			starttime=serDateTime_JD(sc->TimeStamp);
-			timezone=(int) floor(0.5+(starttime-sc->StartTimeUTC_JD)*24);
-			sc->StartTimeUTC_JD=starttime-timezone/24.0;
-			sc->StartTime_JD=starttime;
+			if ((starttime > JD_min) && (starttime < JD_max)) sc->StartTime_JD = starttime;
+			else sc->TimeStampExists = 0;
 											if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: FirstFrame ");
 												fprint_jd(stderr,serDateTime_JD(sc->TimeStamp));
@@ -250,9 +323,9 @@ void serReadTimeStamps(SerCapture *sc)
 	}
 	if (sc->TimeStampExists) {
 			endtime=serDateTime_JD(sc->TimeStamp);
-			sc->EndTimeUTC_JD=endtime-timezone/24.0;
-			sc->EndTime_JD=endtime;
-											if (debug_mode) {
+			if ((endtime > JD_min) && (endtime < JD_max))	sc->EndTime_JD = endtime;
+			else sc->TimeStampExists = 0;
+			if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: LastFrame  ");
 												fprint_jd(stderr,serDateTime_JD(sc->TimeStamp));
 												fprintf(stderr,"\n\n");
@@ -264,6 +337,16 @@ void serReadTimeStamps(SerCapture *sc)
 												fprintf(stderr,"\n");
 											}
 	}
+	if (sc->TimeStampExists) {
+		if ((sc->StartTimeUTC_JD > JD_min) && (sc->StartTimeUTC_JD < JD_max)) timezone = (int)floor(0.5 + (starttime - sc->StartTimeUTC_JD) * 24);
+		else if ((sc->EndTimeUTC_JD > JD_min) && (sc->EndTimeUTC_JD < JD_max)) timezone = (int)floor(0.5 + (endtime - sc->EndTimeUTC_JD) * 24);
+		sc->StartTimeUTC_JD = starttime - timezone / 24.0;
+		sc->EndTimeUTC_JD = endtime - timezone / 24.0;
+	}
+
+// Restore positions
+	sc->frame = frame_old;
+	_fseeki64(sc->fh, offset, SEEK_SET);
 }
 
 /*****************Reads current timestamp***************************/			
@@ -271,7 +354,7 @@ unsigned char *serQueryTimeStamp(SerCapture *sc)
 {
 	if (sc->frame != sc->header.FrameCount)
 		return NULL;
-
+		
 	if (sc->TimeStamp_frame == sc->header.FrameCount)
 		return NULL;
 

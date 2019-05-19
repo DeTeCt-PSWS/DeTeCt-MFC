@@ -13,7 +13,6 @@
 
 #include "serfmt.h"
 #include "datation.h"
-#include "wrapper.h"
 #include "dtc.h"
 #include "wrapper3.h"
 
@@ -28,101 +27,136 @@ const double DURATION_MAX	=	ONE_DAY_SEC;
 
 void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pduration, double *pfps, TIME_TYPE *ptimetype, char *comment)
 {
-	double JD_init			= gregorian_calendar_to_jd(1,1,1,0,0,0);
-	double JD_test_min		= gregorian_calendar_to_jd(1980,1,1,0,0,0);
-	double JD_test_max		= gregorian_calendar_to_jd(2080,1,1,0,0,0);
-/*	time_t now;
-	struct tm *pnow_tm=malloc(sizeof *pnow_tm);*/
-	
-	double start_time_file	= JD_init;
-	double end_time_file	= JD_init;
-	TIME_TYPE timetype_file	= Unknown;
-	double duration_file	= 0.0;
-	double fps_file			= 0.0;
+	double JD_init = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
+	double JD_max = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
+	/*	time_t now;
+		struct tm *pnow_tm=malloc(sizeof *pnow_tm);*/
 
-	double start_time_ser	= JD_init;
-	double end_time_ser		= JD_init;
-	TIME_TYPE timetype_ser	= Unknown;
-	double duration_ser		= 0.0;
-	double fps_ser			= 0.0;
+	double start_time_file = JD_init;
+	double end_time_file = JD_init;
+	TIME_TYPE timetype_file = Unknown;
+	double duration_file = 0.0;
+	double fps_file = 0.0;
 
-	double start_time_fits	= JD_init;
-	double end_time_fits	= JD_init;
-	TIME_TYPE timetype_fits	= Unknown;
-	double duration_fits	= 0.0;
-	double fps_fits			= 0.0;
+	double start_time_filename = JD_init;
+	double mid_time_filename = JD_init;
 
-	double start_time_log	= JD_init;
-	double end_time_log		= JD_init;
-	TIME_TYPE timetype_log	= Unknown;
-	double duration_log		= 0.0;
-	double fps_log			= 0.0;
-	long nbframes_log		= 0;
-	int timezone			= -24;
-	
+	double start_time_ser = JD_init;
+	double end_time_ser = JD_init;
+	TIME_TYPE timetype_ser = Unknown;
+	double duration_ser = 0.0;
+	double fps_ser = 0.0;
+
+	double start_time_fits = JD_init;
+	double end_time_fits = JD_init;
+	TIME_TYPE timetype_fits = Unknown;
+	double duration_fits = 0.0;
+	double fps_fits = 0.0;
+
+	double start_time_log = JD_init;
+	double end_time_log = JD_init;
+	TIME_TYPE timetype_log = Unknown;
+	double duration_log = 0.0;
+	double fps_log = 0.0;
+	long nbframes_log = 0;
+	int timezone = -24;
+
 	double time_tmp;
-	char comment2[MAX_STRING];	
+	char comment2[MAX_STRING];
 
-//***Test
-//global_C_variable_test = 1;
+	//***Test
+	//global_C_variable_test = 1;
 
-/********** Init **********/	
-											if (debug_mode) { fprintf(stderr,"dtcGetDatation: Initializing\n"); }
-	(*pstart_time)=JD_init;
-	(*pend_time)=JD_init;
-	(*ptimetype)=Unknown;
-	(*pduration)=0.0;
-	(*pfps)=0.0;
+	/********** Init **********/
+	if (debug_mode) { fprintf(stderr, "dtcGetDatation: Initializing\n"); }
+	(*pstart_time) = JD_init;
+	(*pend_time) = JD_init;
+	(*ptimetype) = Unknown;
+	(*pduration) = 0.0;
+	(*pfps) = 0.0;
 	init_string(comment2);
-/*	now=time(NULL);
-	pnow_tm=localtime(&now);
-	JD_test_max=gregorian_calendar_to_jd(pnow_tm->tm_year+1900, pnow_tm->tm_mon+1, pnow_tm->tm_mday, pnow_tm->tm_hour, pnow_tm->tm_min, (double) (pnow_tm->tm_sec))+1;*/
-/*fprintf(stderr,"dtcGetDatation: JD_max = %f\n",JD_test_max);*/
+	/*	now=time(NULL);
+		pnow_tm=localtime(&now);
+		JD_max=gregorian_calendar_to_jd(pnow_tm->tm_year+1900, pnow_tm->tm_mon+1, pnow_tm->tm_mday, pnow_tm->tm_hour, pnow_tm->tm_min, (double) (pnow_tm->tm_sec))+1;*/
+		/*fprintf(stderr,"dtcGetDatation: JD_max = %f\n",JD_max);*/
 
-/********** Date from fileinfo **********/	
+		/********** Date from fileinfo **********/
 	switch (capture->type)
 	{
-		case CAPTURE_SER:
-		case CAPTURE_CV:
-													if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from file\n"); }
-			dtcGetDatationFromFileInfo(capture, filename, nbframes, &start_time_file, &end_time_file, &duration_file, &fps_file);
-			timetype_file=LT;
-													if (debug_mode) {
-														fprintf(stderr,"dtcGetDatation: FILE Start    = %f (", start_time_file);
-														fprint_jd(stderr, start_time_file);
-														fprintf(stderr,")\n");
-														fprintf(stderr,"dtcGetDatation: FILE End      = %f (", end_time_file);
-														fprint_jd(stderr, end_time_file);
-														fprintf(stderr,")\n");
-														fprintf(stderr,"dtcGetDatation: FILE Time     = ");
-														fprint_timetype(stderr, timetype_file);
-														fprintf(stderr,"\n");
-														fprintf(stderr,"dtcGetDatation: FILE Duration = %lf\n", duration_file);
-														fprintf(stderr,"dtcGetDatation: FILE fps      = %lf\n\n",fps_file);
-													}
-			break;
-		case CAPTURE_FILES:
-		case CAPTURE_FITS:
-		default:
-													if (debug_mode) {
-														fprintf(stderr,"dtcGetDatation: FILES/FITS Start    = %fUT, %f (", capture->u.filecapture->StartTimeUTC_JD,capture->u.filecapture->StartTime_JD);
-														fprint_jd(stderr, capture->u.filecapture->StartTimeUTC_JD);
-														fprintf(stderr,", ");
-														fprint_jd(stderr, capture->u.filecapture->StartTime_JD);
-														fprintf(stderr,")\n");
-														fprintf(stderr,"dtcGetDatation: FILES/FITS End      = %fUT, %f (", capture->u.filecapture->EndTimeUTC_JD,capture->u.filecapture->EndTime_JD);
-														fprint_jd(stderr, capture->u.filecapture->EndTimeUTC_JD);
-														fprintf(stderr,", ");
-														fprint_jd(stderr, capture->u.filecapture->EndTime_JD);
-														fprintf(stderr,")\n");
-														fprintf(stderr,"dtcGetDatation: FILES/FITS Time     = ");
-														fprint_timetype(stderr, timetype_file);
-														fprintf(stderr,"\n");
-														fprintf(stderr,"dtcGetDatation: FILES/FITS Duration = %lf\n", duration_file);
-														fprintf(stderr,"dtcGetDatation: FILES/FITS fps      = %lf\n\n",fps_file);
-													}
-			break;
+	case CAPTURE_SER:
+	case CAPTURE_CV:
+		if (debug_mode) { fprintf(stderr, "dtcGetDatation: Reading information from file\n"); }
+		dtcGetDatationFromFileInfo(capture, filename, nbframes, &start_time_file, &end_time_file, &duration_file, &fps_file);
+		timetype_file = LT;
+		if (debug_mode) {
+			fprintf(stderr, "dtcGetDatation: FILE Start    = %f (", start_time_file);
+			fprint_jd(stderr, start_time_file);
+			fprintf(stderr, ")\n");
+			fprintf(stderr, "dtcGetDatation: FILE End      = %f (", end_time_file);
+			fprint_jd(stderr, end_time_file);
+			fprintf(stderr, ")\n");
+			fprintf(stderr, "dtcGetDatation: FILE Time     = ");
+			fprint_timetype(stderr, timetype_file);
+			fprintf(stderr, "\n");
+			fprintf(stderr, "dtcGetDatation: FILE Duration = %lf\n", duration_file);
+			fprintf(stderr, "dtcGetDatation: FILE fps      = %lf\n\n", fps_file);
+		}
+		break;
+	case CAPTURE_FILES:
+	case CAPTURE_FITS:
+	default:
+		if (debug_mode) {
+			fprintf(stderr, "dtcGetDatation: FILES/FITS Start    = %fUT, %f (", capture->u.filecapture->StartTimeUTC_JD, capture->u.filecapture->StartTime_JD);
+			fprint_jd(stderr, capture->u.filecapture->StartTimeUTC_JD);
+			fprintf(stderr, ", ");
+			fprint_jd(stderr, capture->u.filecapture->StartTime_JD);
+			fprintf(stderr, ")\n");
+			fprintf(stderr, "dtcGetDatation: FILES/FITS End      = %fUT, %f (", capture->u.filecapture->EndTimeUTC_JD, capture->u.filecapture->EndTime_JD);
+			fprint_jd(stderr, capture->u.filecapture->EndTimeUTC_JD);
+			fprintf(stderr, ", ");
+			fprint_jd(stderr, capture->u.filecapture->EndTime_JD);
+			fprintf(stderr, ")\n");
+			fprintf(stderr, "dtcGetDatation: FILES/FITS Time     = ");
+			fprint_timetype(stderr, timetype_file);
+			fprintf(stderr, "\n");
+			fprintf(stderr, "dtcGetDatation: FILES/FITS Duration = %lf\n", duration_file);
+			fprintf(stderr, "dtcGetDatation: FILES/FITS fps      = %lf\n\n", fps_file);
+		}
+		break;
 	}
+
+	dtcGetDatationFromFilename(filename, &start_time_filename, &mid_time_filename);
+	if ((start_time_filename > JD_min) && (start_time_filename < JD_max)) {
+		if (((start_time_file - start_time_filename) > 0) && ((start_time_file - start_time_filename) < 30.0 / 60.0 / 24.0)) {
+			start_time_file = start_time_filename;
+			duration_file = (end_time_file - start_time_file) * 24.0 * 60.0 * 60.0;
+			if (fps_file == 0) fps_file = nbframes / duration_file;
+		}
+		else if (fabs(start_time_file - start_time_filename) < (0.5 + 30.0 / 60.0 / 24.0)) {
+			timezone = (int) (floor(fabs(start_time_file - start_time_filename)*24.0));
+			if ((start_time_file - start_time_filename) < 0)  timezone = -timezone-1;
+			start_time_file = start_time_filename + timezone/24.0;
+			duration_file = (end_time_file - start_time_file) * 24.0 * 60.0 * 60.0;
+			if (fps_file == 0) fps_file = nbframes / duration_file;
+		}
+	}
+	else if ((mid_time_filename > JD_min) && (mid_time_filename < JD_max)) {
+		if (((start_time_file - mid_time_filename) > 0) && ((start_time_file - mid_time_filename) < 30.0 / 60.0 / 24.0 / 2)) {
+			duration_file = (end_time_file - mid_time_filename) * 24.0 * 60.0 * 60.0 * 2.0;
+			start_time_file = end_time_file - duration_file / 24.0 / 60.0 / 60.0;
+			if (fps_file == 0) fps_file = nbframes / duration_file;
+		}
+		else if (fabs(end_time_file - mid_time_filename) < (0.5 + 30.0 / 60.0 / 24.0 / 2.0)) {
+			timezone = (int)(floor(fabs((end_time_file - mid_time_filename))*24.0));
+		
+			if ((end_time_file - mid_time_filename) < 0)  timezone = -timezone - 1;
+			duration_file = (end_time_file - mid_time_filename - timezone / 24.0) * 24.0 * 60.0 * 60.0 * 2.0;
+			start_time_file = end_time_file - duration_file / 24.0 / 60.0 / 60.0;
+			if (fps_file == 0) fps_file = nbframes / duration_file;
+		}
+	}
+
 	switch (capture->type)
 	{
 		case CAPTURE_SER:
@@ -130,7 +164,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 /* Attempting date from SER file */
 			start_time_ser=capture->u.sercapture->StartTimeUTC_JD;
 			timetype_ser=UT;
-			if ((capture->u.sercapture->StartTimeUTC_JD>JD_test_min) && (fabs(timezone)>12) && (fabs(floor(0.5+capture->u.sercapture->StartTime_JD-capture->u.sercapture->StartTimeUTC_JD)*24)<=12)) {
+			if ((capture->u.sercapture->StartTimeUTC_JD>JD_min) && (fabs(timezone)>12) && (fabs(floor(0.5+capture->u.sercapture->StartTime_JD-capture->u.sercapture->StartTimeUTC_JD)*24)<=12)) {
 				timezone=(int) floor(0.5+(capture->u.sercapture->StartTime_JD-capture->u.sercapture->StartTimeUTC_JD)*24);
 			}
 												if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from ser file\n"); }
@@ -156,7 +190,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 					timetype_ser=UT;
 				}
 			}
-			if ((capture->u.sercapture->EndTimeUTC_JD>JD_test_min) && (abs(timezone)>12) && (fabs(floor(0.5+capture->u.sercapture->EndTime_JD-capture->u.sercapture->EndTimeUTC_JD)*24)<=12)) {
+			if ((capture->u.sercapture->EndTimeUTC_JD>JD_min) && (abs(timezone)>12) && (fabs(floor(0.5+capture->u.sercapture->EndTime_JD-capture->u.sercapture->EndTimeUTC_JD)*24)<=12)) {
 				timezone=(int) floor(0.5+(capture->u.sercapture->EndTime_JD-capture->u.sercapture->EndTimeUTC_JD)*24);
 			}
 
@@ -176,7 +210,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 													fprintf(stderr,"dtcGetDatation: SER  Duration = %lf\n", duration_ser);
 													fprintf(stderr,"dtcGetDatation: SER  fps      = %lf\n\n",fps_ser);
 												}			
-			if ((end_time_ser>JD_test_min) && (end_time_ser<JD_test_max)) {
+			if ((end_time_ser>JD_min) && (end_time_ser<JD_max)) {
 				strcpy(comment,"ser file");
 				if ((duration_ser>DURATION_MIN) && (duration_ser<=DURATION_MAX)) {
 					(*pduration)=duration_ser;
@@ -189,14 +223,14 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 				(*ptimetype)=timetype_ser;
 				(*pfps)=fps_ser;
 				(*pend_time)=end_time_ser;
-				if ((start_time_ser>JD_test_min) && (start_time_ser<JD_test_max)) {
+				if ((start_time_ser>JD_min) && (start_time_ser<JD_max)) {
 					(*pstart_time)=start_time_ser;
 				} else {
 					(*pstart_time)=(*pend_time)-(*pduration)/ONE_DAY_SEC;
 					strcat(comment,", start date estimated");
 				}
 			}
-			if ((start_time_ser>JD_test_min) && (start_time_ser<JD_test_max)) {
+			if ((start_time_ser>JD_min) && (start_time_ser<JD_max)) {
 				strcpy(comment,"ser file");
 				if ((duration_ser>DURATION_MIN) && (duration_ser<=DURATION_MAX)) {
 					(*pduration)=duration_ser;
@@ -246,7 +280,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 													fprintf(stderr,"dtcGetDatation: FILES Duration = %lf\n", duration_fits);
 													fprintf(stderr,"dtcGetDatation: FILES fps      = %lf\n\n",fps_fits);
 												}
-			if ((start_time_fits>JD_test_min) && (start_time_fits<JD_test_max)) {
+			if ((start_time_fits>JD_min) && (start_time_fits<JD_max)) {
 				strcpy(comment,"file info");
 				(*pfps)=fps_fits;
 				if ((duration_fits>DURATION_MIN) && (duration_fits<=DURATION_MAX)) {
@@ -297,7 +331,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 													fprintf(stderr,"dtcGetDatation: FITS Duration = %lf\n", duration_fits);
 													fprintf(stderr,"dtcGetDatation: FITS fps      = %lf\n\n",fps_fits);
 												}
-			if ((start_time_fits>JD_test_min) && (start_time_fits<JD_test_max)) {
+			if ((start_time_fits>JD_min) && (start_time_fits<JD_max)) {
 				strcpy(comment,"FITS info");
 				(*pfps)=fps_fits;
 				if ((duration_fits>DURATION_MIN) && (duration_fits<=DURATION_MAX)) {
@@ -324,12 +358,12 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 	}
 /********** Calculation of timezone if possible **********/	
 if ((timezone<-12) && (*ptimetype)==UT) {
-	if (((*pend_time)>JD_test_min) && ((*pend_time)<JD_test_max)) {
+	if (((*pend_time)>JD_min) && ((*pend_time)<JD_max)) {
 		timezone=(int) floor(0.5+(end_time_file-(*pend_time))*24);
 		if (fabs(timezone)>12) {
 			timezone=-24;
 		}
-	} else if (((*pstart_time)>JD_test_min) && ((*pstart_time)<JD_test_max)) {
+	} else if (((*pstart_time)>JD_min) && ((*pstart_time)<JD_max)) {
 		timezone=(int) floor(0.5+(end_time_file-(*pstart_time))*24);
 		if (fabs(timezone)>13) {
 			timezone=-24;
@@ -359,7 +393,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 											}
 	if (nbframes_log != nbframes) { fprintf(stderr, "WARNING: real number of frames %ld differs from theorical number of frames %ld, using real number.\n", nbframes, nbframes_log); }
 /********** Use log file information if available **********/	
-	if ((start_time_log>JD_test_min) && (start_time_log<JD_test_max)) {
+	if ((start_time_log>JD_min) && (start_time_log<JD_max)) {
 		strcpy(comment,comment2);
 		(*ptimetype)=timetype_log;
 		(*pstart_time)=start_time_log;
@@ -387,7 +421,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 		}
 	}
 /********** No date from log/FITS/SER => use file info, with duration from others **********/	
-	if (((*pstart_time)<(JD_test_min+1)) || ((*pstart_time)>JD_test_max)) {
+	if (((*pstart_time)<(JD_min+1)) || ((*pstart_time)>JD_max)) {
 		strcpy(comment,"file info");
 		if ((duration_log>DURATION_MIN) && (duration_log<=DURATION_MAX)) {
 			(*pduration)=duration_log;
@@ -405,7 +439,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 			(*pduration)=nbframes/(*pfps);
 			strcat(comment,", duration estimated");
 		}
-		if (((*pend_time)>JD_test_min) && ((*pend_time)<JD_test_max)) {
+		if (((*pend_time)>JD_min) && ((*pend_time)<JD_max)) {
 			(*pstart_time)=(*pend_time)-(*pduration)/ONE_DAY_SEC;
 			strcat(comment,", start date estimated");
 		} else {
@@ -419,7 +453,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 			}
 		}
 	}
-	if (((*pend_time)<(JD_test_min+1)) || ((*pend_time)>JD_test_max)) {
+	if (((*pend_time)<(JD_min+1)) || ((*pend_time)>JD_max)) {
 		strcpy(comment,"file info");
 		if ((duration_log>DURATION_MIN) && (duration_log<=DURATION_MAX)) {
 			(*pduration)=duration_log;
@@ -437,7 +471,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 			(*pduration)=nbframes/(*pfps);
 			strcat(comment,", duration estimated");
 		}		
-		if (((*pstart_time)>JD_test_min) && ((*pstart_time)<JD_test_max)) {
+		if (((*pstart_time)>JD_min) && ((*pstart_time)<JD_max)) {
 			(*pend_time)=(*pstart_time)+(*pduration)/ONE_DAY_SEC;
 			strcat(comment,", end date estimated");
 		} else {
@@ -738,6 +772,123 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 			}
 		}
 	}
+}
+
+
+/*****************************************************************************************/
+/***************************Gets datation from filename***********************************/
+/*****************************************************************************************/
+
+BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, double *pmid_time)
+{
+	char tmpline[MAX_STRING];
+	int year;
+	int month;
+	int day;
+	int hour;
+	int min;
+	double sec;
+	char filename[MAX_STRING];
+	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
+	double JD_max = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
+	double JD_init = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+
+	(*pstart_time) = JD_init;
+	(*pmid_time) = JD_init;
+
+	//a\toto.42
+	//123456789 - 9-1=8
+	if (InRstr(longfilename, "\\") >= 0) mid(longfilename, InRstr(longfilename, "\\") + 1, strlen(longfilename) - InRstr(longfilename, "\\") - 1, filename);
+	else strcpy(filename, longfilename);
+
+/* Sharpcap */
+	// Capture 2014-11-10T08_39_28.CameraSettings
+	//         9   5  2  9  6  3    
+	if ((InRstr(filename, ".") >= 0)
+		&& (strlen(filename) >= (InRstr(filename, ".") + 19 + (strlen(filename) - InRstr(filename, "."))))
+		&& (strcmp(mid(filename, InRstr(filename, ".") - 3, 1, tmpline), "_") == 0)
+		&& (strcmp(mid(filename, InRstr(filename, ".") - 6, 1, tmpline), "_") == 0)
+		&& (strcmp(mid(filename, InRstr(filename, ".") - 9, 1, tmpline), "T") == 0)
+		&& (strcmp(mid(filename, InRstr(filename, ".") - 12, 1, tmpline), "-") == 0)
+		&& (strcmp(mid(filename, InRstr(filename, ".") - 15, 1, tmpline), "T") == 0)) {
+
+		year = atoi(mid(filename, InRstr(filename, "\\") + 9, 4, tmpline));
+		month = atoi(mid(filename, InRstr(filename, "\\") + 14, 2, tmpline));
+		day = atoi(mid(filename, InRstr(filename, "\\") + 17, 2, tmpline));
+		hour = atoi(mid(filename, InRstr(filename, "\\") + 20, 2, tmpline));
+		min = atoi(mid(filename, InRstr(filename, "\\") + 23, 2, tmpline));
+		sec = strtod(mid(filename, InRstr(filename, "\\") + 26, 2, tmpline), NULL);
+		if (IsDateCorrect(year, month, day, hour, min, sec)) (*pstart_time) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+		if (((*pstart_time) < JD_min) || ((*pstart_time) > JD_max)) (*pstart_time) = JD_init;
+		else return TRUE;
+	}
+
+	//jupiter_2011_08_11_051456_IR742.ser
+	//        1   5  8  11   1618
+	if ((InStr(filename, "_") >= 0)
+		&& (strlen(filename) >= (InStr(filename, "_") + 16 + 1 + (strlen(filename)-InRstr(filename,"."))))
+		&& (strcmp(mid(filename, InStr(filename, "_") + 5, 1, tmpline), "_") == 0)
+		&& (strcmp(mid(filename, InStr(filename, "_") + 8, 1, tmpline), "_") == 0)
+		&& (strcmp(mid(filename, InStr(filename, "_") + 11, 1, tmpline), "_") == 0)) {
+
+		year = atoi(mid(filename, InStr(filename, "_") + 1, 4, tmpline));
+		month = atoi(mid(filename, InStr(filename, "_") + 6, 2, tmpline));
+		day = atoi(mid(filename, InStr(filename, "_") + 9, 2, tmpline));
+		hour = atoi(mid(filename, InStr(filename, "_") + 12, 2, tmpline));
+		min = atoi(mid(filename, InStr(filename, "_") + 14, 2, tmpline));
+		if (strlen(filename) >= (InStr(filename, "_") + 18 + 1 + (strlen(filename) - InRstr(filename, ".")))) {
+			sec = strtod(mid(filename, InStr(filename, "_") + 16, 2, tmpline), NULL);
+			if ((sec < 0) || (sec >= 60.0)) sec = 0;
+		}
+		else sec = 0;
+		if (IsDateCorrect(year, month, day, hour, min, sec)) (*pstart_time) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+		if (((*pstart_time) < JD_min) || ((*pstart_time) > JD_max)) (*pstart_time) = JD_init;
+		else return TRUE;
+	}
+
+	// WinJupos FireCapture (mid_time)
+	//2016-06-27-2107_1-MD-R.ser
+	//    4  7  0  3 5 7
+	if ((strcmp(mid(filename, 4, 1, tmpline), "-") == 0)
+		&& (strcmp(mid(filename, 7, 1, tmpline), "-") == 0)
+		&& (strcmp(mid(filename, 10, 1, tmpline), "-") == 0)
+		&& (strcmp(mid(filename, 15, 1, tmpline), "_") == 0)
+		&& (strcmp(mid(filename, 17, 1, tmpline), "-") == 0)) {
+
+		year = atoi(mid(filename, 0, 4, tmpline));
+		month = atoi(mid(filename, 5, 2, tmpline));
+		day = atoi(mid(filename, 8, 2, tmpline));
+		hour = atoi(mid(filename, 11, 2, tmpline));
+		min = atoi(mid(filename, 13, 2, tmpline));
+		sec = strtod(mid(filename, 16, 1, tmpline), NULL)*6.0;
+
+		if (IsDateCorrect(year, month, day, hour, min, sec)) (*pmid_time) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+		if (((*pmid_time) < JD_min) || ((*pmid_time) > JD_max)) (*pmid_time) = JD_init;
+		else return TRUE;
+	}
+	// PVOL FireCapture (mid_time)
+	//j2019-05-12_14-16-51_MD_Clear.ser
+	//     5  8  1  4  7  0
+	if ((strcmp(mid(filename, 5, 1, tmpline), "-") == 0)
+		&& (strcmp(mid(filename, 8, 1, tmpline), "-") == 0)
+		&& (strcmp(mid(filename, 11, 1, tmpline), "_") == 0)
+		&& (strcmp(mid(filename, 14, 1, tmpline), "-") == 0)
+		&& ((strcmp(mid(filename, 17, 1, tmpline), "-") == 0) || (strcmp(mid(filename, 17, 1, tmpline), "_") == 0))) {
+
+		year = atoi(mid(filename, 1, 4, tmpline));
+		month = atoi(mid(filename, 6, 2, tmpline));
+		day = atoi(mid(filename, 9, 2, tmpline));
+		hour = atoi(mid(filename, 12, 2, tmpline));
+		min = atoi(mid(filename, 15, 2, tmpline));
+		if (strcmp(mid(filename, 17, 1, tmpline), "-") == 0) sec = strtod(mid(filename, 18, 2, tmpline), NULL);
+		else sec = 0;
+
+		if (IsDateCorrect(year, month, day, hour, min, sec)) (*pmid_time) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+		if (((*pmid_time) < JD_min) || ((*pmid_time) > JD_max)) (*pmid_time) = JD_init;
+		else return TRUE;
+	}
+
+	return FALSE;
 }
 
 /*****************************************************************************************/
@@ -1949,6 +2100,20 @@ MM.dd.yyyy
 /*****************************************************************************************/
 /******************************Accessory functions****************************************/
 /*****************************************************************************************/
+
+BOOL IsDateCorrect(int y, int m, int d, int hour, int min, double sec) {
+	int month_nbdays[] = {0,31,29,31,30,31,30,31,31,30,31,30,31};
+
+	if (y < 0) return FALSE;
+	if ((m < 1) || (m > 12)) return FALSE;
+	if ((d < 1) || (d > month_nbdays[m])) return FALSE;
+	//in case of non leap year
+	if ((m==2) && ((y/4 != (int) (y/4)) || (y / 400 == (int)(y / 400)))) if (d > (month_nbdays[m]-1)) return FALSE;
+	if ((hour < 0) || (hour > 23)) return FALSE;
+	if ((min < 0) || (min > 59)) return FALSE;
+	if ((sec < 0.0) || (sec >= 60.0)) return FALSE;
+	return TRUE;
+}
 
 /*****************Calendar to Julian Day***************************/
 double gregorian_calendar_to_jd(int y, int m, int d, int hour, int min, double sec)

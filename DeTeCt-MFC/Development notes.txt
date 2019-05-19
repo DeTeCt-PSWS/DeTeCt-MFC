@@ -8,12 +8,16 @@ Autostakkert alignement usage
 
 Automatic version update
 
-Synthesis detection window resizable
-
 Correct dtc_max-mean identified on data set
-Favor file_name date < file info
-Correct datation issues identified on data set
 
+v3.1.9: noreprocessing command line option (checks in log if file was already processed)
+--------------------------------------------------------------------------------------
+v1.3.8: datation multiple improvements, detection report window resizable
+general:			detect log file appended by default
+datation:			SER timestamps bug correction
+datation:			Usage of filename syntax (PVOL, WJ, SharpCap, etc.) for refining datation from fileinfo
+interface:			detection report window resizable
+dateonly:			datation only info on detection report window
 --------------------------------------------------------------------------------------
 v3.1.7: processes queue implementation used when automatic mode incl. multi-instances support
 dateonly:			N/A values for rating

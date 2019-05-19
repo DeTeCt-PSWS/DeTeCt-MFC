@@ -55,27 +55,28 @@ struct options {
 	double histScale; // Histogram scale
 	int wait;      // milliseconds
 	int thrWithMask;// Use Mask (!=0) or not (0) for frame reference
-	int viewROI; // View ROI
-	int viewTrk; // View planet tracking
-	int viewDif; // View differential frame
-	int viewRef; // View reference frame
-	int viewMsk; // View mask
-	int viewThr; // View threshold
-	int viewSmo; // View frame after filter application
-	int viewHis; // View differential frame histogram
-	int viewRes; // View final frame
-	int verbose;
-	int debug;
-	int videotest; // Test input video file
-	int ADUdtconly; // Use ADUdtc algorithm only
-	int detail; // Use ADUdtc algorithm only with 2 more images as output
-	int allframes; // Save all intermediate mac frames from ADUdtc algorithm
+	BOOL viewROI; // View ROI
+	BOOL viewTrk; // View planet tracking
+	BOOL viewDif; // View differential frame
+	BOOL viewRef; // View reference frame
+	BOOL viewMsk; // View mask
+	BOOL viewThr; // View threshold
+	BOOL viewSmo; // View frame after filter application
+	BOOL viewHis; // View differential frame histogram
+	BOOL viewRes; // View final frame
+	BOOL verbose;
+	BOOL debug;
+	BOOL videotest; // Test input video file
+	BOOL ADUdtconly; // Use ADUdtc algorithm only
+	BOOL detail; // Use ADUdtc algorithm only with 2 more images as output
+	BOOL allframes; // Save all intermediate mac frames from ADUdtc algorithm
 	int minframes; // Minimum # of frames to start processing
 	struct Filter filter;
-	int dateonly; // Display date information and stops processing
-	int ignore; // Ignore incorrect frames
-	int interactive; // Normal interactive mode or automatic mode
+	BOOL dateonly; // Display date information and stops processing
+	BOOL ignore; // Ignore incorrect frames
+	BOOL interactive; // Normal interactive mode or automatic mode
 	int maxinstances; // Maximum number of DeTeCt instances running in parallel
+	BOOL reprocessing;
 };
 typedef struct options OPTS;
 extern OPTS opts;
