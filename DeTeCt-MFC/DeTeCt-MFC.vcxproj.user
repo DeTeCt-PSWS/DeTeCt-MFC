@@ -8,7 +8,8 @@
     <RESOURCE_FILE>DeTeCt-MFC.rc</RESOURCE_FILE>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LocalDebuggerCommandArguments>-automatic -noreprocessing G:\Work\Impact\tests\data_set\bugs\AlexeiPace_20160308\2016-03-08-0057_4.ser</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>
+    </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
 </Project>

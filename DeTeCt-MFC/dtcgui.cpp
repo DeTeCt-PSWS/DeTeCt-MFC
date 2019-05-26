@@ -174,8 +174,9 @@ void read_files(std::string folder, std::vector<std::string> *file_list, std::ve
 			else if (std::find(supported_otherext.begin(), supported_otherext.end(), extension) != supported_otherext.end()) {
 				if (extension.compare(autostakkert_extension) == 0) {
 					std::vector<cv::Point> cm_list;
+					int cm_list_start;
 
-					read_autostakkert_file(folder + "\\" + file, &acquisition_file, &cm_list);
+					read_autostakkert_file(folder + "\\" + file, &acquisition_file, &cm_list, &cm_list_start);
 
 					if (acquisition_file.length() >0) {
 						file_list->push_back(folder + "\\" + entry->d_name);
@@ -569,16 +570,18 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 	do
 	{
 		for (std::string filename : local_file_list) {
-//gets acquisition file from autostakkert session file
+//***** gets acquisition file from autostakkert session file
+			std::vector<cv::Point> cm_list = {};
+			int cm_list_start = 0;
+
 			std::string extension = filename.substr(filename.find_last_of(".")+1, filename.size()-filename.find_last_of(".")-1);
 			if (extension.compare(autostakkert_extension) == 0) {
 				std::string filename_acquisition;
-				std::vector<cv::Point> cm_list;
 
-				read_autostakkert_file(filename, &filename_acquisition, &cm_list);
+				read_autostakkert_file(filename, &filename_acquisition, &cm_list, &cm_list_start);
 				filename = filename_acquisition;
 			}
-//if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+//***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
 			BOOL process = TRUE;
 			if (!opts.reprocessing) {
 				CT2A DeTeCtLogFilename(DeTeCt_additional_filename(logcation.c_str(), DTC_LOG_SUFFIX));
@@ -790,7 +793,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 					std::vector<long> frames;
 
 					CDeTeCtMFCDlg::getProgress()->SetStep(1);
-
+//***** Opens acquisition file
 					if (!(pCapture = dtcCaptureFromFile2(opts.filename, &framecount))) {
 						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Cannot open file " +
 							(CString)opts.filename);
@@ -814,6 +817,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 					frame_number = nframe;
 					CDeTeCtMFCDlg::getProgress()->SetRange(0, nframe);
 					CDeTeCtMFCDlg::getProgress()->SetPos(0);
+//***** Checks if acquisition has a minimum number of frames
 					if ((nframe > 0) && (nframe < opts.minframes)) {
 						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"INFO: only " +
 							(CString)std::to_string(nframe).c_str() + L" frames (minimum is " +
@@ -839,6 +843,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 						}
 						continue;
 					}
+//***** Gets datation info from acquisition
 					dtcGetDatation(pCapture, opts.filename, nframe, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
 					if (fps_real < 0.02)
 						fps_int = (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FPS);
@@ -851,27 +856,28 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 					output_log << getDateTime().str().c_str() << "Initializing capture:  " << nframe << " frames @ " << fps_int
 						<< " fps" << "\n";
 					output_log.flush();
-
-					if (opts.dateonly) {
-						message = "-------------- " + short_filename + " end --------------";
-						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
-						output_log << getDateTime().str().c_str() << message.c_str() << "\n";
-						//LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, "WARNING, datation info only", 0, 0);
-						LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, 0, 0);
-						std::stringstream logline;
-						dtcWriteLog2(logcation, info, &logline);
-	//					log_messages.push_back(short_filename + ":");
-						log_messages.push_back(logline.str() + "\n");
-						dtcWriteLog2(logcation2, info, &logline_tmp);
-						dtcReleaseCapture(pCapture);
-						pCapture = NULL;
-						continue;
-					}
+//***** Gets ROI, check if ROI is big enough and exit then
 					if (opts.wROI && opts.hROI) {
 						croi = cv::Rect(0, 0, opts.wROI, opts.hROI);
 					} else {
-						croi = dtcGetFileROIcCM(pCapture, opts.ignore, 0);
+						croi = dtcGetFileROIcCM(pCapture, opts.ignore);
 						dtcReinitCaptureRead2(&pCapture, opts.filename);
+						if ((croi.width <= ROI_MIN) || (croi.height <= ROI_MIN)) {
+							message = "-------------- " + short_filename + " end --------------";
+							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+							output_log << getDateTime().str().c_str() << message.c_str() << "\n";
+
+							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING: ROI " +
+								(CString)std::to_string(croi.width).c_str() + L"x" + (CString)std::to_string(croi.height).c_str() +L" to small (" +
+								(CString)std::to_string(ROI_MIN).c_str() + L"x" + (CString)std::to_string(ROI_MIN).c_str() + L"), ignoring stopping processing");
+
+							//message = "WARNING: ROI " + croi.x + "x" + croi.y + " to small (" + ROI_MIN + "x" + ROI_MIN + "), ignoring stopping processing";
+							//CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+							output_log << getDateTime().str().c_str() << "WARNING: ROI " << croi.width << "x" << croi.height << " to small (" << ROI_MIN << "x" <<  ROI_MIN << "), ignoring stopping processing" << "\n";
+							dtcReleaseCapture(pCapture);
+							pCapture = NULL;
+							continue;
+						}
 					}
 	
 					if (opts.viewDif) cv::namedWindow("Initial differential photometry");
@@ -899,7 +905,7 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 						}
 					}
 
-					/*********************************CAPTURE READING******************************************/
+/*********************************CAPTURE READING******************************************/
 					while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
 						cv::medianBlur(pFrame, pFrame, 3);
 						video_duration += (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC);
@@ -1018,8 +1024,10 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 							cv::Mat maskedGryMat = dtcApplyMask(pGryMat.clone());
 
 							//pGryMat.copyTo(pGryMat, dtcGetMask(pGryMat.clone()));
-					
-							cm = dtcGetGrayMatCM(maskedGryMat);
+//AS3
+							if (((cm_list.size() + cm_list_start) >= nframe) && (nframe > cm_list_start))
+								cm = cm_list[nframe - cm_list_start - 1];
+							else cm = dtcGetGrayMatCM(maskedGryMat);
 
 							currentFrameMean = cv::mean(pGryMat)[0];
 					
@@ -1349,8 +1357,9 @@ int detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folde
 						CDeTeCtMFCDlg::getProgress()->StepIt();
 						CDeTeCtMFCDlg::getProgress()->UpdateWindow();
 					}
+/********************************* END OF CAPTURE READING******************************************/
 
-					/*********************************FINAL PROCESSING******************************************/
+/*********************************FINAL PROCESSING******************************************/
 					refFrameQueue = std::queue<cv::Mat>();
 					totalMean /= (nframe - frame_errors);
 

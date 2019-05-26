@@ -523,8 +523,9 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 			std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
 			if (extension.compare(autostakkert_extension) == 0) {
 				std::vector<cv::Point> cm_list;
+				int cm_list_start;
 
-				read_autostakkert_file(filename, &filename_acquisition, &cm_list);
+				read_autostakkert_file(filename, &filename_acquisition, &cm_list, &cm_list_start);
 				std::ifstream filetest(filename_acquisition);
 				if (filetest) fileexists = TRUE;
 				filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
@@ -1027,8 +1028,9 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 			std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
 			if (extension.compare(autostakkert_extension) == 0) {
 				std::vector<cv::Point> cm_list;
+				int cm_list_start;
 
-				read_autostakkert_file(file, &filename_acquisition, &cm_list);
+				read_autostakkert_file(file, &filename_acquisition, &cm_list, &cm_list_start);
 				std::ifstream filetest(filename_acquisition);
 				if (filetest) fileexists = TRUE;
 				filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());

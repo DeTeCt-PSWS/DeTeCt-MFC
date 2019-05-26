@@ -285,8 +285,8 @@ void serReadTimeStamps(SerCapture *sc)
 {
 	size_t TimeStamp_nframe=0;
 	int timezone=0;
-	double starttime;
-	double endtime;
+	double starttime = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
+	double endtime = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
 	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
 	double JD_max = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
 	

@@ -10,6 +10,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <sys/stat.h>
+//#include <stdbool.h>
 
 #include "serfmt.h"
 #include "datation.h"
@@ -722,8 +723,8 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 	//struct tm *pstart_time_tm;
 	//struct tm *pend_time_tm;
 	//struct stat videofile_info;
-	double	duration_tmp;
-	int		nbframes_opencv;
+	double	duration_tmp	= 0;
+	int		nbframes_opencv	= 0;
 	
 	nbframes_opencv=0;
 	switch (capture->type) {
@@ -736,40 +737,43 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 		default: // CAPTURE_CV
 			(*pfps) = dtcGetCaptureProperty(capture, CV_CAP_PROP_FPS);
 			nbframes_opencv = (int) floor(0.5+dtcGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT));
+			if ((*pfps) != 0) duration_tmp = nbframes_opencv / (*pfps);
 	}
 	
-	GetCreatedModifiedTimes(filename, pstart_time, pend_time);
-
-	if (InStr(filename, "-DeRot.") < 0) {
+	(*pstart_time) = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+	(*pend_time) = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+//	if (((!(IGNORE_WJ_DEROTATION) || (InStr(filename, DEROT_STRING) < 0))) && (!(IGNORE_PIPP) || (InStr(filename, PIPP_STRING) < 0))) {
+	if (((InStr(filename, DEROT_STRING) < 0)) && ((InStr(filename, PIPP_STRING) < 0))) {
+		GetCreatedModifiedTimes(filename, pstart_time, pend_time);
 		//stat(filename, &videofile_info);
 		//start_time_t=videofile_info.st_ctime;
 		//end_time_t=videofile_info.st_mtime;
 		//pend_time_tm=localtime(&end_time_t);
 		duration_tmp = (double)(((*pend_time) - (*pstart_time))*ONE_DAY_SEC);
-		//duration calculation
-		if ((duration_tmp < DURATION_MAX / 2) && (duration_tmp > DURATION_MIN)) {
-			//duration correct, keeping start and end time
-			(*pDuration) = duration_tmp;
+	}
+	//duration calculation
+	if ((duration_tmp < DURATION_MAX / 2) && (duration_tmp > DURATION_MIN)) {
+		//duration correct, keeping start and end time
+		(*pDuration) = duration_tmp;
+	}
+	//duration incorrect, estimation from nb of frames and fps
+	else {
+		if ((*pfps) > FPS_MIN) {
+			if (nbframes > nbframes_opencv) {
+				(*pDuration) = nbframes / (*pfps);
+			}
+			else {
+				(*pDuration) = nbframes_opencv / (*pfps);
+			}
 		}
-		//duration incorrect, estimation from nb of frames and fps
 		else {
-			if ((*pfps) > FPS_MIN) {
-				if (nbframes > nbframes_opencv) {
-					(*pDuration) = nbframes / (*pfps);
-				}
-				else {
-					(*pDuration) = nbframes_opencv / (*pfps);
-				}
-			}
-			else {
-				(*pDuration) = 0;
-			}
-			if ((*pstart_time) > (*pend_time)) {
-				(*pstart_time) = (*pend_time) - (*pDuration) / ONE_DAY_SEC;
-			}
-			else {
-				(*pend_time) = (*pstart_time) + (*pDuration) / ONE_DAY_SEC;
-			}
+			(*pDuration) = 0;
+		}
+		if ((*pstart_time) > (*pend_time)) {
+			(*pstart_time) = (*pend_time) - (*pDuration) / ONE_DAY_SEC;
+		}
+		else {
+			(*pend_time) = (*pstart_time) + (*pDuration) / ONE_DAY_SEC;
 		}
 	}
 }

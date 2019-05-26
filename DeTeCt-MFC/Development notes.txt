@@ -4,12 +4,22 @@ DeTeCt -help option from command line
 New detection algorithm based on detection image contrast
 Check correctness of video/image (ie planet or not)
 
-Autostakkert alignement usage
-
 Automatic version update
 
 Correct dtc_max-mean identified on data set
 
+Review confidence and distance acceptable
+
+Ignore mean too small (tbd)
+
+Use as3(+acquisition) file for processing queue
+
+v3.1.10: Usage of Autostakkert prealignement (est. 5% perf. gain)
+Ignore ROI too small (<=20x20)
+Do not ignore winjupos derotation files
+Ignore file info if pipp or winjupos video derotation used
+Code cleaning
+--------------------------------------------------------------------------------------
 v3.1.9: noreprocessing command line option (checks in log if file was already processed)
 --------------------------------------------------------------------------------------
 v1.3.8: datation multiple improvements, detection report window resizable

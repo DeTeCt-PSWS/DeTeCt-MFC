@@ -56,58 +56,31 @@ extern "C" {
 	/*									Procedures and functions										*/
 	/****************************************************************************************************/
 
-	//void 			dtcGetROI(Image img, int *xorig, int *yorig, int *width, int *height);
-
-	//cv::Point 		dtcGetCM(cv::Mat img);
-	//cv::Point 		dtcGetGrayCM(cv::Mat img);
 	cv::Point 		dtcGetGrayMatCM(cv::Mat mat);
 
-	//cv::Rect 		dtcGetImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double fact, double secfact);
 
 	cv::Rect 		dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double fact, double secfact);
 
-	//cv::Mat 		dtcGetGrayMat(cv::Mat frame, DtcCapture *capture);					//cvCreateMat
 
 	cv::Mat 		dtcGetGrayMat(cv::Mat *frame, DtcCapture *capture);					//cvCreateMat
 
 	cv::Mat 		dtcReduceMatToROI(cv::Mat src, cv::Rect roi);		//cvCreateMat (cvRelease src)
 
-	cv::Rect 		dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore, int ign = 0);
+	cv::Rect 		dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore);
 	
-	//cv::Rect 		dtcGetFrameROIcCM(cv::Mat frame, cv::Point cm, const int ignore, int ign = 0);
-
 	cv::Rect 		dtcMaxRect(cv::Rect one, cv::Rect two);
 
 	void 			dtcDrawCM(Image image, cv::Point cm);
 	
 	void			dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, int lmax);
 
-	//void			dtcApplyMaskToFrame(cv::Mat img);
-
 	cv::Mat			dtcApplyMask(cv::Mat img);
-
-	//cv::Mat			dtcGetMask(cv::Mat img);
-
-	//cv::Rect		dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Rect current_roi, int *x_offset, int *y_offset);
 
 	cv::Rect		dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Point roi_coords, cv::Size roi_size);
 
-	//cv::Mat 		dtcRunningAvg(Image imgsrc, Image imgdst, double lR);
-
 	cv::VideoWriter *dtcWriteVideo(const char *file, cv::VideoWriter writer, DtcCapture *capture, cv::Mat img);
 
-	//cv::Mat 		dtcLumThreshold_ToZero2(Image src, Image dst, double threshold);
-
-	//double 			dtcGetImageLum(Image img);
-
-	//DtcImageVals 	dtcGetGrayImageVals(Image img);
-	//DtcImageVals 	dtcGetImageVals(Image img);
-
 	cv::Mat 		dtcGetHistogramImage(cv::Mat src, float scale, double thr);	//cvCreateImage
-
-	//void 			dtcShowPhotometry(cv::Mat mat, int frame);
-
-	//cv::Mat			correctBayerFilterImages(cv::Mat mat, int bayerCode);
 
 	static void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);
 	int doublecmp(const void *a, const void *b);

@@ -23,9 +23,9 @@ bool replace(std::string& str, const std::string& from, const std::string& to);
 
 std::vector<std::string> read_txt(std::string path);
 
-void read_autostakkert_file(std::string configfile, std::string *filename, std::vector<cv::Point> *cm_list);
+void read_autostakkert_file(std::string configfile, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start);
 
-void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list);
+void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start);
 
 /*void detect_autostakkert(std::string path);*/
 
