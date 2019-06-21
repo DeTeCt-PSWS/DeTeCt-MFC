@@ -742,8 +742,8 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 	
 	(*pstart_time) = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
 	(*pend_time) = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
-//	if (((!(IGNORE_WJ_DEROTATION) || (InStr(filename, DEROT_STRING) < 0))) && (!(IGNORE_PIPP) || (InStr(filename, PIPP_STRING) < 0))) {
-	if (((InStr(filename, DEROT_STRING) < 0)) && ((InStr(filename, PIPP_STRING) < 0))) {
+//	if (((!(IGNORE_WJ_DEROTATION) || (InStr(filename, WJ_DEROT_STRING) < 0))) && (!(IGNORE_PIPP) || (InStr(filename, PIPP_STRING) < 0))) {
+	if (((InStr(filename, WJ_DEROT_STRING) < 0)) && ((InStr(filename, PIPP_STRING) < 0))) {
 		GetCreatedModifiedTimes(filename, pstart_time, pend_time);
 		//stat(filename, &videofile_info);
 		//start_time_t=videofile_info.st_ctime;

@@ -28,9 +28,15 @@ struct _LogInfo {
 	char *comment;
 	int nb_impact;
 	double certainty;
+	double mean_stat[3];
+	double mean2_stat[3];
+	double max_mean_stat[3];
+	double max_mean2_stat[3];
+	double diff_stat[3];
+	double diff2_stat[3];
 
 	_LogInfo(const char *fn, const double st, const double et, const double d,
-		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c) {
+		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3]) {
 		filename = (char*)fn;
 		start_time = st;
 		end_time = et;
@@ -40,6 +46,14 @@ struct _LogInfo {
 		comment = (char*)com;
 		nb_impact = ni;
 		certainty = c;
+		for (int i = 0; i < 3; i++) {
+			mean_stat[i] = mean_m[i];
+			mean2_stat[i] = mean2_m[i];
+			max_mean_stat[i] = max_mean_m[i];
+			max_mean2_stat[i] = max_mean2_m[i];
+			diff_stat[i] = diff_m[i];
+			diff2_stat[i] = diff2_m[i];
+		}
 	}
 };
 

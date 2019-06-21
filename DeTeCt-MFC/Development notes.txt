@@ -10,10 +10,26 @@ Correct dtc_max-mean identified on data set
 
 Review confidence and distance acceptable
 
-Ignore mean too small (tbd)
+Use WJ ims file for initial RoI/center of gravity
+
+16b FIT/FITS support to be fixed
+avi support to be fixed
+(color ser to be fixed - Siril issue?)
 
 Use as3(+acquisition) file for processing queue
 
+v3.1.11:
+General:	option for dark file usage (except on winjupos and pipp files)
+Algorithm:	no logging of impacts when overal mean is too small (ie no planetary acquisition)
+AS3:		using as3 with highest number of aligned frames in priority
+AS3:		using WinJupos DRS if as3 uses unexisting derotated file
+Files:		Ignore dark files (possibility to ignore PIPP or WJ derotation)
+ROI:		ignoring pixels with small brightness for center of mass calculation
+Algorithm:	decrease rejection of frames due to low mean of brightness
+Bugfix:		ROI not working if coordinates outside of range
+Bugfix:		crash when erasing first file from file list in detection
+Bugfix:		datation only mode not working and bad output for logfile pathname
+--------------------------------------------------------------------------------------
 v3.1.10: Usage of Autostakkert prealignement (est. 5% perf. gain)
 Ignore ROI too small (<=20x20)
 Do not ignore winjupos derotation files

@@ -16,7 +16,7 @@
 //WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 #include "WndResizer.h"
 
-const CString filter = _T("Video/image (*.ser,*.avi,*.wmv,*.m4v,*.as3,*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
+const CString filter = CString(_T("Video/image (*.ser,*.avi,*.wmv,*.m4v,*.")) + _T(AUTOSTAKKERT_EXT) + _T(",*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
 
 // CDeTeCtMFCDlg dialog
 
@@ -69,8 +69,9 @@ public:
 	static CProgressCtrl* getProgress() {
 		return &progressBar;
 	}
-	std::vector<std::string> file_list = {};
-	std::vector<std::string> acquisition_file_list = {};
+	//std::vector<std::string> file_list = {};
+	//std::vector<std::string> acquisition_file_list = {};
+	AcquisitionFilesList acquisition_files;
 	afx_msg void OnFileOpenfile();
 	std::string scan_folder_path = {};
 	std::wstring max_mean_folder_path = {};
@@ -83,6 +84,7 @@ private:
 };
 #pragma once
 
+//extern AcquisitionFilesList acquisition_files;
 
 // PrefDialog dialog
 
@@ -160,7 +162,8 @@ public:
 	CComboBox debayeringCode;
 
 	afx_msg void OnCbnSelchangeCombo2();
-};
+	afx_msg void OnBnClickedCheck11();
+ };
 #pragma once
 
 

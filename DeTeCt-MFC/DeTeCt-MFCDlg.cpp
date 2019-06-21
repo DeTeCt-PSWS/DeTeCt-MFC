@@ -1,4 +1,3 @@
-
 // DeTeCt-MFCDlg.cpp : implementation file
 //
 
@@ -134,7 +133,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 
 	_TCHAR optionStr[1000];
 
-	opts.filename = opts.ofilename = opts.darkfilename = opts.ovfname = opts.sfname = NULL;
+	opts.filename = opts.ofilename = opts.ovfname = opts.sfname;
 	opts.nsaveframe = 0;
 	opts.ostype = OTYPE_NO;
 	opts.ovtype = OTYPE_NO;
@@ -148,6 +147,8 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.nframesRef = ::GetPrivateProfileInt(L"other", L"refmin", 50, DeTeCtQueueFilename);
 	opts.bayer = ::GetPrivateProfileInt(L"other", L"debayer", 0, DeTeCtQueueFilename);
 	opts.medSize = ::GetPrivateProfileInt(L"roi", L"medbuf", 5, DeTeCtQueueFilename);
+	opts.ROI_min_px_val = ::GetPrivateProfileInt(L"roi", L"ROI_min_px_val", 10, DeTeCtQueueFilename);
+	opts.ROI_min_size = ::GetPrivateProfileInt(L"roi", L"ROI_min_size", 20, DeTeCtQueueFilename);
 	opts.wait = 1;
 	::GetPrivateProfileString(L"roi", L"sizfac", L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
 		DeTeCtQueueFilename);
@@ -184,6 +185,8 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	debug_mode = opts.debug;
 	opts.maxinstances = ::GetPrivateProfileInt(L"other", L"maxinstances", 1, DeTeCtQueueFilename);
 	opts.reprocessing = ::GetPrivateProfileInt(L"other", L"reprocessing", 1, DeTeCtQueueFilename);
+	::GetPrivateProfileString(L"other", L"darkfile", L"", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtQueueFilename);
+	strcpy(opts.darkfilename, CT2A(optionStr));
 	opts.videotest = 0;
 	opts.wROI = 0;
 	opts.hROI = 0;
@@ -456,7 +459,7 @@ HCURSOR CDeTeCtMFCDlg::OnQueryDragIcon()
 
 void CDeTeCtMFCDlg::OnBnClickedOk()
 {
-	if (file_list.size() > 0) {
+	if (acquisition_files.file_list.size() > 0) {
 
 		if (opts.dateonly) 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis will be performed\n");
 		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Running analysis");
@@ -468,7 +471,7 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 		*/
 		
 		/* MFC native threading, check DetechThread.h/cpp for details */
-		ImpactDetectParams* params = new ImpactDetectParams(file_list, opts, scan_folder_path);
+		ImpactDetectParams* params = new ImpactDetectParams(acquisition_files.file_list, opts, scan_folder_path);
 		AfxBeginThread(impactDetection, (LPVOID) params);
 		
 	} else {
@@ -487,8 +490,11 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 
 void CDeTeCtMFCDlg::OnFileOpen32771()
 {
-	file_list = {};
-	acquisition_file_list = {};
+	//file_list = {};
+	//acquisition_file_list = {};
+	acquisition_files.file_list = {};
+	acquisition_files.acquisition_file_list = {};
+	acquisition_files.nb_prealigned_frames = {};
 	CFolderPickerDialog dialog(NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, this, sizeof(OPENFILENAME));
 	std::wstring folder_path;
 	std::string path;
@@ -505,6 +511,7 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 	}
 	if (path.size() <= 0) {
 		ss << "No file selected";
+//		if (!opts.interactive) CDeTeCtMFCDlg::OnFileExit();
 	} else {
 		std::wstringstream ss2;
 
@@ -514,33 +521,43 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 		ss2 << "Resetting file list and scanning " << folder_path << " for files to be analysed...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-		read_files(path, &file_list, &acquisition_file_list);
-		for (std::string filename : file_list) {
-			std::wstringstream ss3;
-			bool fileexists = FALSE;
-			std::string filename_acquisition;
+		this->RedrawWindow();
+		//read_files(path, &file_list, &acquisition_file_list);
+		
+		read_files(path, &acquisition_files);
+		if (acquisition_files.file_list.size() > 0) {
+			for (std::string filename : acquisition_files.file_list) {
+				std::wstringstream ss3;
+				bool fileexists = FALSE;
+				std::string filename_acquisition;
 
-			std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
-			if (extension.compare(autostakkert_extension) == 0) {
-				std::vector<cv::Point> cm_list;
-				int cm_list_start;
+				std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+				if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+					int cm_list_start = 0;
+					int cm_list_end = 9999999;
+					int cm_frame_count = 0;
 
-				read_autostakkert_file(filename, &filename_acquisition, &cm_list, &cm_list_start);
-				std::ifstream filetest(filename_acquisition);
-				if (filetest) fileexists = TRUE;
-				filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
-				//TODO: test if filename_acquisition is already in the list and remove it
+					read_autostakkert_file(filename, &filename_acquisition, NULL, &cm_list_start, &cm_list_end, &cm_frame_count);
+					std::ifstream filetest(filename_acquisition);
+					if (filetest) fileexists = TRUE;
+					filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+					//TODO: test if filename_acquisition is already in the list and remove it
+				}
+				filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+				if ((extension.compare(AUTOSTAKKERT_EXT) != 0) || (fileexists)) {
+					if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << filename.c_str() << " for analysis";
+					else ss3 << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+				}
+				else if ((extension.compare(AUTOSTAKKERT_EXT) == 0) && (!fileexists)) {
+					ss3 << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+				}
+				impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
+				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+				this->RedrawWindow();
 			}
-			filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
-			if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
-				if (extension.compare(autostakkert_extension) != 0) ss3 << "Adding " << filename.c_str() << " for analysis";
-				else ss3 << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
-			}
-			else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
-				ss3 << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
-			}
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
-			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+		}
+		else {
+			ss << "No file selected";
 		}
 		//		if (file_list.size() > 0) {
 		//			max_mean_folder_path = folder_path.append(L"\\Impact_detection");
@@ -858,6 +875,12 @@ void PrefDialog::OnBnClickedOk()
 	opts.medSize = std::stol(str.GetString());
 	::WritePrivateProfileString(L"roi", L"medbuf", str, DeTeCtQueueFilename);
 	str.Empty();
+	str.Format(L"%d", opts.ROI_min_px_val);
+	::WritePrivateProfileString(L"roi", L"ROI_min_px_val", str, DeTeCtQueueFilename);
+	str.Empty();
+	str.Format(L"%d", opts.ROI_min_size);
+	::WritePrivateProfileString(L"roi", L"ROI_min_size", str, DeTeCtQueueFilename);
+	str.Empty();
 	minimumFrames.GetWindowTextW(str);
 	opts.minframes = std::stoi(str.GetString());
 	::WritePrivateProfileString(L"other", L"frmin", str, DeTeCtQueueFilename);
@@ -918,6 +941,7 @@ void PrefDialog::OnBnClickedOk()
 	::WritePrivateProfileString(L"other", L"debug", str, DeTeCtQueueFilename);
 	str.Format(L"%d", opts.maxinstances);
 	::WritePrivateProfileString(L"other", L"maxinstances", str, DeTeCtQueueFilename);
+	::WritePrivateProfileString(L"other", L"darkfile", CA2T(opts.darkfilename), DeTeCtQueueFilename);
 	CDialog::OnOK();
 }
 
@@ -998,10 +1022,11 @@ void CAboutDlg::OnBnClickedMfclink1()
 
 void CDeTeCtMFCDlg::OnFileOpenfile()
 {
-		file_list = {};
+		acquisition_files.file_list = {};
 		std::wstringstream ss,ssint, ssopt;
 		std::wstring file_path;
 		std::string file;
+		std::string shortfile;
 		CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
 
 		if (opts.filename) file = std::string(opts.filename);
@@ -1013,6 +1038,7 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 			ss << "No file selected";
 			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+//			if (!opts.interactive) CDeTeCtMFCDlg::OnFileExit();
 		}
 		else {
 			std::wstringstream ss2;
@@ -1022,39 +1048,45 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 
-			bool fileexists = FALSE;
-			std::string filename_acquisition;
+			if ((!IGNORE_DARK || (file.find(DARK_STRING) == std::string::npos)) &&
+				(!IGNORE_PIPP || (file.find(PIPP_STRING) == std::string::npos)) &&
+				(!IGNORE_WJ_DEROTATION || (file.find(WJ_DEROT_STRING) == std::string::npos))) {
+				bool fileexists = FALSE;
+				std::string filename_acquisition;
 
-			std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
-			if (extension.compare(autostakkert_extension) == 0) {
-				std::vector<cv::Point> cm_list;
-				int cm_list_start;
+				std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+				if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+					int cm_list_start = 0;
+					int cm_list_end = 9999999;
+					int cm_frame_count = 0;
 
-				read_autostakkert_file(file, &filename_acquisition, &cm_list, &cm_list_start);
-				std::ifstream filetest(filename_acquisition);
-				if (filetest) fileexists = TRUE;
-				filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+					read_autostakkert_file(file, &filename_acquisition, NULL, &cm_list_start, &cm_list_end, &cm_frame_count);
+					std::ifstream filetest(filename_acquisition);
+					if (filetest) fileexists = TRUE;
+					filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+				}
+				if ((extension.compare(AUTOSTAKKERT_EXT) != 0) || (fileexists)) {
+					scan_folder_path = file.substr(0, file.find_last_of("\\"));
+					acquisition_files.file_list.push_back(file);
+					file = file.substr(file.find_last_of("\\") + 1, file.length());
+					if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " for analysis";
+					else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+				}
+				else if ((extension.compare(AUTOSTAKKERT_EXT) == 0) && (!fileexists)) {
+					file = file.substr(file.find_last_of("\\") + 1, file.length());
+					ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+				}
 			}
-			if ((extension.compare(autostakkert_extension) != 0) || (fileexists)) {
-				scan_folder_path = file.substr(0, file.find_last_of("\\"));
-				file_list.push_back(file);
-				file = file.substr(file.find_last_of("\\") + 1, file.length());
-				if (extension.compare(autostakkert_extension) != 0) ss << "Adding " << file.c_str() << " for analysis";
-				else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
-			}
-			else if ((extension.compare(autostakkert_extension) == 0) && (!fileexists)) {
-				file = file.substr(file.find_last_of("\\") + 1, file.length());
-				ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+			else {
+				shortfile = file.substr(file.find_last_of("\\") + 1, file.length());
+				ss << "Ignoring " << shortfile.c_str();
+				if (file.find(DARK_STRING) != std::string::npos) ss << " dark file";
+				else if (file.find(PIPP_STRING) != std::string::npos) ss << " PIPP file";
+				else if (file.find(WJ_DEROT_STRING) != std::string::npos) ss << " WinJupos derotated file";
+				else ss << " file";
 			}
 			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-
-			//		if (opts.filename) {
-			//			ss << "Adding automatically " << file.c_str() << " for analysis";
-			//		}
-			//		else {
-			//			ss << "Adding " << file.c_str() << " for analysis";
-			//		}
 		}
 		this->RedrawWindow();
 	if (!opts.interactive) OnBnClickedOk();

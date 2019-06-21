@@ -4,10 +4,10 @@
 //#include "common.h"
 #include "cmdline.h"
 
-#define PROGNAME  "DeTeCt"
-#define LONGNAME  "jovian impact DeTeCtion"
-#define VERSION_NB   "3.1.10"
-#define VERSION_DATE "(Apr.10,2019)"
+#define PROGNAME		"DeTeCt"
+#define LONGNAME		"jovian impact DeTeCtion"
+#define VERSION_NB		"3.1.11"
+#define VERSION_DATE	"(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
 
@@ -26,29 +26,34 @@
 
 #define COPYRIGHT "Luis Calderon/Marc Delcroix/Jon Juaristi"
 
-#define DTC_MAX_MEAN1_SUFFIX	"_dtc_max-mean1.jpg"
+#define DTC_MAX_MEAN_SUFFIX		"_dtc_max-mean.jpg"
 #define DTC_MAX_MEAN2_SUFFIX	"_dtc_max-mean2.jpg"
 #define DTC_MEAN_SUFFIX			"_dtc_mean.jpg"
-#define DTC_DIFF_MEAN_SUFFIX	"_dtc_diff_mean.jpg"
+#define DTC_MEAN2_SUFFIX		"_dtc_mean2.jpg"
+#define DTC_DIFF_SUFFIX			"_dtc_diff.jpg"
+#define DTC_DIFF2_SUFFIX		"_dtc_diff2.jpg"
 #define VIDEOTEST_SUFFIX		"_videotest.jpg"
 #define DTC_MAX_SUFFIX			"_dtc_max.jpg"
 #define MEAN_SUFFIX				"_mean.jpg"
 #define DTC_SUFFIX				"_dtc.jpg"
 
-#define DTC_QUEUE_SUFFIX	L"_processes_queue.lst"
-#define DTC_INI_SUFFIX		L".ini"
-#define DTC_LOG_SUFFIX		L".log"
+#define DTC_QUEUE_SUFFIX		L"_processes_queue.lst"
+#define DTC_INI_SUFFIX			L".ini"
+#define DTC_LOG_SUFFIX			L".log"
 
-#define DTC_MAX_FRAME_PREFIX  "_dtc_max_frame"
-#define DTC_DIFF_FRAME_PREFIX  "_dtc_diff_frame"
-#define SINGLE_PREFIX "_single_"
+#define DTC_MAX_FRAME_PREFIX	"_dtc_max_frame"
+#define DTC_DIFF_FRAME_PREFIX	"_dtc_diff_frame"
+#define SINGLE_PREFIX			"_single_"
 
-#define DEROT_STRING	"-DeRot."
-#define PIPP_STRING	"_pipp."
-#define IGNORE_WJ_DEROTATION	FALSE	// TRUE option not implemented
-#define IGNORE_PIPP				FALSE	// TRUE option not implemented
 
-#define ROI_MIN	20
+#define AUTOSTAKKERT_EXT		"as3"
+#define WJ_DEROT_STRING			"-DeRot."
+#define WJ_DEROT_EXT			"drs"
+#define PIPP_STRING				"_pipp."
+#define DARK_STRING				"dark"
+#define IGNORE_WJ_DEROTATION	FALSE
+#define IGNORE_PIPP				FALSE
+#define IGNORE_DARK				TRUE
 
 #ifdef __cplusplus
 extern "C" {

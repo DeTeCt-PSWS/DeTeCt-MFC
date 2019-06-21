@@ -37,7 +37,7 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 {
 	double xcm = 0.0;
 	double ycm = 0.0;
-	double   Y = 0.0;
+	double Y = 0.0;
 	uchar *ptr;
 
 	int xorig = 0;
@@ -47,18 +47,36 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 	int x, y;
 	int step = mat.step;
 
+	double min_ROI_value = 0.00;
+	double tmp = 0.0;
+
+/* computes mean of brightness to setup minimum value for taking into account pixels in center of mass calculation */
+	for (y = yorig; y < height; y++)
+	{
+		ptr = (mat.data + y * step);
+		for (ptr += (x = xorig); x < width; x++)
+		{
+				Y += *ptr++;
+		}
+	}
+	min_ROI_value = Y / (width*height);
+	if (min_ROI_value > opts.ROI_min_px_val) min_ROI_value = opts.ROI_min_px_val;
+	
+	Y = 0.0;
 	for (y = yorig; y < height; y++)
 	{
 		ptr = (mat.data + y*step);
 		for (ptr += (x = xorig); x < width; x++)
 		{
-			xcm += x * (*ptr);
-			ycm += y * (*ptr);
-			Y += *ptr++;
+			if ((*ptr) >= min_ROI_value) {
+				xcm += x * (*ptr);
+				ycm += y * (*ptr);
+				Y += *ptr++;
+			} else *ptr++; 
 		}
 	}
 
-	return cv::Point((int)floor(xcm / Y), (int)floor(ycm / Y));
+	return cv::Point((int)round(xcm / Y), (int)round(ycm / Y));
 }
 
 /**********************************************************************************************//**

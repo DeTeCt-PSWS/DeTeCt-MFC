@@ -118,6 +118,9 @@
     <ClInclude Include="processes_queue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="max.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeTeCt-MFC.cpp">
@@ -180,9 +183,6 @@
     <ClCompile Include="fitsfmt.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="max.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="wrapper.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -199,6 +199,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="processes_queue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="max.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

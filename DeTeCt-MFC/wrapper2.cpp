@@ -130,12 +130,14 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 	case CAPTURE_SER:
 		ser_frame_data = serQueryFrameData(capture->u.sercapture, ignore, perror);
 		switch (capture->u.sercapture->header.ColorID) {
-		case SER_BAYER_RGGB: conversion = cv::COLOR_BayerRG2RGB; break;
-		case SER_BAYER_BGGR: conversion = cv::COLOR_BayerBG2RGB; break;
-		case SER_BAYER_GRBG: conversion = cv::COLOR_BayerGR2RGB; break;
-		case SER_BAYER_GBRG: conversion = cv::COLOR_BayerGB2RGB; break;
-		default: conversion = 0; break;
+			case SER_BAYER_RGGB: conversion = cv::COLOR_BayerRG2RGB; break;
+			case SER_BAYER_BGGR: conversion = cv::COLOR_BayerBG2RGB; break;
+			case SER_BAYER_GRBG: conversion = cv::COLOR_BayerGR2RGB; break;
+			case SER_BAYER_GBRG: conversion = cv::COLOR_BayerGB2RGB; break;
+			default: conversion = 0; break;
 		}
+//cv::imshow("dtcQueryFrame2 1", cv::Mat(capture->u.sercapture->header.ImageHeight, capture->u.sercapture->header.ImageWidth, capture->u.sercapture->mat_type, ser_frame_data));
+//cv::waitKey(0);
 		/* Creation of the matrix with the SER frame data: w·h, 8/16 unsigned bit 1/3 channel image */
 		if (capture->u.sercapture->current_frame <= capture->u.sercapture->header.FrameCount && ser_frame_data == NULL) {
 			if (capture->u.sercapture->nChannels == 3)
@@ -148,6 +150,8 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 			ser_frame = cv::Mat(capture->u.sercapture->header.ImageHeight, capture->u.sercapture->header.ImageWidth,
 				capture->u.sercapture->mat_type, ser_frame_data);
 		}
+//cv::imshow("dtcQueryFrame2 2", ser_frame);
+//cv::waitKey(0);
 		/* The matrix might be empty (after the last frame) */
 		if (ser_frame.data) {
 			/*
@@ -156,6 +160,8 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 			 */
 			int mat_type = (capture->u.sercapture->nChannels - 1) * 8;
 			if (capture->u.sercapture->byte_depth == 2) ser_frame.convertTo(ser_frame, mat_type, 1 / 256.0);
+//cv::imshow("dtcQueryFrame2 3", ser_frame);
+//cv::waitKey(0);
 			/*
 			 * Conversion from Bayer to colour, when applicable
 			 * Conversion from RGB to BGR (used by OpenCV) to conserve the original colours
@@ -163,6 +169,8 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 			 */
 			if (conversion != 0) cvtColor(ser_frame, ser_frame, conversion);
 		}
+//cv::imshow("dtcQueryFrame2 final", ser_frame);
+//cv::waitKey(0);
 		return ser_frame;
 		break;
 	case CAPTURE_FITS: case CAPTURE_FILES:

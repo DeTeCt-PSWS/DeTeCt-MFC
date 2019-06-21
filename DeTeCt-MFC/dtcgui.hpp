@@ -31,7 +31,7 @@ extern std::string full_version;
 struct options {
 	char *filename;
 	char *ofilename;
-	char *darkfilename;
+	char darkfilename[MAX_STRING];
 	char *ovfname;
 	char *sfname;
 	char *dirname;
@@ -50,6 +50,8 @@ struct options {
 	double medSize; // Median buffer size
 	double facSize; // Size factor (ROI)
 	double secSize; // Security factor (ROI)
+	int ROI_min_px_val; // Minimum value of pixel to take into account pixels for ROI calculation
+	int ROI_min_size; // Minimum valid pixel size for a ROI 
 	double threshold;
 	double learningRate; // "Alpha Blending" learning rate
 	double histScale; // Histogram scale
@@ -93,7 +95,15 @@ struct BrightnessOrder {
 	}
 };
 
-void	read_files(std::string folder, std::vector<std::string> *file_list, std::vector<std::string> *acquisition_file_list);
+struct AcquisitionFilesList {
+	std::vector<std::string> file_list				= {};
+	std::vector<std::string> acquisition_file_list	= {};
+	std::vector<int> nb_prealigned_frames			= {};
+};
+
+
+//void	read_files(std::string folder, std::vector<std::string> *file_list, std::vector<std::string> *acquisition_file_list);
+void read_files(std::string folder, AcquisitionFilesList *acquisition_files);
 
 int		itemcmp(const void *a, const void *b);
 
@@ -104,8 +114,10 @@ int		detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *li
 
 //int		detect(std::vector<std::string> file_list, OPTS opts);
 
-int		detect(std::vector<std::string> file_list, OPTS opts, std::string scan_folder_path);
+int		detect(std::vector<std::string> current_file_list, OPTS opts, std::string scan_folder_path);
 
 void	StreamDeTeCtOSversions(std::wstringstream *ss);
 
 void	GetOSversion(std::string *pos_version);
+
+char	*dtc_full_filename(const char *acquisition_filename, const char *suffix, const char *path_name, char *full_filename);

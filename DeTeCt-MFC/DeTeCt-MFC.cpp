@@ -17,6 +17,7 @@
 
 #include <experimental/filesystem>
 namespace filesys = std::experimental::filesystem;
+#include "direct.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -152,7 +153,16 @@ BOOL CDeTeCtMFCApp::InitInstance()
 			} else {
 				DIR *folder_object;
 				if ((folder_object = opendir(object.c_str()))) {
-					target_folder = object; 
+//convert relative path to absolute path (does not work from MSVC debug as exe launched from MFC directory)
+					if (starts_with(object,".")) {
+						//CT2CA tmp_conv(DeTeCt_exe_folder());
+						//target_folder = std::string (tmp_conv);
+						char buffer[MAX_STRING];
+						_fullpath(buffer, object.c_str(), MAX_STRING);
+						target_folder = std::string(buffer);
+					}
+					else target_folder = object;
+
 					//DBOUT("folder = " << target_folder.c_str() << "\n");
 					opts.dirname = new char[target_folder.size() + 1];
 					std::copy(target_folder.begin(), target_folder.end(), opts.dirname);

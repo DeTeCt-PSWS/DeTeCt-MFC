@@ -10,6 +10,8 @@ CString  DeTeCt_additional_filename_exe_folder(CString suffix);
 
 CString  DeTeCt_additional_filename(CString folder, CString suffix);
 
+CString  DeTeCt_exe_folder();
+
 BOOL IsAlreadyQueued(CString objectname, CString DeTeCtQueueFilename);
 
 void RemoveFromQueue(CString objectname, CString DeTeCtQueueFilename);

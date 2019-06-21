@@ -51,6 +51,8 @@ char *DeTeCtFileName(char *DeTeCtFileNameChar)
 	return DeTeCtFileNameChar;
 }
 
+
+/*** returns detect additional filename from executable filename ***/
 CString  DeTeCt_additional_filename(CString folder, CString suffix)
 {
 	CString folder_return = folder;
@@ -65,14 +67,21 @@ CString  DeTeCt_additional_filename(CString folder, CString suffix)
 	return folder_return;
 }
 
+/*** returns detect filename in detect executable folder ***/
 CString  DeTeCt_additional_filename_exe_folder(CString suffix)
+{
+	return DeTeCt_additional_filename(DeTeCt_exe_folder(), suffix);
+}
+
+/*** returns detect executable foldername ***/
+CString DeTeCt_exe_folder()
 {
 	wchar_t exepath[1000];
 	GetModuleFileName(NULL, exepath, MAX_PATH);
 	CString folder = exepath;
 	folder = folder.Left(folder.ReverseFind(_T('\\')));
 
-	return DeTeCt_additional_filename(folder, suffix);
+	return folder;
 }
 
 BOOL IsAlreadyQueued(CString objectname, CString DeTeCtQueueFilename)

@@ -298,7 +298,7 @@ void dtcWriteLogHeader(std::string location) {
 
 		output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 		output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
-		output_file << "Certainty;		Rating;    Start;                      End;                        Mid;                        Duration (s);	fps (fr/s);  File;                        DeTeCt version and comment;\n";
+		output_file << "Certainty;		Rating;    Start;                      End;                        Mid;                        Duration (s);	fps (fr/s);  File;                        DeTeCt version and comment; os_version; mean min; avg; max; mean2 min; avg; max; max-mean mean; avg; max; max-mean2 min; avg; max; diff min; avg; max; diff2 min; avg; max\n";
 	}
 	else filetest._close();
 }
@@ -333,14 +333,16 @@ void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *l
 	std::string os_version = "";
 	GetOSversion(&os_version);
 
-	if (!opts.dateonly) {
+	if ((video_info.certainty < 0) && (video_info.nb_impact < 0)) {
+		output_file << "Error 		";
+		output_file << " Error   ; ";
+	} else if (!opts.dateonly) {
 		output_file << std::setprecision(4) << std::fixed << video_info.certainty << "		";
 		if (video_info.nb_impact >= 0)
 			output_file << " " << video_info.nb_impact << "       ; ";
 		else
 			output_file << "Not known ";
-	}
-	else {
+	} else {
 		output_file << "N/A   		";
 		output_file << " N/A     ; ";
 	}
@@ -381,9 +383,34 @@ void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *l
 	output_file << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 	output_file << video_info.filename << "; ";
 	output_file << full_version.c_str() << " (" << video_info.comment << "); ";
-	output_file << os_version.c_str() << "\n";
-
+	output_file << os_version.c_str() << "; ";
 	if (!opts.dateonly) {
+		output_file << std::setprecision(4) << video_info.mean_stat[0] << "; ";
+		output_file << std::setprecision(4) << video_info.mean_stat[1] << "; ";
+		output_file << std::setprecision(4) << video_info.mean_stat[2] << "; ";
+		output_file << std::setprecision(4) << video_info.mean2_stat[0] << "; ";
+		output_file << std::setprecision(4) << video_info.mean2_stat[1] << "; ";
+		output_file << std::setprecision(4) << video_info.mean2_stat[2] << "; ";
+		output_file << std::setprecision(4) << video_info.max_mean_stat[0] << "; ";
+		output_file << std::setprecision(4) << video_info.max_mean_stat[1] << "; ";
+		output_file << std::setprecision(4) << video_info.max_mean_stat[2] << "; ";
+		output_file << std::setprecision(4) << video_info.max_mean2_stat[0] << "; ";
+		output_file << std::setprecision(4) << video_info.max_mean2_stat[1] << "; ";
+		output_file << std::setprecision(4) << video_info.max_mean2_stat[2] << "; ";
+		output_file << std::setprecision(4) << video_info.diff_stat[0] << "; ";
+		output_file << std::setprecision(4) << video_info.diff_stat[1] << "; ";
+		output_file << std::setprecision(4) << video_info.diff_stat[2] << "; ";
+		output_file << std::setprecision(4) << video_info.diff2_stat[0] << "; ";
+		output_file << std::setprecision(4) << video_info.diff2_stat[1] << "; ";
+		output_file << std::setprecision(4) << video_info.diff2_stat[2];
+	} else output_file << ";;;;;;;;;;;;;;;;;";
+	output_file << "\n";
+
+
+	if ((video_info.certainty < 0) && (video_info.nb_impact < 0)) {
+		(*logline) << "Error 		";
+		(*logline) << " Error   ; ";
+	} else if (!opts.dateonly) {
 		(*logline) << std::setprecision(4) << std::fixed << video_info.certainty << "		";
 		if (video_info.nb_impact >= 0)
 			(*logline) << " " << video_info.nb_impact << "       ; ";
@@ -431,7 +458,29 @@ void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *l
 	(*logline) << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 	(*logline) << video_info.filename << "; ";
 	(*logline) << full_version.c_str() << " (" << video_info.comment << "); ";
-	(*logline) << os_version.c_str() << "\n";
+	(*logline) << os_version.c_str() << "; ";
+	if (!opts.dateonly) {
+		(*logline) << video_info.mean_stat[0] << "; ";
+		(*logline) << video_info.mean_stat[1] << "; ";
+		(*logline) << video_info.mean_stat[2] << "; ";
+		(*logline) << video_info.mean2_stat[0] << "; ";
+		(*logline) << video_info.mean2_stat[1] << "; ";
+		(*logline) << video_info.mean2_stat[2] << "; ";
+		(*logline) << video_info.max_mean_stat[0] << "; ";
+		(*logline) << video_info.max_mean_stat[1] << "; ";
+		(*logline) << video_info.max_mean_stat[2] << "; ";
+		(*logline) << video_info.max_mean2_stat[0] << "; ";
+		(*logline) << video_info.max_mean2_stat[1] << "; ";
+		(*logline) << video_info.max_mean2_stat[2] << "; ";
+		(*logline) << video_info.diff_stat[0] << "; ";
+		(*logline) << video_info.diff_stat[1] << "; ";
+		(*logline) << video_info.diff_stat[2] << "; ";
+		(*logline) << video_info.diff2_stat[0] << "; ";
+		(*logline) << video_info.diff2_stat[1] << "; ";
+		(*logline) << video_info.diff2_stat[2];
+	}
+	else (*logline) << ";;;;;;;;;;;;;;;;;";
+	(*logline) << "\n";
 }
 
 /**********************************************************************************************//**
