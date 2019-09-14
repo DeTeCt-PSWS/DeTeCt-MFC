@@ -60,6 +60,9 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnFileOpen32771();
 	afx_msg void OnHelpExit();
+	afx_msg void OnHelpTutorial();
+	afx_msg void OnHelpChecksForUpdate();
+	afx_msg void OnHelpDocumentation();
 	afx_msg void OnSettingsPreferences();
 	afx_msg void OnFileExit();
 	afx_msg void OnLbnSelchangeList1();
@@ -126,6 +129,7 @@ public:
 	CEdit roiMedianBufSize;
 	CEdit histScale;
 	CButton applyMask;
+	CButton Zip;
 	CButton detailedADUdtc;
 	CButton saveIntFramesADUdtc;
 	CButton showROI;

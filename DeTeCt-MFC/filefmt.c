@@ -65,14 +65,14 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 /* Look for number syntax */	
 	if ((!(strrstr(fname,"1.")==NULL)) && (strlen(strrstr(fname,"1."))==(strlen("1.")+strlen(fc->filename_ext)))) {	/* *0.* */
 		fc->FirstFileIdx=1;
-		i=(strlen(fname)-strlen(strrstr(fname,"1.")-1));
+		i=(int)(strlen(fname)-strlen(strrstr(fname,"1.")-1));
 		while ((fname[i]=='0') && (i>=0)) {
 			fc->LeadingZeros++;
 			i--;
 		}
 	} else if ((!(strrstr(fname,"0.")==NULL)) && (strlen(strrstr(fname,"0."))==(strlen("0.")+strlen(fc->filename_ext)))) {	/* *1.* */
 		fc->FirstFileIdx=0;			
-		i=(strlen(fname)-strlen(strrstr(fname,"0.")-1));
+		i=(int)(strlen(fname)-strlen(strrstr(fname,"0.")-1));
 		while ((fname[i]=='0') && (i>=0)) {
 			fc->LeadingZeros++;
 			i--;
@@ -82,12 +82,12 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		if (fc->LeadingZeros>0) {
 			for (i=0; i<fc->LeadingZeros; first_nb[i++]='0');
 			first_nb[i]='\0';
-			fc->NumberPos=InRstr(filename_root,first_nb)+strlen(fc->filename_folder);
+			fc->NumberPos=InRstr(filename_root,first_nb)+(int)strlen(fc->filename_folder);
 		} else {
 			if (fc->FirstFileIdx==0) {
-				fc->NumberPos=InRstr(filename_root,"0")+1+strlen(fc->filename_folder);
+				fc->NumberPos=InRstr(filename_root,"0")+1+(int)strlen(fc->filename_folder);
 			} else {
-				fc->NumberPos=InRstr(filename_root,"1")+1+strlen(fc->filename_folder);
+				fc->NumberPos=InRstr(filename_root,"1")+1+(int)strlen(fc->filename_folder);
 			}
 		}
 		strncpy(fc->filename_rac, fname, fc->NumberPos);
@@ -123,7 +123,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			first_nb[fc->LeadingZeros]='\0';
 			fc->LeadingZeros--;
 		}
-		fc->NumberPos=InRstr(filename_root,first_nb)+strlen(fc->filename_folder);
+		fc->NumberPos=InRstr(filename_root,first_nb)+(int)strlen(fc->filename_folder);
 		init_string(fc->filename_rac);
 		init_string(fc->filename_head);
 		init_string(fc->filename_trail);
@@ -157,7 +157,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	}
 	fc->FrameCount=fc->LastFileIdx-fc->FirstFileIdx+1;
 	fc->ValidFrameCount=fc->FrameCount;
-	(*pframecount)=fc->FrameCount;
+	(*pframecount)=(int)fc->FrameCount;
 									if (debug_mode) { fprintf(stderr,"FileCaptureFromFile: First frame index %d, Last Frame index %d\n",fc->FirstFileIdx,fc->LastFileIdx); }
 	if (fc->FrameCount<=0) {
 		fprintf(stderr,"ERROR in FileCaptureFromFile: no frame number detected to process for file %s\n",fname);
@@ -179,7 +179,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				assert(fc->image != NULL);
 				fc->image->imageData		= calloc(sizeof (char), fc->ImageBytes);
 				assert(fc->image->imageData != NULL);
-				fc->image->widthStep		= fc->ImageWidth * fc->BytesPerPixel * fc->image->nChannels;
+				fc->image->widthStep		= fc->ImageWidth * (int)fc->BytesPerPixel * fc->image->nChannels;
 				fc->image->imageDataOrigin	= fc->image->imageData;
 				break;
 			case CAPTURE_FILES:
@@ -354,7 +354,7 @@ void fileGet_info(FileCapture *fc, const char *fname, double *date)
 			fc->ImageHeight	= fc->image->height;
 			fc->PixelDepth	= fc->image->depth;
 			fc->ColorID		= fc->image->nChannels;
-			fc->image->widthStep		= fc->ImageWidth * fc->BytesPerPixel * fc->image->nChannels;
+			fc->image->widthStep		= fc->ImageWidth * (int)fc->BytesPerPixel * fc->image->nChannels;
 			fc->image->imageDataOrigin	= fc->image->imageData;
 			cvReleaseImage(&fc->image);
 			break;

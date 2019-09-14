@@ -156,7 +156,7 @@ int itemcmp(const void *a, const void *b)
 	else return 0; 
 }
 
-int detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double incrLum, int incrFrame)
+/* int detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double incrLum, int incrFrame)
 {
 	int c, n, minC, maxC;
 	int x0, y0;
@@ -173,23 +173,23 @@ int detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double inc
 	nb_impact=0;
 	if (list->size<=0) return 0;
 	if (!(ord = (ITEM **) calloc(list->size, sizeof (ITEM *)))) {
-		fprintf(stderr, "ERROR in detect_impact: get_max_list: cannot reserve memory\n");
+			fprintf(stderr, "ERROR in detect_impact: get_max_list: cannot reserve memory\n");
 		OutputDebugString(L"ERROR in detect_impact: get_max_list: cannot reserve memory\n");
-		exit(EXIT_FAILURE);
+			exit(EXIT_FAILURE);
 	}
 	for (tmpSrc = list->head, tmp = ord, c = 0; tmpSrc && c < list->size; tmpSrc = tmpSrc->next, tmp++, c++)
-		*tmp = tmpSrc;
+			*tmp = tmpSrc;
 	qsort(ord, list->size, sizeof (ITEM *), itemcmp);
 	meanValue = get_item_list_mean_value(list);
 	TCHAR buffer[1000];
-	/*StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Max-Mean value:"), ord[0]->point->val - meanValue);
-	OutputDebugString(buffer);
-	StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Mean value times increase:"), meanValue*(1 + incrLum));
-	OutputDebugString(buffer);
-	StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Max brightness value:"), ord[0]->point->val);
-	OutputDebugString(buffer);
-	StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("x value:"), (ord[0]->point->val / meanValue) - 1);
-	OutputDebugString(buffer);*/
+	// /*StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Max-Mean value:"), ord[0]->point->val - meanValue);
+	// OutputDebugString(buffer);
+	// StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Mean value times increase:"), meanValue*(1 + incrLum));
+	// OutputDebugString(buffer);
+	// StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Max brightness value:"), ord[0]->point->val);
+	// OutputDebugString(buffer);
+	// StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("x value:"), (ord[0]->point->val / meanValue) - 1);
+	// OutputDebugString(buffer);**
 	if (ord[0]->point->val <= meanValue*(1 + incrLum)) {
 		//double x = (meanValue / ord[0]->point->val) - 1;
 		//OutputDebugString(L"Not an impact candidate\n");
@@ -234,11 +234,11 @@ int detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double inc
 			sfin %= 3600;
 			mfin = sfin / 60;
 			sfin %= 60;
-			/*printf("Brightness increase: frame %ld (%ldh %02ldmin %02lds) "
-			       "to %ld (%ldh %02ldmin %02lds). ", 
-			       ord[minC]->point->frame, hini, mini, sini,
-			       ord[maxC]->point->frame, hfin, mfin, sfin);
-			printf("Max lum %d at frame %ld.\n", (int) ord[0]->point->val, ord[0]->point->frame);*/
+			// /*printf("Brightness increase: frame %ld (%ldh %02ldmin %02lds) "
+			//       "to %ld (%ldh %02ldmin %02lds). ", 
+			//       ord[minC]->point->frame, hini, mini, sini,
+			//       ord[maxC]->point->frame, hfin, mfin, sfin);
+			//printf("Max lum %d at frame %ld.\n", (int) ord[0]->point->val, ord[0]->point->frame);**
 			StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("Brightness increase: frame %ld (%ldh % 02ldmin % 02lds) to %ld (%ldh %02ldmin %02lds).\n"),
 				ord[minC]->point->frame, hini, mini, sini, ord[maxC]->point->frame, hfin, mfin, sfin);
 			OutputDebugString(buffer);
@@ -253,9 +253,7 @@ int detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double inc
 
 	return nb_impact;
 }
-
-
-
+*/
 
 double get_item_array_mean_value(ITEM **l, int n)
 {

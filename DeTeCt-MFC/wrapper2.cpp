@@ -56,7 +56,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 				//fprintf(stderr, "ERROR in dtcCaptureFromFile processing ser file %s\n", fname);
 				exit(EXIT_FAILURE);
 			}
-			capt->framecount = capt->u.sercapture->header.FrameCount;
+			capt->framecount = (int)capt->u.sercapture->header.FrameCount;
 			if (capt->u.sercapture->header.PixelDepth > 8)
 				serFixPixelDepth(capt->u.sercapture, 0);
 			serPrintHeader(capt->u.sercapture);
@@ -70,7 +70,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 				fprintf(stderr, "ERROR in dtcCaptureFromFile processing fits file %s\n", fname);
 				exit(EXIT_FAILURE);
 			}
-			capt->framecount = capt->u.filecapture->FrameCount;
+			capt->framecount = (int)capt->u.filecapture->FrameCount;
 		}
 		else if ((!strcmp(ext, "bmp")) || (!strcmp(ext, "dib")) || (!strcmp(ext, "jpeg")) || (!strcmp(ext, "jpg")) || (!strcmp(ext, "jpe")) || (!strcmp(ext, "jp2")) || (!strcmp(ext, "png")) || (!strcmp(ext, "pbm")) || (!strcmp(ext, "pgm")) || (!strcmp(ext, "ppm")) || (!strcmp(ext, "sr")) || (!strcmp(ext, "ras")) || (!strcmp(ext, "tiff")) || (!strcmp(ext, "tif"))) {
 			capt->type = CAPTURE_FILES;
@@ -81,7 +81,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 				fprintf(stderr, "ERROR in dtcCaptureFromFile processing fits file %s\n", fname);
 				exit(EXIT_FAILURE);
 			}
-			capt->framecount = capt->u.filecapture->FrameCount;
+			capt->framecount = (int)capt->u.filecapture->FrameCount;
 		}
 		else {
 			capt->type = CAPTURE_CV;
@@ -144,11 +144,11 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 				black = cv::Scalar(0, 0, 0);
 			else
 				black = cv::Scalar(0);
-			ser_frame = cv::Mat(capture->u.sercapture->header.ImageHeight, capture->u.sercapture->header.ImageWidth,
+			ser_frame = cv::Mat((int)capture->u.sercapture->header.ImageHeight, (int)capture->u.sercapture->header.ImageWidth,
 				capture->u.sercapture->mat_type, black);
 		} else {
-			ser_frame = cv::Mat(capture->u.sercapture->header.ImageHeight, capture->u.sercapture->header.ImageWidth,
-				capture->u.sercapture->mat_type, ser_frame_data);
+			ser_frame = cv::Mat((int)capture->u.sercapture->header.ImageHeight, (int)capture->u.sercapture->header.ImageWidth,
+				(size_t)capture->u.sercapture->mat_type, ser_frame_data);
 		}
 //cv::imshow("dtcQueryFrame2 2", ser_frame);
 //cv::waitKey(0);

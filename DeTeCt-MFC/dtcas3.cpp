@@ -117,7 +117,7 @@ void read_autostakkert_config_line(std::string line, std::string *filename, std:
 		while (line.find(',') != std::string::npos) replace(line, ",", ".");
 		std::istringstream ss(line);
 		ss >> x >> y;
-		cm_list->push_back(cv::Point(round(x), round(y)));
+		cm_list->push_back(cv::Point((int)round(x), (int)round(y)));
 	}
 }
 

@@ -32,6 +32,7 @@ struct options {
 	char *filename;
 	char *ofilename;
 	char darkfilename[MAX_STRING];
+	std::string message[100];
 	char *ovfname;
 	char *sfname;
 	char *dirname;
@@ -40,7 +41,8 @@ struct options {
 	int ovtype; // Output video type to create
 	double timeImpact; // seconds
 	double incrLumImpact; // mean value factor
-	int incrFrameImpact; // Number of frames
+	int incrFrameImpact; // Minimum number of frames for impact
+	double impact_duration_min; // Min duration for impact
 	double radius; // Impact radio (pixels)
 	unsigned long nframesROI; // Number of frames for ROI calculation
 	unsigned long nframesRef; // Number of frames for ROI calculation
@@ -71,14 +73,18 @@ struct options {
 	BOOL videotest; // Test input video file
 	BOOL ADUdtconly; // Use ADUdtc algorithm only
 	BOOL detail; // Use ADUdtc algorithm only with 2 more images as output
+	BOOL zip;  // Creates zip of impact_detection folder
 	BOOL allframes; // Save all intermediate mac frames from ADUdtc algorithm
+	double impact_distance_max; // Maximum value for distance between old algorithm and max in detection image for being a possible impact
+	double impact_max_avg_min; // Minimum value for max - mean value of dtc_max-mean image for being a possible impact
+	double impact_confidence_min; // Minimum value for confidence for being a possible impact
 	int minframes; // Minimum # of frames to start processing
 	struct Filter filter;
 	BOOL dateonly; // Display date information and stops processing
 	BOOL ignore; // Ignore incorrect frames
 	BOOL interactive; // Normal interactive mode or automatic mode
 	int maxinstances; // Maximum number of DeTeCt instances running in parallel
-	BOOL reprocessing;
+	BOOL reprocessing; // Reprocessing files already in DeTeCt.log
 };
 typedef struct options OPTS;
 extern OPTS opts;
@@ -101,7 +107,6 @@ struct AcquisitionFilesList {
 	std::vector<int> nb_prealigned_frames			= {};
 };
 
-
 //void	read_files(std::string folder, std::vector<std::string> *file_list, std::vector<std::string> *acquisition_file_list);
 void read_files(std::string folder, AcquisitionFilesList *acquisition_files);
 
@@ -110,7 +115,7 @@ int		itemcmp(const void *a, const void *b);
 int		framecmp(const void *a, const void *b);
 
 int		detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, int fps, double radius,
-	double incrLum, int incrFrame);
+	double incrLum, int impact_frames_min);
 
 //int		detect(std::vector<std::string> file_list, OPTS opts);
 
@@ -121,3 +126,5 @@ void	StreamDeTeCtOSversions(std::wstringstream *ss);
 void	GetOSversion(std::string *pos_version);
 
 char	*dtc_full_filename(const char *acquisition_filename, const char *suffix, const char *path_name, char *full_filename);
+
+void	zip(char *zipfile, char *item_to_be_zipped);

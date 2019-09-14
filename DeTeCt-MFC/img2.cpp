@@ -45,10 +45,9 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 	int width = mat.cols;
 	int height = mat.rows;
 	int x, y;
-	int step = mat.step;
+	int step = (int) mat.step;
 
 	double min_ROI_value = 0.00;
-	double tmp = 0.0;
 
 /* computes mean of brightness to setup minimum value for taking into account pixels in center of mass calculation */
 	for (y = yorig; y < height; y++)
@@ -163,10 +162,10 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 
 	/* 2018-03-13: Test for bad ROI */
 	if (hht > (1.1 * hwd)) {
-		hwd *= 1.2;
+		hwd = (int)round(1.2*hwd);
 		hht = hwd; // hht = 1.2 * hwd
 	} else if (hwd > (1.1 * hht)) {
-		hht *= 1.2;
+		hht = (int)round(1.2 * hht);
 		hwd = hht; // hwd = 1.2 * hht
 	}
 	/* Test for bad ROI */
@@ -248,7 +247,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 	right = frame.col(frame.cols - 1);
 	top = frame.row(0);
 	bottom = frame.row(frame.rows - 1);
-	int avg = (cv::mean(left)[0] + cv::mean(right)[0] + cv::mean(top)[0] + cv::mean(bottom)[0]) / 4;	
+	double avg = (cv::mean(left)[0] + cv::mean(right)[0] + cv::mean(top)[0] + cv::mean(bottom)[0]) / 4;	
 	cv::threshold(frame, frame, avg, 0, cv::THRESH_TOZERO);
 	uchar *src, *tsrc;
 	int x, y, i, j;
@@ -542,14 +541,14 @@ cv::Rect dtcGetGrayMatROIcCM(cv::Mat *img, cv::Point cm, int medsize, double fac
 	double *mbuf;
 	int posmed;
 	int xmin, xmax, ymin, ymax;
-	float val;
+	double val;
 	int hwd, hht;
 
 	int xorig = 0;
 	int yorig = 0;
 	int width = img->cols;
 	int height = img->rows;
-	int step = img->step/sizeof (float);
+	int step = (int)img->step/sizeof (float);
 
 	if ((tbuf = (double *)calloc(medsize, sizeof(double))) == NULL ||
 		(mbuf = (double *)calloc(MAX(width, height), sizeof(double))) == NULL) {
@@ -1033,7 +1032,8 @@ bool isEqual(cv::Mat m1, cv::Mat m2) {
 	return cv::countNonZero(m1 != m2) == 0;
 }
 
+/*
 void dtcApplyDifferentialPhotometry(cv::Mat& original, cv::Mat& reference, cv::Mat& difference,
 	cv::Mat& tracking) {
 
-}
+}*/

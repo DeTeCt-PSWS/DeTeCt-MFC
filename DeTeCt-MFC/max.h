@@ -49,7 +49,7 @@ ITEM 		*create_item(POINT_FRAME *p);
 void 		delete_head_item(LIST *list);
 void 		add_tail_item(LIST *list, ITEM *item);
 void 		delete_list(LIST *list);
-int 		detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double incrLum, int incrFrame);
+//int 		detect_impact(DTCIMPACT *dtc, LIST *list, int fps, double radius, double incrLum, int incrFrame);
 double 		get_item_array_mean_value(ITEM **l, int n);
 double 		get_item_list_mean_value(LIST *l);
 void 		init_dtc_struct(DTCIMPACT *dtc);

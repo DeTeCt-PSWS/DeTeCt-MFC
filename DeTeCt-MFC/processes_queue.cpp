@@ -38,6 +38,7 @@ int DectectInstancesNumber()
 	return ProcessesQuantity;
 }
 
+/*** Get current executable name ***/
 char *DeTeCtFileName(char *DeTeCtFileNameChar)
 {
 	LPWSTR DeTeCtFullPathName = new TCHAR[MAX_PATH];

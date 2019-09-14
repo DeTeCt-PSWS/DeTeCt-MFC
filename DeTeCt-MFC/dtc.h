@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.1.11"
+#define VERSION_NB		"3.2"
 #define VERSION_DATE	"(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -27,6 +27,7 @@
 #define COPYRIGHT "Luis Calderon/Marc Delcroix/Jon Juaristi"
 
 #define DTC_MAX_MEAN_SUFFIX		"_dtc_max-mean.jpg"
+#define DTC_MAX_MEAN1_SUFFIX	"_dtc_max-mean1.jpg"
 #define DTC_MAX_MEAN2_SUFFIX	"_dtc_max-mean2.jpg"
 #define DTC_MEAN_SUFFIX			"_dtc_mean.jpg"
 #define DTC_MEAN2_SUFFIX		"_dtc_mean2.jpg"
@@ -62,5 +63,8 @@ extern int debug_mode;
 #ifdef __cplusplus
 	}
 #endif
+
+enum _Planet_type { Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptun, Notdefined };
+typedef enum _Planet_type Planet_type;
 
 #endif /* __DTC_H__ */

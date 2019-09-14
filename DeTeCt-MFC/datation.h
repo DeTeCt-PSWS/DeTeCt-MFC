@@ -4,6 +4,7 @@
 //#include <time.h>
 //#include "common.h"
 #include "wrapper.h"
+#include "dtc.h"
 
 
 #define ONE_DAY_SEC	86400.0	/*86400= 24.0*60.0*60.0 */
@@ -19,19 +20,19 @@
 	/*									Procedures and functions										*/
 	/****************************************************************************************************/
 
-	void 	dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pDuration, double *pfps, TIME_TYPE *ptimetype, char *comment);
+	void 	dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pDuration, double *pfps, TIME_TYPE *ptimetype, char *comment, Planet_type *planet);
 	void 	dtcCorrectDatation(DtcCapture *capture, double *pstart_time, double *pend_time, double *pDuration, double *pfps, TIME_TYPE *ptimetype, char *comment);
 
 	//void 	dtcWriteLog(const char *dtcexename, const double start_time, const double end_time, const double duration, const double fps, const TIME_TYPE timetype, const char *filename, const char *comment, const int nb_impact, const int print);
 
 	void 	dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const int nbframes, double *pstart_time, double *pend_time, double *pDuration, double *pfps);
-	int		dtcGetDatationFromFilename(const char *filename, double *pstart_time, double *pmid_time);
-	int 	dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment);
+	int		dtcGetDatationFromFilename(const char *filename, double *pstart_time, double *pmid_time, Planet_type *planet);
+	int 	dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment, Planet_type *planet);
 
 	double 	gregorian_calendar_to_jd(int y, int m, int d, int hour, int min, double sec);
 	void 	jd_to_date(double jj, double *psec, int *pmin, int *phour, int *pday, int *pmonth, int *pyear);
 
-	int	IsDateCorrect(int y, int m, int d, int hour, int min, double sec);
+	int		IsDateCorrect(int y, int m, int d, int hour, int min, double sec);
 	void 	fprint_jd(FILE *stream, const double jd);
 	void 	fprint_jd_wj(FILE *stream, const double jd);
 	void 	fprint_timetype(FILE *stream, const TIME_TYPE timetype);

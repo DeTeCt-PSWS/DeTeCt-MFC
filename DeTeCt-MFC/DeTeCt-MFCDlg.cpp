@@ -142,6 +142,9 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.timeImpact = std::stod(optionStr);
 	opts.incrLumImpact = std::stod(optionStr);
 	opts.incrFrameImpact = ::GetPrivateProfileInt(L"impact", L"frames", 5, DeTeCtQueueFilename);
+	::GetPrivateProfileString(L"impact", L"impact_duration_min", L"0.6", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
+		DeTeCtQueueFilename);
+	opts.impact_duration_min = std::stod(optionStr);
 	opts.radius = ::GetPrivateProfileInt(L"impact", L"radius", 10, DeTeCtQueueFilename);
 	opts.nframesROI = 1;
 	opts.nframesRef = ::GetPrivateProfileInt(L"other", L"refmin", 50, DeTeCtQueueFilename);
@@ -159,6 +162,15 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.threshold = ::GetPrivateProfileInt(L"impact", L"thresh", 0, DeTeCtQueueFilename);
 	opts.learningRate = 0.0;
 	opts.thrWithMask = ::GetPrivateProfileInt(L"impact", L"mask", 0, DeTeCtQueueFilename);
+	::GetPrivateProfileString(L"impact", L"impact_distance_max", L"4.5", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
+		DeTeCtQueueFilename);
+	opts.impact_distance_max = std::stod(optionStr);
+	::GetPrivateProfileString(L"impact", L"impact_max_avg_min", L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
+		DeTeCtQueueFilename);
+	opts.impact_max_avg_min = std::stod(optionStr);
+	::GetPrivateProfileString(L"impact", L"impact_confidence_min", L"3.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
+		DeTeCtQueueFilename);
+	opts.impact_confidence_min = std::stod(optionStr);
 	opts.histScale = 1;
 	opts.viewROI = ::GetPrivateProfileInt(L"view", L"roi", 0, DeTeCtQueueFilename);
 	opts.viewTrk = ::GetPrivateProfileInt(L"view", L"trk", 0, DeTeCtQueueFilename);
@@ -176,7 +188,8 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.filter.param[2] = 0;
 	opts.filter.param[3] = 0;
 	opts.ADUdtconly = 0;
-	opts.detail = ::GetPrivateProfileInt(L"impact", L"detail", 1, DeTeCtQueueFilename);
+	opts.detail = ::GetPrivateProfileInt(L"impact", L"detail", 0, DeTeCtQueueFilename);
+	opts.zip = ::GetPrivateProfileInt(L"impact", L"zip", 1, DeTeCtQueueFilename);
 	opts.allframes = ::GetPrivateProfileInt(L"impact", L"inter", 0, DeTeCtQueueFilename);
 	opts.minframes = ::GetPrivateProfileInt(L"other", L"frmin", 0, DeTeCtQueueFilename);
 	opts.dateonly = ::GetPrivateProfileInt(L"other", L"dateonly", 0, DeTeCtQueueFilename);
@@ -224,6 +237,9 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_BN_CLICKED(IDOK, &CDeTeCtMFCDlg::OnBnClickedOk)
 	ON_COMMAND(ID_FILE_OPEN32771, &CDeTeCtMFCDlg::OnFileOpen32771)
 	ON_COMMAND(ID_HELP_EXIT, &CDeTeCtMFCDlg::OnHelpExit)
+	ON_COMMAND(ID_HELP_TUTORIAL, &CDeTeCtMFCDlg::OnHelpTutorial)
+	ON_COMMAND(ID_HELP_DOCUMENTATION, &CDeTeCtMFCDlg::OnHelpDocumentation)
+	ON_COMMAND(ID_HELP_CHECKSFORUPDATE, &CDeTeCtMFCDlg::OnHelpChecksForUpdate)
 	ON_COMMAND(ID_SETTINGS_PREFERENCES, &CDeTeCtMFCDlg::OnSettingsPreferences)
 	ON_COMMAND(ID_FILE_EXIT, &CDeTeCtMFCDlg::OnFileExit)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CDeTeCtMFCDlg::OnLbnSelchangeList1)
@@ -286,82 +302,93 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	std::wstring wstr(full_version.begin(), full_version.end());
 	SetWindowText(wstr.c_str());
 
-// Following does not work
-//	ModifyStyle(0, WS_MAXIMIZEBOX, SWP_FRAMECHANGED);  // enable maximize
-//	ModifyStyle(0, WS_MINIMIZEBOX, SWP_FRAMECHANGED);  // enable minimize
-//	ModifyStyle(1, WS_MAXIMIZEBOX);
+	// Following does not work
+	//	ModifyStyle(0, WS_MAXIMIZEBOX, SWP_FRAMECHANGED);  // enable maximize
+	//	ModifyStyle(0, WS_MINIMIZEBOX, SWP_FRAMECHANGED);  // enable minimize
+	//	ModifyStyle(1, WS_MAXIMIZEBOX);
 
 
-//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing) 
-  bOk = m_resizer.Hook(this);
-  ASSERT( bOk );
+	//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing) 
+	bOk = m_resizer.Hook(this);
+	ASSERT(bOk);
 
-//  bOk = m_resizer.SetAnchor(IDC_FRAME_MINSIZE, ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
-//   ASSERT( bOk );
-//  bOk = m_resizer.SetMinimumSize(IDC_FRAME_MINSIZE, CSize(600, 600));
-//   ASSERT( bOk );
-//	bOk = m_resizer.SetMaximumSize(IDC_FRAME_MINSIZE, CSize(800, 800));
-//   ASSERT( bOk ); 
-//  bOk = m_resizer.SetAnchor(IDC_FRAME_MINSIZE, ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
-//   ASSERT(bOk);
+	//  bOk = m_resizer.SetAnchor(IDC_FRAME_MINSIZE, ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
+	//   ASSERT( bOk );
+	//  bOk = m_resizer.SetMinimumSize(IDC_FRAME_MINSIZE, CSize(600, 600));
+	//   ASSERT( bOk );
+	//	bOk = m_resizer.SetMaximumSize(IDC_FRAME_MINSIZE, CSize(800, 800));
+	//   ASSERT( bOk ); 
+	//  bOk = m_resizer.SetAnchor(IDC_FRAME_MINSIZE, ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
+	//   ASSERT(bOk);
 
-// also set the min/max for this dlg. you have to use "" for the panel name
-//  bOk = m_resizer.SetAnchor(_T("_root"), ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
-//  ASSERT(bOk);
-  x_size = 441 + 221;
-  y_size = 267 + 168;
-  bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
-   ASSERT(bOk);
+	// also set the min/max for this dlg. you have to use "" for the panel name
+	//  bOk = m_resizer.SetAnchor(_T("_root"), ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
+	//  ASSERT(bOk);
+	x_size = 441 + 221;
+	y_size = 267 + 168;
+	bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
+	ASSERT(bOk);
 
-//   bOk = m_resizer.SetMaximumSize(_T("_root"), CSize(700, 700));
-//   ASSERT(bOk);
+	//   bOk = m_resizer.SetMaximumSize(_T("_root"), CSize(700, 700));
+	//   ASSERT(bOk);
 
-   m_resizer.SetShowResizeGrip(TRUE);
-   bOk = m_resizer.InvokeOnResized();
-   ASSERT(bOk);
+	m_resizer.SetShowResizeGrip(TRUE);
+	bOk = m_resizer.InvokeOnResized();
+	ASSERT(bOk);
 
-//end
+	//end
 
 	CenterWindow();
 
-/*
-HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
-	void DisableMinimizeButton(HWND hwnd)
-	{
-		SetWindowLong(hwnd, GWL_STYLE,
-			GetWindowLong(hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
-	}
+	/*
+	HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
+		void DisableMinimizeButton(HWND hwnd)
+		{
+			SetWindowLong(hwnd, GWL_STYLE,
+				GetWindowLong(hwnd, GWL_STYLE) & ~WS_MINIMIZEBOX);
+		}
 
-	void EnableMinimizeButton(HWND hwnd)
-	{
-		SetWindowLong(hwnd, GWL_STYLE,
-			GetWindowLong(hwnd, GWL_STYLE) | WS_MINIMIZEBOX);
-	}
+		void EnableMinimizeButton(HWND hwnd)
+		{
+			SetWindowLong(hwnd, GWL_STYLE,
+				GetWindowLong(hwnd, GWL_STYLE) | WS_MINIMIZEBOX);
+		}
 
-	void DisableMaximizeButton(HWND hwnd)
-	{
-		SetWindowLong(hwnd, GWL_STYLE,
-			GetWindowLong(hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
-	}
+		void DisableMaximizeButton(HWND hwnd)
+		{
+			SetWindowLong(hwnd, GWL_STYLE,
+				GetWindowLong(hwnd, GWL_STYLE) & ~WS_MAXIMIZEBOX);
+		}
 
-	void EnableMaximizeButton(HWND hwnd)
-	{
-		SetWindowLong(hwnd, GWL_STYLE,
-			GetWindowLong(hwnd, GWL_STYLE) | WS_MAXIMIZEBOX);
-	}
-*/
+		void EnableMaximizeButton(HWND hwnd)
+		{
+			SetWindowLong(hwnd, GWL_STYLE,
+				GetWindowLong(hwnd, GWL_STYLE) | WS_MAXIMIZEBOX);
+		}
+	*/
 
 	// TODO: Add extra initialization here
 	std::wstringstream ss2;
 	StreamDeTeCtOSversions(&ss2);
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
-	if (opts.dateonly) impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "WARNING, datation info only monde on, no detection analysis will be performed");
-	if (!opts.interactive) impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "Automatic mode on");
-	if (!opts.reprocessing) impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "No reprocessing mode on");
+	if (opts.dateonly) impactDetectionLog.AddString((CString) "WARNING, datation info only monde on, no detection analysis will be performed");
+	if (!opts.interactive) impactDetectionLog.AddString((CString) "Automatic mode on");
+	if (!opts.reprocessing) impactDetectionLog.AddString((CString) "No reprocessing mode on");
 
+	int index_message = 0;
+	while ((opts.message[index_message].size() > 1) && (index_message < 100)) {
+		impactDetectionLog.AddString((CString)(opts.message[index_message++].c_str()));
+	}
 	//Call directly file/directory addition if option passed to exe
-	if (opts.dirname) OnFileOpen32771();
-	else if (opts.filename) OnFileOpenfile();
+	if (opts.dirname) {
+		if (opendir(opts.dirname)) OnFileOpen32771();
+		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.dirname + " directory not found.");
+	} else if (opts.filename) {
+		std::ifstream filetest(opts.filename);
+		if (filetest) OnFileOpenfile();
+		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.filename + " file not found.");
+	}
+
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -589,7 +616,7 @@ void CAboutDlg::OnUpdateExitQuit(CCmdUI *pCmdUI)
 /**********************************************************************************************//**
  * @fn	void CDeTeCtMFCDlg::OnHelpExit()
  *
- * @brief	Executes the exit action.
+ * @brief	opens about window
  *
  * @author	Jon
  * @date	2017-05-12
@@ -601,6 +628,46 @@ void CDeTeCtMFCDlg::OnHelpExit()
 	about->DoModal();
 }
 
+/**********************************************************************************************//**
+ * @fn	void CDeTeCtMFCDlg::OnHelpTutorial()
+ *
+ * @brief	opens tutorial webpage
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnHelpTutorial()
+{
+	ShellExecute(NULL, L"open", L"http://www.astrosurf.com/planetessaf/doc/dtc/doc/dtc_tuto_en.htm", NULL, NULL, SW_SHOWNORMAL);
+}
+
+/**********************************************************************************************//**
+ * @fn	void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
+ *
+ * @brief	Opens latest version webpage
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
+{
+	ShellExecute(NULL, L"open", L"https://github.com/DeTeCt-PSWS/DeTeCt-MFC/releases/latest", NULL, NULL, SW_SHOWNORMAL);
+}
+/**********************************************************************************************//**
+ * @fn	void CDeTeCtMFCDlg::OnHelpDocumentation()
+ *
+ * @brief	opens documentation page
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnHelpDocumentation()
+{
+	ShellExecute(NULL, L"open", L"https://github.com/DeTeCt-PSWS/Documentation/releases/latest", NULL, NULL, SW_SHOWNORMAL);
+}
 /**********************************************************************************************//**
  * @fn	void CDeTeCtMFCDlg::OnSettingsPreferences()
  *
@@ -673,25 +740,25 @@ BOOL PrefDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
 	meanValueSpin.SetBuddy(&meanValue);
-	meanValueSpin.SetRange(0.0, 1.0);
+	meanValueSpin.SetRange(0, 1);
 	minTimeSpin.SetBuddy(&impactMinTime);
-	minTimeSpin.SetRange(0.0, 1.0);
+	minTimeSpin.SetRange(0, 1);
 	radiusSpin.SetBuddy(&impactRadius);
-	radiusSpin.SetRange(5.0, 20.0);
+	radiusSpin.SetRange(5, 20);
 	brightThreshSpin.SetBuddy(&impactBrightThresh);
-	brightThreshSpin.SetRange(0.0, 255.0);
+	brightThreshSpin.SetRange(0, 255);
 	sizeFactSpin.SetBuddy(&roiSizeFactor);
-	sizeFactSpin.SetRange(0.0, 2.0);
+	sizeFactSpin.SetRange(0, 2);
 	secFactSpin.SetBuddy(&roiSecFactor);
-	secFactSpin.SetRange(0.0, 1.0);
+	secFactSpin.SetRange(0, 1);
 	medianBufSpin.SetBuddy(&roiMedianBufSize);
-	medianBufSpin.SetRange(5.0, 50.0);
+	medianBufSpin.SetRange(5, 50);
 	nframeSpin.SetBuddy(&impactFrameNum);
-	nframeSpin.SetRange(1.0, 50.0);
+	nframeSpin.SetRange(1, 50);
 	minFrameSpin.SetBuddy(&minimumFrames);
-	minFrameSpin.SetRange(3.0, 10000.0);
+	minFrameSpin.SetRange(3, 10000);
 	histoSpin.SetBuddy(&histScale);
-	histoSpin.SetRange(0.0, 1.0);
+	histoSpin.SetRange(0, 1);
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << opts.incrLumImpact;
 	meanValue.SetWindowText(ss.str().c_str());
@@ -722,6 +789,7 @@ BOOL PrefDialog::OnInitDialog()
 	//ADUdtconly.SetCheck(opts.ADUdtconly);
 	//detailedADUdtc.EnableWindow(opts.ADUdtconly);
 	//saveIntFramesADUdtc.EnableWindow(opts.ADUdtconly);
+	Zip.SetCheck(opts.zip);
 	detailedADUdtc.SetCheck(opts.detail);
 	saveIntFramesADUdtc.SetCheck(opts.allframes);
 	showROI.SetCheck(opts.viewROI);
@@ -780,6 +848,7 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT15, roiMedianBufSize);
 	DDX_Control(pDX, IDC_EDIT14, histScale);
 	DDX_Control(pDX, IDC_CHECK16, applyMask);
+	DDX_Control(pDX, IDC_CHECK10, Zip);
 	DDX_Control(pDX, IDC_CHECK11, detailedADUdtc);
 	DDX_Control(pDX, IDC_CHECK12, saveIntFramesADUdtc);
 	DDX_Control(pDX, IDC_CHECK1, showROI);
@@ -855,6 +924,10 @@ void PrefDialog::OnBnClickedOk()
 	opts.incrFrameImpact = std::stoi(str.GetString());
 	::WritePrivateProfileString(L"impact", L"frames", str, DeTeCtQueueFilename);
 	str.Empty();
+	str.Format(L"%.2f", opts.impact_duration_min);
+	//opts.impact_duration_min = std::stof(str.GetString());
+	::WritePrivateProfileString(L"impact", L"impact_duration_min", str, DeTeCtQueueFilename);
+	str.Empty();
 	impactRadius.GetWindowTextW(str);
 	opts.radius = std::stod(str.GetString());
 	::WritePrivateProfileString(L"impact", L"radius", str, DeTeCtQueueFilename);
@@ -892,13 +965,29 @@ void PrefDialog::OnBnClickedOk()
 	opts.thrWithMask = applyMask.GetCheck();
 	str.Format(L"%d", opts.thrWithMask);
 	::WritePrivateProfileString(L"impact", L"mask", str, DeTeCtQueueFilename);
+	opts.zip = Zip.GetCheck();
+	str.Format(L"%d", opts.zip);
+	::WritePrivateProfileString(L"impact", L"zip", str, DeTeCtQueueFilename);
 	opts.detail = detailedADUdtc.GetCheck();
 	str.Format(L"%d", opts.detail);
 	::WritePrivateProfileString(L"impact", L"detail", str, DeTeCtQueueFilename);
+	str.Format(L"%d", opts.zip);
+	::WritePrivateProfileString(L"impact", L"zip", str, DeTeCtQueueFilename);
 	opts.allframes = saveIntFramesADUdtc.GetCheck();
 	str.Format(L"%d", opts.allframes);
 	::WritePrivateProfileString(L"impact", L"inter", str, DeTeCtQueueFilename);
 	opts.viewROI = showROI.GetCheck();
+	
+	str.Format(L"%.2f", opts.impact_distance_max);
+	::WritePrivateProfileString(L"impact", L"impact_distance_max", str, DeTeCtQueueFilename);
+	str.Empty(); 
+	str.Format(L"%.2f", opts.impact_max_avg_min);
+	::WritePrivateProfileString(L"impact", L"impact_max_avg_min", str, DeTeCtQueueFilename);
+	str.Empty();
+	str.Format(L"%.2f", opts.impact_confidence_min);
+	::WritePrivateProfileString(L"impact", L"impact_confidence_min", str, DeTeCtQueueFilename);
+	str.Empty();
+
 	str.Format(L"%d", opts.viewROI);
 	::WritePrivateProfileString(L"view", L"roi", str, DeTeCtQueueFilename);
 	opts.viewTrk = showTrack.GetCheck();
@@ -939,6 +1028,7 @@ void PrefDialog::OnBnClickedOk()
 	::WritePrivateProfileString(L"other", L"filter", str, DeTeCtQueueFilename);
 	str.Format(L"%d", opts.debug);
 	::WritePrivateProfileString(L"other", L"debug", str, DeTeCtQueueFilename);
+	
 	str.Format(L"%d", opts.maxinstances);
 	::WritePrivateProfileString(L"other", L"maxinstances", str, DeTeCtQueueFilename);
 	::WritePrivateProfileString(L"other", L"darkfile", CA2T(opts.darkfilename), DeTeCtQueueFilename);
@@ -1130,7 +1220,8 @@ void PrefDialog::OnBnClickedButton1()
 	ss << std::fixed << std::setprecision(2) << 0.8;
 	histScale.SetWindowText(ss.str().c_str());
 	applyMask.SetCheck(0);
-	detailedADUdtc.SetCheck(1);
+	Zip.SetCheck(1);
+	detailedADUdtc.SetCheck(0);
 	saveIntFramesADUdtc.SetCheck(0);
 	showROI.SetCheck(0);
 	showTrack.SetCheck(0);
@@ -1145,6 +1236,19 @@ void PrefDialog::OnBnClickedButton1()
 	ignoreIncorrectFrames.SetCheck(0);
 	useFilter.SetCheck(true);
 	filterSelect.EnableWindow(useFilter.GetCheck());
+
+	opts.impact_duration_min = 0.6;
+	opts.ROI_min_px_val = 10;
+	opts.ROI_min_size = 20;
+	opts.impact_distance_max = 4.5;
+	opts.impact_max_avg_min = 177.0;
+	opts.impact_confidence_min = 3.0;
+	opts.maxinstances = 1;
+	strcpy(opts.darkfilename, "darkfile.tif");
+
+	// Apply changes
+	PrefDialog::OnBnClickedOk();
+	
 	// TODO: Add your control notification handler code here
 }
 // C:\Users\Jon\Documents\Visual Studio 2015\Projects\DeTeCt-MFC\DeTeCt-MFC\DeTeCt-MFCDlg.cpp : implementation file
@@ -1177,10 +1281,10 @@ SendEmailDlg::SendEmailDlg(CWnd* pParent)
 
 }
 
-SendEmailDlg::SendEmailDlg(CWnd* pParent, std::vector<std::string> logMessages)
+SendEmailDlg::SendEmailDlg(CWnd* pParent, std::vector<std::string> logMessages2)
 	: CDialog(IDD_SENDLOGDIALOG, pParent)
 {
-	this->messages = logMessages;
+	this->messages = logMessages2;
 }
 
 /**********************************************************************************************//**
@@ -1237,7 +1341,7 @@ BOOL SendEmailDlg::OnInitDialog()
 
 	for (std::string msg : messages) {
 		std::wstring wmsg = std::wstring(msg.begin(), msg.end());
-		CString Cmsg = CString(wmsg.c_str(), wmsg.length());
+		CString Cmsg = CString(wmsg.c_str(), (int)wmsg.length());
 		outputLog.AddString(Cmsg);
 	}
 	return TRUE;
@@ -1360,7 +1464,7 @@ void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str;
 	meanValue.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.1;
+	val += pNMUpDown->iDelta * 0.1f;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	meanValue.SetWindowTextW(ss.str().c_str());
@@ -1412,7 +1516,7 @@ void PrefDialog::OnDeltaposSpin14(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str;
 	histScale.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.1;
+	val += pNMUpDown->iDelta * 0.1f;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	histScale.SetWindowTextW(ss.str().c_str());
@@ -1437,7 +1541,7 @@ void PrefDialog::OnDeltaposSpin12(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str;
 	roiSizeFactor.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.05;
+	val += pNMUpDown->iDelta * 0.05f;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	roiSizeFactor.SetWindowTextW(ss.str().c_str());
@@ -1462,7 +1566,7 @@ void PrefDialog::OnDeltaposSpin13(NMHDR *pNMHDR, LRESULT *pResult)
 	CString str;
 	roiSecFactor.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.05;
+	val += pNMUpDown->iDelta * 0.05f;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	roiSecFactor.SetWindowTextW(ss.str().c_str());

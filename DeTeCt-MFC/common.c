@@ -6,7 +6,6 @@
 /*                                                                              */
 /********************************************************************************/
 #include "common.h"
-//#include <stdio.h>
 #include <ctype.h>
 
 int debug_mode;
@@ -124,14 +123,14 @@ void init_string(char *variable)
 	}
 } 	 	
 
-char *lcase(char *src, char *dst)
+char *lcase(const char *src, char *dst)
 {
-	int len;
+	size_t len;
 
 	len = strlen(src);
 
 	if (len>=MAX_STRING) {
-		fprintf(stderr,"ERROR in lcase: incorrect length %zd\n",strlen(src));
+		fprintf(stderr,"ERROR in lcase: incorrect length %zi\n",len);
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < len; i++) {
@@ -140,13 +139,13 @@ char *lcase(char *src, char *dst)
 	return dst;
 }
 
-char *ucase(char *src, char *dst)
+char *ucase(const char *src, char *dst)
 {
-	int len;
+	size_t len;
 	len = strlen(src);
 	
 	if (len>=MAX_STRING) {
-		fprintf(stderr,"ERROR in ucase: incorrect length %zd\n",strlen(src));
+		fprintf(stderr,"ERROR in ucase: incorrect length %zi\n",len);
 		exit(EXIT_FAILURE);
 	}
 	for (int i = 0; i < len; i++) {

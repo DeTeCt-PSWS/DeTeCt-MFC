@@ -48,8 +48,8 @@ extern "C" {
 	int 	InStr(const char *str, const char *search);
 	char* 	strrstr(const char *haystack, const char *needle);
 	int 	InRstr(const char *str, const char *search);
-	char 	*lcase(char *src, char *dst);
-	char 	*ucase(char *src, char *dst);
+	char 	*lcase(const char *src, char *dst);
+	char 	*ucase(const char *src, char *dst);
 
 	char 	*getline_ux_win(FILE *file);
 	void 	init_string(char *variable);

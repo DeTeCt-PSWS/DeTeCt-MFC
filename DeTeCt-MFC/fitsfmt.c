@@ -30,7 +30,7 @@ size_t fitsImageRead(void *image, const size_t size, const size_t num, FILE *f)
 	char tmp;
 	long int length;
 	
-	length=size*num;
+	length=(long int)size*num;
 	ptr = image;
 	while (bytesR < num * size)	{
 		bytesC = fread(ptr, 1, length, f);

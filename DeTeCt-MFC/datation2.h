@@ -10,7 +10,7 @@
  * @struct	_LogInfo
  *
  * @brief	Information for the log corresponding to each file analysed. 
- * 			Same as the old file with the certainty field added.
+ * 			Same as the old file with the confidence field added.
  *
  * @author	Jon
  * @date	2017-05-12
@@ -27,16 +27,18 @@ struct _LogInfo {
 	TIME_TYPE timetype;
 	char *comment;
 	int nb_impact;
-	double certainty;
+	double confidence;
+	double distance;
 	double mean_stat[3];
 	double mean2_stat[3];
 	double max_mean_stat[3];
 	double max_mean2_stat[3];
 	double diff_stat[3];
 	double diff2_stat[3];
+	char *rating_classification;
 
 	_LogInfo(const char *fn, const double st, const double et, const double d,
-		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3]) {
+		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double dist, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3], const char *classification) {
 		filename = (char*)fn;
 		start_time = st;
 		end_time = et;
@@ -45,7 +47,8 @@ struct _LogInfo {
 		timetype = tt;
 		comment = (char*)com;
 		nb_impact = ni;
-		certainty = c;
+		confidence = c;
+		distance = dist;
 		for (int i = 0; i < 3; i++) {
 			mean_stat[i] = mean_m[i];
 			mean2_stat[i] = mean2_m[i];
@@ -54,6 +57,7 @@ struct _LogInfo {
 			diff_stat[i] = diff_m[i];
 			diff2_stat[i] = diff2_m[i];
 		}
+		rating_classification = (char*)classification;
 	}
 };
 

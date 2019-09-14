@@ -26,7 +26,7 @@ const double DURATION_MAX	=	ONE_DAY_SEC;
 /*******************MAIN FUNCTION to get datation of capture******************************/
 /*****************************************************************************************/
 
-void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pduration, double *pfps, TIME_TYPE *ptimetype, char *comment)
+void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pduration, double *pfps, TIME_TYPE *ptimetype, char *comment, Planet_type *planet)
 {
 	double JD_init = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
 	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
@@ -65,6 +65,9 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 
 	double time_tmp;
 	char comment2[MAX_STRING];
+
+	*planet = Notdefined;
+	Planet_type planet_fromfilename = Notdefined;
 
 	//***Test
 	//global_C_variable_test = 1;
@@ -127,7 +130,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 		break;
 	}
 
-	dtcGetDatationFromFilename(filename, &start_time_filename, &mid_time_filename);
+	dtcGetDatationFromFilename(filename, &start_time_filename, &mid_time_filename, &planet_fromfilename);
 	if ((start_time_filename > JD_min) && (start_time_filename < JD_max)) {
 		if (((start_time_file - start_time_filename) > 0) && ((start_time_file - start_time_filename) < 30.0 / 60.0 / 24.0)) {
 			start_time_file = start_time_filename;
@@ -373,7 +376,9 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 }
 /********** Date from log file **********/	
 											if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from log file\n"); }
-	dtcGetDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2);
+	dtcGetDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2, planet);
+	if (*planet == Notdefined) *planet = planet_fromfilename;
+
 	if ((duration_log<DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC>DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC<DURATION_MAX)) {
 		duration_log=(end_time_log-start_time_log)*ONE_DAY_SEC;
 	}
@@ -783,7 +788,7 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 /***************************Gets datation from filename***********************************/
 /*****************************************************************************************/
 
-BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, double *pmid_time)
+BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, double *pmid_time, Planet_type *planet)
 {
 	char tmpline[MAX_STRING];
 	int year;
@@ -793,12 +798,25 @@ BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, d
 	int min;
 	double sec;
 	char filename[MAX_STRING];
+	char longfilename_lcase[MAX_STRING];
 	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
 	double JD_max = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
 	double JD_init = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
 
 	(*pstart_time) = JD_init;
 	(*pmid_time) = JD_init;
+
+	// Gets planet name if present
+	*planet = Notdefined;
+	lcase(longfilename, longfilename_lcase);
+	if (InStr(longfilename_lcase, "saturn") >= 0) *planet = Saturn;
+	else if (InStr(longfilename_lcase, "jupiter")>= 0) *planet = Jupiter;
+	else if (InStr(longfilename_lcase, "jup") >= 0) *planet = Jupiter;
+	else if (InStr(longfilename_lcase, "sat") >= 0) *planet = Saturn;
+	else if (InStr(longfilename_lcase, "mercur") >= 0) *planet = Mercury;
+	else if (InStr(longfilename_lcase, "venus") >= 0) *planet = Venus;
+	else if (InStr(longfilename_lcase, "uranus") >= 0) *planet = Uranus;
+	else if (InStr(longfilename_lcase, "neptun") >= 0) *planet = Neptun;
 
 	//a\toto.42
 	//123456789 - 9-1=8
@@ -899,7 +917,7 @@ BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, d
 /***************Gets datation from acquisition software log files*************************/
 /*****************************************************************************************/
 
-int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment)
+int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment, Planet_type *planet)
 {
 	struct stat logfile_info;
 	time_t		log_time_t;
@@ -1293,7 +1311,15 @@ MM.dd.yyyy
 	dd_MMM._yyyy	12		x	+	x	x	ok
 	MMM._dd_yyyy	12		x	x	+	+	ok
 	yyyy_MMM._dd 	12 		x	x	x	+ 	ok	*/
-
+				if (strcmp(fieldname, "Profile") == 0) { /* Profile=Jupiter */
+					if  (strcmp(value, "Mercury") == 0) *planet = Mercury;
+					else if (strcmp(value, "Venus") == 0) *planet = Venus;
+					else if (strcmp(value, "Mars") == 0) *planet = Mars;
+					else if (strcmp(value, "Jupiter") == 0) *planet = Jupiter;
+					else if (strcmp(value, "Saturn") == 0) *planet = Saturn;
+					else if (strcmp(value, "Uranus") == 0) *planet = Uranus;
+					else if (strcmp(value, "Neptun") == 0) *planet = Neptun;
+				}
 				if (strcmp(fieldname,"Date")==0)  { 	/* Date=11.03.2011 */
 					(*plogtimezone)=LT;
 					if ((software_version>2.3) || ((software_version==2.3) && ((software_beta>=16) || (software_beta<=0)))) {
@@ -1789,6 +1815,15 @@ MM.dd.yyyy
 /* Genika Astro + Trigger	                                                                                  */
 /**************************************************************************************************************/
 			} else if (strcmp(software,"Genika")==0) {			
+				if ((InStr(fieldname, "Planète") >= 0) || (InStr(fieldname, "Planet") >= 0)) { /* Planète = Jupiter */
+					if (InStr(value, "Jupiter") >=0) *planet = Jupiter;
+					else if (InStr(value, "Saturn") >=0) *planet = Saturn;
+					else if (InStr(value, "Mercur")>=0) *planet = Mercury;
+					else if (InStr(value, "Venus") >=0) *planet = Venus;
+					else if (InStr(value, "Mars") >=0) *planet = Mars;
+					else if (InStr(value, "Uranus") >=0) *planet = Uranus;
+					else if (InStr(value, "Neptun") >=0) *planet = Neptun;
+				}
 				if (strcmp(right(fieldname, strlen("but de la capture"),tmpline),"but de la capture") == 0) {
 					strcpy(fieldname,"Début de la capture");
 				}

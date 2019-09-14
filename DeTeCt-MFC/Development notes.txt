@@ -1,23 +1,61 @@
 Todo list (lowest to highest priority):
-DeTeCt -help option from command line
 
-New detection algorithm based on detection image contrast
-Check correctness of video/image (ie planet or not)
+Suspended:
+----------
+Bugfix: correct darkfile comment in log (not reproductable)
+Files:  color ser to be fixed (code correct - Siril issue?)
+GUI: Implement new parameters (some advanced parameters not suitable for user own definition)
 
-Automatic version update
+Low priority:
+-------------
+GUI: checkboxes for selecting files/folders to be processed (Lewis)
+GUI: Drag & drop functionality
+Firecapture: code for live detection
+General: video card offload library usage (OpenCL) (Wesley)
 
-Correct dtc_max-mean identified on data set
+Medium priority:
+----------------
+Algorithm: minimum size for flash
+Algorithm: binning depending on size of planet to decrease computing (Wesley)
+Algorithm: Use WJ ims file for initial RoI/center of gravity
 
-Review confidence and distance acceptable
+Files: 16b FIT/FITS support to be fixed
+Files: avi support to be fixed
+Bug: accents (ie û) in directory name prevents image / directory creation
 
-Use WJ ims file for initial RoI/center of gravity
+Autostakkert: Use as3(+acquisition) file for processing queue
 
-16b FIT/FITS support to be fixed
-avi support to be fixed
-(color ser to be fixed - Siril issue?)
+High priority:
+--------------
+Files: Check minimum frames when adding files from folder
+General: Automatic version update
+Detection: Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
 
-Use as3(+acquisition) file for processing queue
-
+v3.2 (/v3.1.12):
+Algorithm:		Check #of frames calculated from fps for impacts (duration 0.6s)
+Detection:		use of multi criteria for impact detection (confidence, distance acceptable, "contrast" of detection image)
+Detection:		messages and logs clarified (rating high, low, nul, error)
+GUI:			Advanced settings window more alerting user, about box enriched
+GUI:			Latest version menu
+GUI:			Tutorial menu
+GUI:			Documentation menu
+GUI:			Reset preferences saves reset preferences
+Parameters:		details deactivated by default
+Log:			frame # of impact when detection in log (Sylla/Lewis)
+Log:			addition of distance in logfile
+Log:			addition of planet and min/max dates in logfilename in impact_detection folder (Lewis)
+Log:			Creation by default of zipped impact_detection folder for sending (messages changed, checkbox added in advanced settings)
+Files:			Displays file processed/total number of files to process in window
+Command line:	-help option
+Command line:	displaying messages at the initialization (-help, errors, ...)
+Command line:	error message if folder or file from command line not found
+Bugfix:			negative value for number of frames (error with _ftelli64)
+Bugfix:			generation of max-mean non normalized value even if no detail option activated
+Bugfix:			space in file/folder names from command line
+Bugfix:			reinitialization of all parameters
+Bugfix:			save all parameters in .ini (and remove crash)
+Warnings cleaning
+--------------------------------------------------------------------------------------
 v3.1.11:
 General:	option for dark file usage (except on winjupos and pipp files)
 Algorithm:	no logging of impacts when overal mean is too small (ie no planetary acquisition)
@@ -26,6 +64,7 @@ AS3:		using WinJupos DRS if as3 uses unexisting derotated file
 Files:		Ignore dark files (possibility to ignore PIPP or WJ derotation)
 ROI:		ignoring pixels with small brightness for center of mass calculation
 Algorithm:	decrease rejection of frames due to low mean of brightness
+Algorithm: include in log all statistics about the mean/diff/detections images generated
 Bugfix:		ROI not working if coordinates outside of range
 Bugfix:		crash when erasing first file from file list in detection
 Bugfix:		datation only mode not working and bad output for logfile pathname

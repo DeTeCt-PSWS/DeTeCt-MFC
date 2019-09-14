@@ -9,7 +9,8 @@
 //#include "ini.h"
 #include "cmdline.h"
 
-//#include <iostream>
+#include <iostream>
+using namespace std;
 #include <fstream>
 //#include <sstream>
 //#include <cstdio>
@@ -106,30 +107,50 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	full_version.append("_" DETECT_TARGET);
 	
 /*** Analyse command line parameters ***/
-	for (CString sItem = commandLineArgument.Tokenize(L" ", i); i >= 0; sItem = commandLineArgument.Tokenize(L" ", i)) {
-		commandParametres.Add(sItem);
+	LPWSTR *szArglist;
+	int nArgs;
+	int idx;
+
+	szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
+	if (NULL == szArglist)
+	{
+		wprintf(L"CommandLineToArgvW failed\n");
 	}
+	else for (idx = 0; idx < nArgs; idx++) {
+		commandParametres.Add(szArglist[idx]);
+	}
+	// Free memory allocated for CommandLineToArgvW arguments.
+	LocalFree(szArglist);
+	
+	int index_message = 0;
+	opts.message[index_message] = "\0";
 	for (int j = 0; j < commandParametres.GetCount(); j++) {
 		CString parameter = commandParametres.GetAt(j);
 		std::wstring wparam(parameter);
 		std::string param(wparam.begin(), wparam.end());
-		param = param.substr(param.find_first_of(" ") + 1, param.length());
-		while (param.find('\n') != std::string::npos) {
-			param.erase(param.find('\n'), 2);
-		}
-//CString SuffixString(DTC_QUEUE_SUFFIX);
-//CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(SuffixString);
-//PushToQueue(L"Interactive?", DeTeCtQueueFilename);
-//PushToQueue(parameter, DeTeCtQueueFilename);
+		while (param.find('\n') != std::string::npos) param.erase(param.find('\n'), 2);
 		if (starts_with(param, "-")) {
 			DBOUT("option : " << param.c_str() << "\n");
 			if (starts_with(param, "-automatic")) opts.interactive = FALSE;
 			else if (starts_with(param, "-interactive"))  opts.interactive = TRUE;	
 			else if (starts_with(param, "-noreprocessing")) opts.reprocessing = FALSE;
 			else if (starts_with(param, "-reprocessing")) opts.reprocessing = TRUE;
+			else if (starts_with(param, "-help")) {
+				opts.message[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
+				opts.message[index_message++] = "   -automatic          automatic mode launching detection and exiting without interaction";
+				opts.message[index_message++] = "   -noreprocessing   not reprocessing acquisition files already in DeTeCt.log";
+				opts.message[index_message++] = "   filename            name of acquisition/autostakkert session file to be processed";
+				opts.message[index_message++] = "   foldername         name of folder to be process with all its subfolders";
+				opts.message[index_message] = "\0";
+			}
+			else {
+				opts.message[index_message++] = "ERROR : " + param + " option not recognized";
+				opts.message[index_message] = "\0";
+			}
 		}
-		else {
+		else if ((param.find(DeTeCtName) == std::string::npos) && !starts_with(param, "/")) {
 			object = param;
+//			while (object.find_first_of('"') != std::string::npos) object.erase(object.find_first_of('"'), 1);
 			std::ifstream file(object);
 			if (file) {
 				std::string extension;
@@ -142,12 +163,13 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				extension.push_back(';');
 				if (filter_string.rfind(extension) != std::string::npos) {
 					target_file = object;
-					//DBOUT("file = " << target_file.c_str() << "\n");
 					opts.filename = new char[target_file.size() + 1];
 					std::copy(target_file.begin(), target_file.end(), opts.filename);
 					opts.filename[target_file.size()] = '\0';
 					DBOUT("file = " << opts.filename << "\n");
 				}	else {
+					opts.message[index_message++] = "WARNING: Extension : " + extension + " not supported";
+					opts.message[index_message] = "\0";
 					DBOUT("WARNING: Extension : " << extension.c_str() << " not supported\n");
 				}
 			} else {
@@ -163,7 +185,6 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					}
 					else target_folder = object;
 
-					//DBOUT("folder = " << target_folder.c_str() << "\n");
 					opts.dirname = new char[target_folder.size() + 1];
 					std::copy(target_folder.begin(), target_folder.end(), opts.dirname);
 					opts.dirname[target_folder.size()] = '\0';
@@ -171,6 +192,9 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				}
 				else {
 					DBOUT("WARNING: Object : " << object.c_str() << " not found\n");
+					opts.message[index_message++] = "ERROR : file or folder " + object + " not found";
+					opts.message[index_message] = "\0";
+
 				}
 			}
 		}
@@ -184,13 +208,15 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				opts.filename = new char[strlen(tmp)+1];
 				strcpy(opts.filename, tmp);
 				opts.filename[strlen(tmp)] = '\0';
-			} else {
+			}
+			else {
 				DIR *folder_object;
 				if (folder_object = opendir(tmp)) {
-					opts.dirname = new char[strlen(tmp)+1];
+					opts.dirname = new char[strlen(tmp) + 1];
 					strcpy(opts.dirname, tmp);
 					opts.dirname[strlen(tmp)] = '\0';
 				}
+				else DBOUT("parameter = " << objectname << " not found\n");
 			}
 		}
 	}

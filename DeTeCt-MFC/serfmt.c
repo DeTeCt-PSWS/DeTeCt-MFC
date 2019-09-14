@@ -40,8 +40,9 @@ SerCapture *serCaptureFromFile(const char *fname)
 		}
 		if (debug_mode) { fprintf(stderr, "serCaptureFromFile:  Created fh %p\n", sc->fh); }
 
+		//_fseeki64(sc->fh, 0L, SEEK_SET);
 		_fseeki64(sc->fh, 0L, SEEK_END);
-		long actual_file_size = _ftelli64(sc->fh);
+		__int64 actual_file_size = _ftelli64(sc->fh);
 
 		_fseeki64(sc->fh, 0L, SEEK_SET);
 
@@ -207,13 +208,13 @@ SerCapture *serCaptureFromFile(const char *fname)
 			fprintf(stderr, "serCaptureFromFile: Width, Height, depth, nchannels %zd,%zd,%d,%d\n",
 				sc->header.ImageWidth, sc->header.ImageHeight, depth, sc->nChannels);
 		}
-		sc->image = cvCreateImage(cvSize(sc->header.ImageWidth, sc->header.ImageHeight), depth, sc->nChannels);
+		sc->image = cvCreateImage(cvSize((int)sc->header.ImageWidth, (int)sc->header.ImageHeight), depth, sc->nChannels);
 		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created Image %p\n", sc->image); }
 		/*	sc->TimeStamp = calloc(sizeof (char), SER_DATETIME_SIZE);
 		assert(sc->TimeStamp != NULL);
 		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created TimeStamp %d\n",sc->TimeStamp); }*/
 
-		sc->image->widthStep = sc->header.ImageWidth * sc->BytesPerPixel * sc->nChannels;
+		sc->image->widthStep = (int) (sc->header.ImageWidth * sc->BytesPerPixel * sc->nChannels);
 		sc->image->imageDataOrigin = sc->image->imageData;
 		sc->frame = 0;
 		sc->TimeStamp_frame = 0;
@@ -244,7 +245,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 			sc->nChannels == 3 ? CV_16UC3 : CV_16UC1 :
 			sc->nChannels == 3 ? CV_8UC3 : CV_8UC1;
 		sc->current_frame = 0;
-		long file_size = SER_HEADER_SIZE + sc->FrameCount * (sc->ImageBytes + 8);
+		long file_size = (long) (SER_HEADER_SIZE + sc->FrameCount * (sc->ImageBytes + 8));
 		if (actual_file_size < file_size)
 			sc->FrameCount = sc->header.FrameCount = frames_size / (sc->ImageBytes + 8);
 		sc->big_endian_proc = (*(uint16_t *)"\0\xff" < 0x100);
@@ -291,8 +292,8 @@ void serReadTimeStamps(SerCapture *sc)
 	double JD_max = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
 	
 // Save positions
-	long offset = _ftelli64(sc->fh);
-	int frame_old = sc->frame;
+	__int64 offset = _ftelli64(sc->fh);
+	int frame_old = (int)sc->frame;
 
 							if (debug_mode) {
 												fprintf(stderr,"serReadTimeStamps: StartTime  ");
