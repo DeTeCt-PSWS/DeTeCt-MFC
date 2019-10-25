@@ -79,9 +79,13 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	std::string month_string;
 	std::string day;
 	std::string months[] = { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
-	std::string DeTeCtName = "DeTeCt.exe";
+	char DeTeCtNameChar[MAX_STRING];
 	opts.interactive = TRUE;
 	opts.reprocessing = TRUE;
+
+	DeTeCtFileName(DeTeCtNameChar);
+	//std::string DeTeCtName = "DeTeCt.exe";
+	std::string DeTeCtName(DeTeCtNameChar);
 
 /*** builds full program name with version, compilation date and platform ***/
 	compilation_date.append(__DATE__);
@@ -110,6 +114,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	LPWSTR *szArglist;
 	int nArgs;
 	int idx;
+	int index_message = 0;
 
 	szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 	if (NULL == szArglist)
@@ -118,16 +123,27 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	}
 	else for (idx = 0; idx < nArgs; idx++) {
 		commandParametres.Add(szArglist[idx]);
+		//opts.message[index_message++] = CW2A(szArglist[idx]) + " parameter";
 	}
 	// Free memory allocated for CommandLineToArgvW arguments.
 	LocalFree(szArglist);
 	
-	int index_message = 0;
 	opts.message[index_message] = "\0";
+	std::for_each(DeTeCtName.begin(), DeTeCtName.end(), [](char & c) {
+		c = ::tolower(c);
+	});
 	for (int j = 0; j < commandParametres.GetCount(); j++) {
 		CString parameter = commandParametres.GetAt(j);
+		/*CT2CA parameter_ansi_string(parameter);
+		std::string param(parameter_ansi_string);
+		std::string param_org(parameter_ansi_string);*/
 		std::wstring wparam(parameter);
 		std::string param(wparam.begin(), wparam.end());
+		std::string param_org(wparam.begin(), wparam.end());
+		
+		std::for_each(param.begin(), param.end(), [](char & c) {
+			c = ::tolower(c);
+		});
 		while (param.find('\n') != std::string::npos) param.erase(param.find('\n'), 2);
 		if (starts_with(param, "-")) {
 			DBOUT("option : " << param.c_str() << "\n");
@@ -135,12 +151,14 @@ BOOL CDeTeCtMFCApp::InitInstance()
 			else if (starts_with(param, "-interactive"))  opts.interactive = TRUE;	
 			else if (starts_with(param, "-noreprocessing")) opts.reprocessing = FALSE;
 			else if (starts_with(param, "-reprocessing")) opts.reprocessing = TRUE;
+			else if (starts_with(param, "-nozip")) opts.zip = FALSE;
 			else if (starts_with(param, "-help")) {
 				opts.message[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
-				opts.message[index_message++] = "   -automatic          automatic mode launching detection and exiting without interaction";
-				opts.message[index_message++] = "   -noreprocessing   not reprocessing acquisition files already in DeTeCt.log";
-				opts.message[index_message++] = "   filename            name of acquisition/autostakkert session file to be processed";
-				opts.message[index_message++] = "   foldername         name of folder to be process with all its subfolders";
+				opts.message[index_message++] = "   -automatic           automatic mode launching detection and exiting without interaction";
+				opts.message[index_message++] = "   -noreprocessing   no reprocessing acquisition files already in DeTeCt.log";
+				opts.message[index_message++] = "   -nozip                  no generation of impact detection zip file";
+				opts.message[index_message++] = "   filename              name of acquisition/autostakkert session file to be processed";
+				opts.message[index_message++] = "   foldername          name of folder to be process with all its subfolders";
 				opts.message[index_message] = "\0";
 			}
 			else {
@@ -148,8 +166,9 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				opts.message[index_message] = "\0";
 			}
 		}
-		else if ((param.find(DeTeCtName) == std::string::npos) && !starts_with(param, "/")) {
-			object = param;
+//		else if ((param.find(DeTeCtName) == std::string::npos) && !starts_with(param, "/")) {
+		else if ((param.find(DeTeCtName) == std::string::npos)) {
+			object = param_org;
 //			while (object.find_first_of('"') != std::string::npos) object.erase(object.find_first_of('"'), 1);
 			std::ifstream file(object);
 			if (file) {
@@ -162,11 +181,22 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				extension.insert(0,1,'*');
 				extension.push_back(';');
 				if (filter_string.rfind(extension) != std::string::npos) {
-					target_file = object;
+					if ((starts_with(object, ".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
+						//CT2CA tmp_conv(DeTeCt_exe_folder());
+						//target_folder = std::string (tmp_conv);
+						char buffer[MAX_STRING];
+						_fullpath(buffer, object.c_str(), MAX_STRING);
+						target_file = std::string(buffer);
+					}
+					else target_file = object;
+
 					opts.filename = new char[target_file.size() + 1];
 					std::copy(target_file.begin(), target_file.end(), opts.filename);
 					opts.filename[target_file.size()] = '\0';
 					DBOUT("file = " << opts.filename << "\n");
+					std::string tmp_string(opts.filename);
+					opts.message[index_message++] = "Using file " + tmp_string;
+
 				}	else {
 					opts.message[index_message++] = "WARNING: Extension : " + extension + " not supported";
 					opts.message[index_message] = "\0";
@@ -174,9 +204,10 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				}
 			} else {
 				DIR *folder_object;
+//opts.message[index_message++] = "file or folder " + object;
 				if ((folder_object = opendir(object.c_str()))) {
 //convert relative path to absolute path (does not work from MSVC debug as exe launched from MFC directory)
-					if (starts_with(object,".")) {
+					if ((starts_with(object,".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
 						//CT2CA tmp_conv(DeTeCt_exe_folder());
 						//target_folder = std::string (tmp_conv);
 						char buffer[MAX_STRING];
@@ -189,6 +220,8 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					std::copy(target_folder.begin(), target_folder.end(), opts.dirname);
 					opts.dirname[target_folder.size()] = '\0';
 					DBOUT("folder = " << target_folder.c_str() << "\n");
+					std::string tmp_string(opts.dirname);
+					opts.message[index_message++] = "Using directory " + tmp_string;
 				}
 				else {
 					DBOUT("WARNING: Object : " << object.c_str() << " not found\n");
@@ -196,6 +229,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					opts.message[index_message] = "\0";
 
 				}
+				closedir(folder_object);
 			}
 		}
 	}
@@ -208,6 +242,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				opts.filename = new char[strlen(tmp)+1];
 				strcpy(opts.filename, tmp);
 				opts.filename[strlen(tmp)] = '\0';
+				file._close();
 			}
 			else {
 				DIR *folder_object;
@@ -215,6 +250,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					opts.dirname = new char[strlen(tmp) + 1];
 					strcpy(opts.dirname, tmp);
 					opts.dirname[strlen(tmp)] = '\0';
+					closedir(folder_object);
 				}
 				else DBOUT("parameter = " << objectname << " not found\n");
 			}

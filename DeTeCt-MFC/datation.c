@@ -69,9 +69,6 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 	*planet = Notdefined;
 	Planet_type planet_fromfilename = Notdefined;
 
-	//***Test
-	//global_C_variable_test = 1;
-
 	/********** Init **********/
 	if (debug_mode) { fprintf(stderr, "dtcGetDatation: Initializing\n"); }
 	(*pstart_time) = JD_init;

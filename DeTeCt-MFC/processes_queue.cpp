@@ -39,6 +39,7 @@ int DectectInstancesNumber()
 }
 
 /*** Get current executable name ***/
+/***  ie "Detect.exe" ***/
 char *DeTeCtFileName(char *DeTeCtFileNameChar)
 {
 	LPWSTR DeTeCtFullPathName = new TCHAR[MAX_PATH];
@@ -54,6 +55,7 @@ char *DeTeCtFileName(char *DeTeCtFileNameChar)
 
 
 /*** returns detect additional filename from executable filename ***/
+/***  ie L"folder\\Detect_suffix" ***/
 CString  DeTeCt_additional_filename(CString folder, CString suffix)
 {
 	CString folder_return = folder;
@@ -61,7 +63,7 @@ CString  DeTeCt_additional_filename(CString folder, CString suffix)
 	DeTeCtFileName(DeTeCtFileNameChar);
 	CString DeTeCtFileNameString(DeTeCtFileNameChar);
 
-	folder_return.Append(L"\\");
+	if (folder != "") folder_return.Append(L"\\");
 	folder_return.Append(DeTeCtFileNameString.Left(DeTeCtFileNameString.ReverseFind(_T('.'))));
 	folder_return.Append(suffix);
 
@@ -69,12 +71,14 @@ CString  DeTeCt_additional_filename(CString folder, CString suffix)
 }
 
 /*** returns detect filename in detect executable folder ***/
+/*** ie L"G:\\Work\\Impact\\DeTeCt-PSWS\\DeTeCt-MFC\\x64\\Release\\DeTeCt_suffix"  ***/
 CString  DeTeCt_additional_filename_exe_folder(CString suffix)
 {
 	return DeTeCt_additional_filename(DeTeCt_exe_folder(), suffix);
 }
 
 /*** returns detect executable foldername ***/
+/*** ie L"G:\\Work\\Impact\\DeTeCt-PSWS\\DeTeCt-MFC\\x64\\Release" ***/
 CString DeTeCt_exe_folder()
 {
 	wchar_t exepath[1000];

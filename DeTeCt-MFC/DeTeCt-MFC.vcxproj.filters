@@ -19,7 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
-    <Text Include="Development notes.txt" />
+    <Text Include="Version history.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeTeCt-MFC.h">
@@ -166,9 +166,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dtcas3.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SendEmailDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="datation2.cpp">

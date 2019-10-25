@@ -36,6 +36,9 @@ struct options {
 	char *ovfname;
 	char *sfname;
 	char *dirname;
+	char impactdirname[MAX_STRING];
+	char zipname[MAX_STRING];
+	//	char dirname[MAX_STRING];
 	int nsaveframe; // Frame number to <ofilename>
 	int ostype; // Source video type to extract frame
 	int ovtype; // Output video type to create
@@ -73,7 +76,8 @@ struct options {
 	BOOL videotest; // Test input video file
 	BOOL ADUdtconly; // Use ADUdtc algorithm only
 	BOOL detail; // Use ADUdtc algorithm only with 2 more images as output
-	BOOL zip;  // Creates zip of impact_detection folder
+	BOOL zip;  // Creates zip of impact_detection folder at the end of processing
+	BOOL email;  // Send email at the end of processing
 	BOOL allframes; // Save all intermediate mac frames from ADUdtc algorithm
 	double impact_distance_max; // Maximum value for distance between old algorithm and max in detection image for being a possible impact
 	double impact_max_avg_min; // Minimum value for max - mean value of dtc_max-mean image for being a possible impact
@@ -119,7 +123,7 @@ int		detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *li
 
 //int		detect(std::vector<std::string> file_list, OPTS opts);
 
-int		detect(std::vector<std::string> current_file_list, OPTS opts, std::string scan_folder_path);
+int		detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path);
 
 void	StreamDeTeCtOSversions(std::wstringstream *ss);
 

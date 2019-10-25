@@ -2,9 +2,9 @@
 
 #include "stdafx.h"
 
-char *DeTeCtFileName(char *DeTeCtFileNameChar);
-
 int DectectInstancesNumber();
+
+char *DeTeCtFileName(char *DeTeCtFileNameChar);
 
 CString  DeTeCt_additional_filename_exe_folder(CString suffix);
 

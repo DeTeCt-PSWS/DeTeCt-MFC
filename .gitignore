@@ -16,3 +16,5 @@
 *.iodb
 *.ilk
 *.bat
+/x64/Release/tést
+/x64/Debug/DeTeCt.exe

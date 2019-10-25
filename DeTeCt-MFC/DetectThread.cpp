@@ -11,5 +11,5 @@
 
 UINT __cdecl impactDetection(LPVOID pParam) {
 	ImpactDetectParams* params = (ImpactDetectParams*)pParam;
-	return detect(params->file_list, params->opts, params->scan_folder_path);
+	return detect(params->file_list, &params->opts, params->scan_folder_path);
 }

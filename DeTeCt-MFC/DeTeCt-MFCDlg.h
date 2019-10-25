@@ -63,6 +63,7 @@ public:
 	afx_msg void OnHelpTutorial();
 	afx_msg void OnHelpChecksForUpdate();
 	afx_msg void OnHelpDocumentation();
+	afx_msg void OnHelpProjectResults();
 	afx_msg void OnSettingsPreferences();
 	afx_msg void OnFileExit();
 	afx_msg void OnLbnSelchangeList1();
@@ -130,6 +131,8 @@ public:
 	CEdit histScale;
 	CButton applyMask;
 	CButton Zip;
+	CButton Explorer;
+	CButton Email;
 	CButton detailedADUdtc;
 	CButton saveIntFramesADUdtc;
 	CButton showROI;
@@ -219,6 +222,10 @@ public:
 	//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 private:
 	CWndResizer m_resizer;
+public:
+	afx_msg void OnBnClickedButton1();
+	afx_msg void OnStnClickedStaticf4();
+	afx_msg void OnStnClickedStaticf();
  };
 #pragma once
 

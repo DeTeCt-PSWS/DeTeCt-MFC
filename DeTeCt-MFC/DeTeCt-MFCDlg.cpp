@@ -190,6 +190,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.ADUdtconly = 0;
 	opts.detail = ::GetPrivateProfileInt(L"impact", L"detail", 0, DeTeCtQueueFilename);
 	opts.zip = ::GetPrivateProfileInt(L"impact", L"zip", 1, DeTeCtQueueFilename);
+	opts.email = ::GetPrivateProfileInt(L"impact", L"email", 1, DeTeCtQueueFilename);
 	opts.allframes = ::GetPrivateProfileInt(L"impact", L"inter", 0, DeTeCtQueueFilename);
 	opts.minframes = ::GetPrivateProfileInt(L"other", L"frmin", 0, DeTeCtQueueFilename);
 	opts.dateonly = ::GetPrivateProfileInt(L"other", L"dateonly", 0, DeTeCtQueueFilename);
@@ -240,6 +241,7 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_HELP_TUTORIAL, &CDeTeCtMFCDlg::OnHelpTutorial)
 	ON_COMMAND(ID_HELP_DOCUMENTATION, &CDeTeCtMFCDlg::OnHelpDocumentation)
 	ON_COMMAND(ID_HELP_CHECKSFORUPDATE, &CDeTeCtMFCDlg::OnHelpChecksForUpdate)
+	ON_COMMAND(ID_HELP_PROJECTRESULTS, &CDeTeCtMFCDlg::OnHelpProjectResults)
 	ON_COMMAND(ID_SETTINGS_PREFERENCES, &CDeTeCtMFCDlg::OnSettingsPreferences)
 	ON_COMMAND(ID_FILE_EXIT, &CDeTeCtMFCDlg::OnFileExit)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CDeTeCtMFCDlg::OnLbnSelchangeList1)
@@ -381,11 +383,19 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	}
 	//Call directly file/directory addition if option passed to exe
 	if (opts.dirname) {
-		if (opendir(opts.dirname)) OnFileOpen32771();
+		DIR *dir;
+		dir = opendir(opts.dirname);
+		if (dir != NULL) {
+			closedir(dir);
+			OnFileOpen32771();
+		}
 		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.dirname + " directory not found.");
 	} else if (opts.filename) {
 		std::ifstream filetest(opts.filename);
-		if (filetest) OnFileOpenfile();
+		if (filetest) {
+			filetest.close();
+			OnFileOpenfile();
+		}
 		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.filename + " file not found.");
 	}
 
@@ -633,8 +643,8 @@ void CDeTeCtMFCDlg::OnHelpExit()
  *
  * @brief	opens tutorial webpage
  *
- * @author	Jon
- * @date	2017-05-12
+ * @author	Marc
+ * @date	2019-10-24
  **************************************************************************************************/
 
 void CDeTeCtMFCDlg::OnHelpTutorial()
@@ -647,8 +657,8 @@ void CDeTeCtMFCDlg::OnHelpTutorial()
  *
  * @brief	Opens latest version webpage
  *
- * @author	Jon
- * @date	2017-05-12
+ * @author	Marc
+ * @date	2019-10-24
  **************************************************************************************************/
 
 void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
@@ -660,14 +670,29 @@ void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
  *
  * @brief	opens documentation page
  *
- * @author	Jon
- * @date	2017-05-12
+ * @author	Marc
+ * @date	2019-10-24
  **************************************************************************************************/
 
 void CDeTeCtMFCDlg::OnHelpDocumentation()
 {
 	ShellExecute(NULL, L"open", L"https://github.com/DeTeCt-PSWS/Documentation/releases/latest", NULL, NULL, SW_SHOWNORMAL);
 }
+
+/**********************************************************************************************//**
+ * @fn	void CDeTeCtMFCDlg::OnHelpProjectResults()
+ *
+ * @brief	opens project webpage
+ *
+ * @author	Marc
+ * @date	2019-10-24
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnHelpProjectResults()
+{
+	ShellExecute(NULL, L"open", L"http://www.astrosurf.com/planetessaf/doc/project_detect.shtml", NULL, NULL, SW_SHOWNORMAL);
+}
+
 /**********************************************************************************************//**
  * @fn	void CDeTeCtMFCDlg::OnSettingsPreferences()
  *
@@ -790,6 +815,7 @@ BOOL PrefDialog::OnInitDialog()
 	//detailedADUdtc.EnableWindow(opts.ADUdtconly);
 	//saveIntFramesADUdtc.EnableWindow(opts.ADUdtconly);
 	Zip.SetCheck(opts.zip);
+	Email.SetCheck(opts.email);
 	detailedADUdtc.SetCheck(opts.detail);
 	saveIntFramesADUdtc.SetCheck(opts.allframes);
 	showROI.SetCheck(opts.viewROI);
@@ -849,6 +875,7 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT14, histScale);
 	DDX_Control(pDX, IDC_CHECK16, applyMask);
 	DDX_Control(pDX, IDC_CHECK10, Zip);
+	DDX_Control(pDX, IDC_CHECK18, Email);
 	DDX_Control(pDX, IDC_CHECK11, detailedADUdtc);
 	DDX_Control(pDX, IDC_CHECK12, saveIntFramesADUdtc);
 	DDX_Control(pDX, IDC_CHECK1, showROI);
@@ -968,11 +995,12 @@ void PrefDialog::OnBnClickedOk()
 	opts.zip = Zip.GetCheck();
 	str.Format(L"%d", opts.zip);
 	::WritePrivateProfileString(L"impact", L"zip", str, DeTeCtQueueFilename);
+	opts.email = Email.GetCheck();
+	str.Format(L"%d", opts.email);
+	::WritePrivateProfileString(L"impact", L"email", str, DeTeCtQueueFilename);
 	opts.detail = detailedADUdtc.GetCheck();
 	str.Format(L"%d", opts.detail);
 	::WritePrivateProfileString(L"impact", L"detail", str, DeTeCtQueueFilename);
-	str.Format(L"%d", opts.zip);
-	::WritePrivateProfileString(L"impact", L"zip", str, DeTeCtQueueFilename);
 	opts.allframes = saveIntFramesADUdtc.GetCheck();
 	str.Format(L"%d", opts.allframes);
 	::WritePrivateProfileString(L"impact", L"inter", str, DeTeCtQueueFilename);
@@ -1221,6 +1249,8 @@ void PrefDialog::OnBnClickedButton1()
 	histScale.SetWindowText(ss.str().c_str());
 	applyMask.SetCheck(0);
 	Zip.SetCheck(1);
+	Explorer.SetCheck(1);
+	Email.SetCheck(1);
 	detailedADUdtc.SetCheck(0);
 	saveIntFramesADUdtc.SetCheck(0);
 	showROI.SetCheck(0);
@@ -1325,8 +1355,8 @@ BOOL SendEmailDlg::OnInitDialog()
 	BOOL bOk = m_resizer.Hook(this);
 	ASSERT(bOk);
 
-	int x_size = 734-18;
-	int y_size = 364-36;
+	int x_size = 944-18;
+	int y_size = 430-36;
 	bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
 	ASSERT(bOk);
 
@@ -1353,6 +1383,8 @@ BEGIN_MESSAGE_MAP(SendEmailDlg, CDialog)
 	ON_STN_CLICKED(IDC_STATICS, &SendEmailDlg::OnStnClickedStatics)
 	ON_STN_CLICKED(IDC_STATICF3, &SendEmailDlg::OnStnClickedStaticf3)
 	ON_BN_CLICKED(IDC_MFCLINK1, &SendEmailDlg::OnBnClickedMfclink1)
+	ON_BN_CLICKED(IDC_BUTTON1, &SendEmailDlg::OnBnClickedButton1)
+	ON_STN_CLICKED(IDC_STATICF, &SendEmailDlg::OnStnClickedStaticf)
 END_MESSAGE_MAP()// DeTeCt-MFCDlg.cpp : implementation file
 //
 
@@ -1625,6 +1657,78 @@ void CDeTeCtMFCDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 }
 
 void CDeTeCtMFCDlg::OnBnClickedFrame()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+}
+
+/**********************************************************************************************/
+ /*	Action of button to check detection image folder and send zip file                        */
+/**********************************************************************************************/
+
+void SendEmailDlg::OnBnClickedButton1()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+	extern char impact_detection_dirname[MAX_STRING];
+	extern char zip_detection_dirname[MAX_STRING];
+	extern char zip_detection_location[MAX_STRING];
+	extern char zipfile[MAX_STRING];
+	extern char log_detection_dirname[MAX_STRING];
+
+	wchar_t	wimpact_detection_dirname[MAX_STRING];
+	mbstowcs(wimpact_detection_dirname, impact_detection_dirname, strlen(impact_detection_dirname) + 1);//Plus null
+
+	// email start
+	char	mailto_command[MAX_STRING];
+	wchar_t	wmailto_command[MAX_STRING];
+	if (opts.email) {
+		strcpy(mailto_command, "mailto:delcroix.marc@free.fr?subject=Impact detection ");
+		strcat(mailto_command, log_detection_dirname);
+		strcat(mailto_command, "&body=(*please attach ");
+	}
+	
+	// Zip post-processing
+	if (strlen(zip_detection_dirname) > 0) {
+		wchar_t wzip_detection_dirname[MAX_STRING];
+		mbstowcs(wzip_detection_dirname, zip_detection_dirname, strlen(zip_detection_dirname) + 1);//Plus null
+
+		wchar_t wzip_detection_location[MAX_STRING];
+		mbstowcs(wzip_detection_location, zip_detection_location, strlen(zip_detection_location) + 1);//Plus null
+		ShellExecute(NULL, L"explore", wzip_detection_location, NULL, NULL, SW_SHOWNORMAL);
+
+		if (opts.email) {
+			// email continued with zip file
+			strcat(mailto_command, "impact_detection zip file ");
+			strcat(mailto_command, zipfile);
+		}
+	}
+	else {
+		if (opts.email) {
+			// email continued with detection log and images
+			strcat(mailto_command, "detection images and detect log file from ");
+			strcat(mailto_command, impact_detection_dirname);
+		}
+	}
+	//E-Mail post-processing
+	if (opts.email) {
+		// email end
+		strcat(mailto_command, " *)%0A%0AHi Marc,%0A%0AHere are the results and the images of my analysis, I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ACheers,%0A");
+		mbstowcs(wmailto_command, mailto_command, strlen(mailto_command) + 1);
+		ShellExecute(NULL, L"open", wmailto_command, NULL, NULL, SW_SHOWNORMAL);
+	}
+
+	//Explorer post-processing
+	ShellExecute(NULL, L"explore", wimpact_detection_dirname, NULL, NULL, SW_SHOWNORMAL);
+	//SendMail(zip_detection_dirname);
+}
+
+
+void SendEmailDlg::OnStnClickedStaticf4()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+}
+
+
+void SendEmailDlg::OnStnClickedStaticf()
 {
 	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 }

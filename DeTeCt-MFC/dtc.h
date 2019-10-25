@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.2"
+#define VERSION_NB		"3.2.1"
 #define VERSION_DATE	"(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -41,6 +41,7 @@
 #define DTC_QUEUE_SUFFIX		L"_processes_queue.lst"
 #define DTC_INI_SUFFIX			L".ini"
 #define DTC_LOG_SUFFIX			L".log"
+#define OUTPUT_FILENAME			L"output"
 
 #define DTC_MAX_FRAME_PREFIX	"_dtc_max_frame"
 #define DTC_DIFF_FRAME_PREFIX	"_dtc_diff_frame"
