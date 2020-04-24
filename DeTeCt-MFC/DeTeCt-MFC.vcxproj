@@ -329,6 +329,9 @@
     <ResourceCompile Include="DeTeCt-MFC.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\extract_impact_detection_zip.bat" />
+    <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.bat" />
+    <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.vbs" />
     <None Include="fits\libfits.dll" />
     <None Include="res\DeTeCtMFC.rc2" />
   </ItemGroup>

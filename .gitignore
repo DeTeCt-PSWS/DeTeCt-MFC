@@ -18,3 +18,5 @@
 *.bat
 /x64/Release/tést
 /x64/Debug/DeTeCt.exe
+/x64/Release/DeTeCt_processes_queue.lst
+/x64/Release/_DeTeCt_processes_queue - Copie.lst

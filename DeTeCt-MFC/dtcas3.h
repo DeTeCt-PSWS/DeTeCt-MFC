@@ -25,7 +25,7 @@ void read_autostakkert_file(std::string configfile, std::string *filename, std::
 
 void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count);
 
-void read_winjupos_file(std::string winjupos_derotation_filename, std::string *filename);
+void read_winjupos_file(const std::string winjupos_derotation_filename, std::string *filename, const std::string extension);
 
 /*void detect_autostakkert(std::string path);*/
 

@@ -20,11 +20,14 @@ using namespace std;
 namespace filesys = std::experimental::filesystem;
 #include "direct.h"
 
+#include <thread>
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
 std::string full_version;
+std::string app_title;
 
 // CDeTeCtMFCApp
 
@@ -80,14 +83,41 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	std::string day;
 	std::string months[] = { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
 	char DeTeCtNameChar[MAX_STRING];
-	opts.interactive = TRUE;
-	opts.reprocessing = TRUE;
+	int index_message = 0;
+
+// ****************************************
+// **************** INIT ******************
+// ****************************************
 
 	DeTeCtFileName(DeTeCtNameChar);
-	//std::string DeTeCtName = "DeTeCt.exe";
-	std::string DeTeCtName(DeTeCtNameChar);
+	std::string DeTeCtName(DeTeCtNameChar); // "DeTeCt.exe"
 
-/*** builds full program name with version, compilation date and platform ***/
+	// Sets default values for options then reads options from ini file (before it could be changed by command line)
+	opts.interactive =	TRUE; // -interactive / -noautomatic
+	CDeTeCtMFCDlg::CDeTeCtMFCDlg();
+
+	// Checks if DeTeCt has been launched by AutoStakkert
+	opts.autostakkert = FALSE;
+	if (IsParentAutostakkert()) {
+		opts.message[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
+		opts.message[index_message] = "\0";
+
+		opts.autostakkert =	TRUE;
+		opts.interactive =	FALSE; // By default (but not mandatory), auto mode on when launched from AutoStakkert
+		opts.reprocessing =	FALSE; // By default (but not mandatory), noreprocessing on when launched from AutoStakkert
+	}
+	else {
+		// in case code for displaying ProcessName is needed
+		DWORD pid, ppid;
+		int e;
+		wchar_t wfname[MAX_PATH] = { 0 };
+		char fname[MAX_PATH] = { 0 };
+		pid = GetCurrentProcessId();
+		ppid = getParentPID(pid);
+		e = getProcessName(ppid, wfname, MAX_PATH);
+		sprintf(fname, "%ws", wfname);
+	}
+	// builds full program name with version, compilation date and platform
 	compilation_date.append(__DATE__);
 	month_string = compilation_date.substr(0, 3);
 	for (i = 0; i < 12; i++) {
@@ -109,12 +139,20 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	full_version.append(month);
 	full_version.append(day);
 	full_version.append("_" DETECT_TARGET);
+	app_title.append(full_version);
+	app_title.append("       Analysis of Jupiter/Saturn videos to find impact flashes");
+/*	full_version.append(" ");
+	full_version.append(std::to_string(std::thread::hardware_concurrency()).c_str());
+	full_version.append(" processors");*/
+
+
+// **********************************************************************
+// **************** ANALYSE  COMMAND LINE PARAMETERS ********************
+// **********************************************************************
 	
-/*** Analyse command line parameters ***/
 	LPWSTR *szArglist;
 	int nArgs;
 	int idx;
-	int index_message = 0;
 
 	szArglist = CommandLineToArgvW(GetCommandLineW(), &nArgs);
 	if (NULL == szArglist)
@@ -128,10 +166,12 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// Free memory allocated for CommandLineToArgvW arguments.
 	LocalFree(szArglist);
 	
-	opts.message[index_message] = "\0";
+//	opts.message[index_message] = "\0";
 	std::for_each(DeTeCtName.begin(), DeTeCtName.end(), [](char & c) {
 		c = ::tolower(c);
 	});
+	BOOL param_instances = FALSE;
+	BOOL param_used = FALSE;
 	for (int j = 0; j < commandParametres.GetCount(); j++) {
 		CString parameter = commandParametres.GetAt(j);
 		/*CT2CA parameter_ansi_string(parameter);
@@ -145,94 +185,164 @@ BOOL CDeTeCtMFCApp::InitInstance()
 			c = ::tolower(c);
 		});
 		while (param.find('\n') != std::string::npos) param.erase(param.find('\n'), 2);
-		if (starts_with(param, "-")) {
-			DBOUT("option : " << param.c_str() << "\n");
-			if (starts_with(param, "-automatic")) opts.interactive = FALSE;
-			else if (starts_with(param, "-interactive"))  opts.interactive = TRUE;	
-			else if (starts_with(param, "-noreprocessing")) opts.reprocessing = FALSE;
-			else if (starts_with(param, "-reprocessing")) opts.reprocessing = TRUE;
-			else if (starts_with(param, "-nozip")) opts.zip = FALSE;
-			else if (starts_with(param, "-help")) {
-				opts.message[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
-				opts.message[index_message++] = "   -automatic           automatic mode launching detection and exiting without interaction";
-				opts.message[index_message++] = "   -noreprocessing   no reprocessing acquisition files already in DeTeCt.log";
-				opts.message[index_message++] = "   -nozip                  no generation of impact detection zip file";
-				opts.message[index_message++] = "   filename              name of acquisition/autostakkert session file to be processed";
-				opts.message[index_message++] = "   foldername          name of folder to be process with all its subfolders";
-				opts.message[index_message] = "\0";
+		param_used = FALSE;
+		// Gets number of maxinstances
+		//may return 0 when not able to detect
+		if (param_instances == TRUE) {
+			param_instances = FALSE;
+			BOOL has_only_digits = (param.find_first_not_of("0123456789") == std::string::npos);
+			int number = atoi(param.c_str());
+			if (has_only_digits) number = atoi(param.c_str());
+			if ((has_only_digits) && (number > 0)) {
+				opts.maxinstances = number;
+				param_used = TRUE;
+				int processor_count = std::thread::hardware_concurrency();
+				if (opts.maxinstances > processor_count) {
+					opts.maxinstances = processor_count;
+					opts.message[index_message++] = "WARNING : number " + param + " of maxinstances greater than number of processors, using " + std::to_string(processor_count) + " number of processors";
+					opts.message[index_message] = "\0";
+				}
 			}
 			else {
-				opts.message[index_message++] = "ERROR : " + param + " option not recognized";
+				opts.maxinstances = 1;
+				opts.message[index_message++] = "WARNING : number " + param + " of maxinstances is not correct, using default value";
 				opts.message[index_message] = "\0";
 			}
-		}
-//		else if ((param.find(DeTeCtName) == std::string::npos) && !starts_with(param, "/")) {
-		else if ((param.find(DeTeCtName) == std::string::npos)) {
-			object = param_org;
-//			while (object.find_first_of('"') != std::string::npos) object.erase(object.find_first_of('"'), 1);
-			std::ifstream file(object);
-			if (file) {
-				std::string extension;
-				extension = object.substr(object.find_last_of('.'), object.size() - object.find_last_of('.'));
-				std::wstring filter_wstring(filter);
-				std::string filter_string(filter_wstring.begin(), filter_wstring.end());
-				filter_string = filter_string.substr(filter_string.find_first_of('|') + 1, filter_string.size() - filter_string.find_first_of('|') - 3);
-				filter_string.push_back(';');
-				extension.insert(0,1,'*');
-				extension.push_back(';');
-				if (filter_string.rfind(extension) != std::string::npos) {
-					if ((starts_with(object, ".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
-						//CT2CA tmp_conv(DeTeCt_exe_folder());
-						//target_folder = std::string (tmp_conv);
-						char buffer[MAX_STRING];
-						_fullpath(buffer, object.c_str(), MAX_STRING);
-						target_file = std::string(buffer);
-					}
-					else target_file = object;
+		} 
+		// Processes command line options
+		if (!param_used) {
+			if (starts_with(param, "-")) {
+				DBOUT("option : " << param.c_str() << "\n");
+				if (starts_with(param, "-auto")) opts.interactive = FALSE;	// -automatic
+				else if ((starts_with(param, "-inter")) || (starts_with(param, "-noauto")))  opts.interactive = TRUE; // -interactive / -noautomatic
+				else if (starts_with(param, "-noreproc")) opts.reprocessing = FALSE; // -noreprocessing
+				else if (starts_with(param, "-reproc")) opts.reprocessing = TRUE; // -reprocessing
+				else if (starts_with(param, "-nozip")) opts.zip = FALSE;
+				else if (starts_with(param, "-maxinst")) param_instances = TRUE; // -maxinstances
+				else if (starts_with(param, "-asact")) {
+					opts.autostakkert = TRUE; // simulate AutoStakkert launch (dev only)
 
-					opts.filename = new char[target_file.size() + 1];
-					std::copy(target_file.begin(), target_file.end(), opts.filename);
-					opts.filename[target_file.size()] = '\0';
-					DBOUT("file = " << opts.filename << "\n");
-					std::string tmp_string(opts.filename);
-					opts.message[index_message++] = "Using file " + tmp_string;
-
-				}	else {
-					opts.message[index_message++] = "WARNING: Extension : " + extension + " not supported";
+					opts.message[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
 					opts.message[index_message] = "\0";
-					DBOUT("WARNING: Extension : " << extension.c_str() << " not supported\n");
+					opts.interactive = FALSE; // By default (but not mandatory), auto mode on when launched from AutoStakkert
+					opts.reprocessing = FALSE; // By default (but not mandatory), noreprocessing on when launched from AutoStakkert
 				}
-			} else {
-				DIR *folder_object;
-//opts.message[index_message++] = "file or folder " + object;
-				if ((folder_object = opendir(object.c_str()))) {
-//convert relative path to absolute path (does not work from MSVC debug as exe launched from MFC directory)
-					if ((starts_with(object,".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
-						//CT2CA tmp_conv(DeTeCt_exe_folder());
-						//target_folder = std::string (tmp_conv);
-						char buffer[MAX_STRING];
-						_fullpath(buffer, object.c_str(), MAX_STRING);
-						target_folder = std::string(buffer);
-					}
-					else target_folder = object;
-
-					opts.dirname = new char[target_folder.size() + 1];
-					std::copy(target_folder.begin(), target_folder.end(), opts.dirname);
-					opts.dirname[target_folder.size()] = '\0';
-					DBOUT("folder = " << target_folder.c_str() << "\n");
-					std::string tmp_string(opts.dirname);
-					opts.message[index_message++] = "Using directory " + tmp_string;
+				else if (starts_with(param, "-help")) {
+					opts.message[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
+					opts.message[index_message++] = "   -automatic           automatic mode launching detection and exiting without interaction";
+					opts.message[index_message++] = "   -noreprocessing   no reprocessing acquisition files already in DeTeCt.log";
+					opts.message[index_message++] = "   -nozip                  no generation of impact detection zip file";
+					opts.message[index_message++] = "   filename              name of acquisition/autostakkert session file to be processed";
+					opts.message[index_message++] = "   foldername          name of folder to be process with all its subfolders";
+					opts.message[index_message] = "\0";
 				}
 				else {
-					DBOUT("WARNING: Object : " << object.c_str() << " not found\n");
-					opts.message[index_message++] = "ERROR : file or folder " + object + " not found";
+					opts.message[index_message++] = "ERROR : " + param + " option not recognized";
 					opts.message[index_message] = "\0";
-
 				}
-				closedir(folder_object);
+			}
+			// Processes filesystem objets parameters (files or folders)
+			else if ((param.find(DeTeCtName) == std::string::npos)) {
+			//		else if ((param.find(DeTeCtName) == std::string::npos) && !starts_with(param, "/")) {
+				object = param_org;
+				//			while (object.find_first_of('"') != std::string::npos) object.erase(object.find_first_of('"'), 1);
+				std::ifstream file(object);
+				if (file) {
+					std::string extension;
+					extension = object.substr(object.find_last_of('.'), object.size() - object.find_last_of('.'));
+					std::wstring filter_wstring(filter);
+					std::string filter_string(filter_wstring.begin(), filter_wstring.end());
+					filter_string = filter_string.substr(filter_string.find_first_of('|') + 1, filter_string.size() - filter_string.find_first_of('|') - 3);
+					filter_string.push_back(';');
+					extension.insert(0, 1, '*');
+					extension.push_back(';');
+					if (filter_string.rfind(extension) != std::string::npos) {
+						if ((starts_with(object, ".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
+							//CT2CA tmp_conv(DeTeCt_exe_folder());
+							//target_folder = std::string (tmp_conv);
+							char buffer[MAX_STRING];
+							_fullpath(buffer, object.c_str(), MAX_STRING);
+							target_file = std::string(buffer);
+						}
+						else target_file = object;
+
+						opts.filename = new char[target_file.size() + 1];
+						std::copy(target_file.begin(), target_file.end(), opts.filename);
+						opts.filename[target_file.size()] = '\0';
+						DBOUT("file = " << opts.filename << "\n");
+						std::string tmp_string(opts.filename);
+						opts.message[index_message++] = "Using file " + tmp_string;
+
+					}
+					else {
+						opts.message[index_message++] = "WARNING: Extension : " + extension + " not supported";
+						opts.message[index_message] = "\0";
+						DBOUT("WARNING: Extension : " << extension.c_str() << " not supported\n");
+					}
+				}
+				else {
+					DIR *folder_object;
+					//opts.message[index_message++] = "file or folder " + object;
+					if ((folder_object = opendir(object.c_str()))) {
+						//converts relative path to absolute path (does not work from MSVC debug as exe launched from MFC directory)
+						if ((starts_with(object, ".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
+							//CT2CA tmp_conv(DeTeCt_exe_folder());
+							//target_folder = std::string (tmp_conv);
+							char buffer[MAX_STRING];
+							_fullpath(buffer, object.c_str(), MAX_STRING);
+							target_folder = std::string(buffer);
+						}
+						else target_folder = object;
+
+						opts.dirname = new char[target_folder.size() + 1];
+						std::copy(target_folder.begin(), target_folder.end(), opts.dirname);
+						opts.dirname[target_folder.size()] = '\0';
+						DBOUT("folder = " << target_folder.c_str() << "\n");
+						std::string tmp_string(opts.dirname);
+						opts.message[index_message++] = "Using directory " + tmp_string;
+					}
+					else {
+						DBOUT("WARNING: Object : " << object.c_str() << " not found\n");
+						opts.message[index_message++] = "ERROR : file or folder " + object + " not found";
+						opts.message[index_message] = "\0";
+
+					}
+					closedir(folder_object);
+				}
 			}
 		}
 	}
+
+// ******************************************************************
+// *********************** QUEUE MANAGEMENT *************************
+// ******************************************************************
+
+	// Checks if DeTeCt is already running
+	int DeTeCt_processes_nb = DectectInstancesNumber();
+	DBOUT("Maximum DeTeCt processes = " << opts.maxinstances << "\n");
+	DBOUT("Number of DeTeCt processes = " << DeTeCt_processes_nb << "\n");
+	// Filter instances even if non auto mode (v3.2.2)
+
+		// if no additional instance possible, adds object to queue
+	if (DeTeCt_processes_nb > opts.maxinstances) {
+		//if ((DeTeCt_processes_nb > opts.maxinstances) && (!opts.interactive)) {
+		//log processes to be done and exits
+		CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX);
+		if (opts.filename) {
+			CString objectname(opts.filename);
+			if (opts.reprocessing || (!IsAlreadyQueued(objectname, DeTeCtQueueFilename))) PushToQueue(objectname, DeTeCtQueueFilename);
+			else DBOUT("file already queued\n");
+		}
+		else if (opts.dirname) {
+			CString objectname(opts.dirname);
+			if (opts.reprocessing || (!IsAlreadyQueued(objectname, DeTeCtQueueFilename))) PushToQueue(objectname, DeTeCtQueueFilename);
+			else DBOUT("directory already queued\n");
+		}
+		return FALSE;
+	}
+
+	// if new instance and no objects given, looks for work in queue in auto mode*
+	// Checks for even if non auto mode (v3.2.2)
 	if ((!opts.interactive) && (!opts.filename) && (!opts.dirname)) {
 		CString objectname; 
 		if (PopFromQueue(&objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX))) {
@@ -259,32 +369,15 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	if (opts.filename) DBOUT("file = " << opts.filename << "\n");
 	if (opts.dirname) DBOUT("folder = " << opts.dirname << "\n");
 
-/*** Check if DeTeCt is already running ***/
-	int DeTeCt_processes_nb = DectectInstancesNumber();
-	DBOUT("Maximum DeTeCt processes = " << opts.maxinstances << "\n");
-	DBOUT("Number of DeTeCt processes = " << DeTeCt_processes_nb << "\n");
-// tests if logging file/folder to process needed
-	if ((DeTeCt_processes_nb > opts.maxinstances) && (!opts.interactive)) {
-//log processes to be done and exits
-		CString DeTeCtQueueFilename = DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX);
-		if (opts.filename) {
-			CString objectname(opts.filename);
-			if (!IsAlreadyQueued(objectname, DeTeCtQueueFilename)) PushToQueue(objectname, DeTeCtQueueFilename);
-			else DBOUT("file already queued\n");
-		} else if (opts.dirname) {
-			CString objectname(opts.dirname);
-			if (!IsAlreadyQueued(objectname, DeTeCtQueueFilename)) PushToQueue(objectname, DeTeCtQueueFilename);
-			else DBOUT("directory already queued\n");
-		}		
-		return FALSE;
-	}
+//clock_t start = clock(); clock_t end = clock();
 
-//clock_t start = clock();
-//clock_t end = clock();
+// **********************************************************
+// *********************** MFC INIT *************************
+// **********************************************************
 
-// InitCommonControlsEx() is required on Windows XP if an application
+/* InitCommonControlsEx() is required on Windows XP if an application
 // manifest specifies use of ComCtl32.dll version 6 or later to enable
-// visual styles.  Otherwise, any window creation will fail.
+// visual styles.  Otherwise, any window creation will fail.*/
 	INITCOMMONCONTROLSEX InitCtrls;
 	InitCtrls.dwSize = sizeof(InitCtrls);
 // Set this to include all the common control classes you want to use in your application.
@@ -293,11 +386,11 @@ BOOL CDeTeCtMFCApp::InitInstance()
 
 	CWinApp::InitInstance();
 
-// Standard initialization
+/* Standard initialization
 // If you are not using these features and wish to reduce the size of your final executable, you should remove from the following
 // the specific initialization routines you do not need
 // Change the registry key under which our settings are stored
-// TODO: You should modify this string to be something appropriate such as the name of your company or organization
+// TODO: You should modify this string to be something appropriate such as the name of your company or organization*/
 	SetRegistryKey(_T("Local AppWizard-Generated Applications"));
 
 	m_pMainWnd = &dlg;
@@ -334,7 +427,6 @@ BOOL CDeTeCtMFCApp::InitInstance()
 #ifndef _AFXDLL
 	ControlBarCleanUp();
 #endif
-
 	// Since the dialog has been closed, return FALSE so that we exit the application, rather than start the application's message pump.
 	return TRUE;
 }

@@ -26,7 +26,7 @@ const double DURATION_MAX	=	ONE_DAY_SEC;
 /*******************MAIN FUNCTION to get datation of capture******************************/
 /*****************************************************************************************/
 
-void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pduration, double *pfps, TIME_TYPE *ptimetype, char *comment, Planet_type *planet)
+void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *pstart_time, double *pend_time, double *pduration, double *pfps, TIME_TYPE *ptimetype, char *comment, Planet_type *planet, Datation_source *pdatation_source)
 {
 	double JD_init = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
 	double JD_min = gregorian_calendar_to_jd(1980, 1, 1, 0, 0, 0);
@@ -65,11 +65,12 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 
 	double time_tmp;
 	char comment2[MAX_STRING];
+	char software[MAX_STRING];
+
 
 	*planet = Notdefined;
 	Planet_type planet_fromfilename = Notdefined;
 
-	/********** Init **********/
 	if (debug_mode) { fprintf(stderr, "dtcGetDatation: Initializing\n"); }
 	(*pstart_time) = JD_init;
 	(*pend_time) = JD_init;
@@ -77,6 +78,15 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 	(*pduration) = 0.0;
 	(*pfps) = 0.0;
 	init_string(comment2);
+
+	pdatation_source->acquisition_log_file = FALSE;
+	pdatation_source->ser_file = FALSE;
+	pdatation_source->ser_file_timestamp = FALSE;
+	pdatation_source->fits_file = FALSE;
+	pdatation_source->file_info = FALSE;
+	strcpy(pdatation_source->acquisition_software, "");
+	strcpy(software, "");
+
 	/*	now=time(NULL);
 		pnow_tm=localtime(&now);
 		JD_max=gregorian_calendar_to_jd(pnow_tm->tm_year+1900, pnow_tm->tm_mon+1, pnow_tm->tm_mday, pnow_tm->tm_hour, pnow_tm->tm_min, (double) (pnow_tm->tm_sec))+1;*/
@@ -213,6 +223,8 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 												}			
 			if ((end_time_ser>JD_min) && (end_time_ser<JD_max)) {
 				strcpy(comment,"ser file");
+				pdatation_source->ser_file = TRUE;
+				if (capture->u.sercapture->TimeStampExists) pdatation_source->ser_file_timestamp = TRUE;
 				if ((duration_ser>DURATION_MIN) && (duration_ser<=DURATION_MAX)) {
 					(*pduration)=duration_ser;
 				} else if (((*pfps)>FPS_MIN) && ((*pfps)<=FPS_MAX)) {
@@ -233,6 +245,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 			}
 			if ((start_time_ser>JD_min) && (start_time_ser<JD_max)) {
 				strcpy(comment,"ser file");
+				pdatation_source->ser_file = TRUE;
 				if ((duration_ser>DURATION_MIN) && (duration_ser<=DURATION_MAX)) {
 					(*pduration)=duration_ser;
 				} else if (((*pfps)>FPS_MIN) && ((*pfps)<=FPS_MAX)) {
@@ -283,6 +296,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 												}
 			if ((start_time_fits>JD_min) && (start_time_fits<JD_max)) {
 				strcpy(comment,"file info");
+				pdatation_source->fits_file = TRUE;
 				(*pfps)=fps_fits;
 				if ((duration_fits>DURATION_MIN) && (duration_fits<=DURATION_MAX)) {
 					(*pduration)=duration_fits;
@@ -334,6 +348,8 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 												}
 			if ((start_time_fits>JD_min) && (start_time_fits<JD_max)) {
 				strcpy(comment,"FITS info");
+				pdatation_source->fits_file = TRUE;
+
 				(*pfps)=fps_fits;
 				if ((duration_fits>DURATION_MIN) && (duration_fits<=DURATION_MAX)) {
 					(*pduration)=duration_fits;
@@ -373,7 +389,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 }
 /********** Date from log file **********/	
 											if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from log file\n"); }
-	dtcGetDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2, planet);
+	dtcGetDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2, planet, software);
 	if (*planet == Notdefined) *planet = planet_fromfilename;
 
 	if ((duration_log<DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC>DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC<DURATION_MAX)) {
@@ -398,6 +414,9 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 /********** Use log file information if available **********/	
 	if ((start_time_log>JD_min) && (start_time_log<JD_max)) {
 		strcpy(comment,comment2);
+		pdatation_source->acquisition_log_file = TRUE;
+		strcpy(pdatation_source->acquisition_software, software);
+
 		(*ptimetype)=timetype_log;
 		(*pstart_time)=start_time_log;
 		if ((fps_log>FPS_MIN) && (fps_log<=FPS_MAX)) { 
@@ -426,6 +445,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 /********** No date from log/FITS/SER => use file info, with duration from others **********/	
 	if (((*pstart_time)<(JD_min+1)) || ((*pstart_time)>JD_max)) {
 		strcpy(comment,"file info");
+		pdatation_source->file_info = TRUE;
 		if ((duration_log>DURATION_MIN) && (duration_log<=DURATION_MAX)) {
 			(*pduration)=duration_log;
 			strcat(comment,", ");
@@ -458,6 +478,8 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 	}
 	if (((*pend_time)<(JD_min+1)) || ((*pend_time)>JD_max)) {
 		strcpy(comment,"file info");
+		pdatation_source->file_info = TRUE;
+
 		if ((duration_log>DURATION_MIN) && (duration_log<=DURATION_MAX)) {
 			(*pduration)=duration_log;
 			strcat(comment,", ");
@@ -914,7 +936,7 @@ BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, d
 /***************Gets datation from acquisition software log files*************************/
 /*****************************************************************************************/
 
-int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment, Planet_type *planet)
+int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment, Planet_type *planet, char *software)
 {
 	struct stat logfile_info;
 	time_t		log_time_t;
@@ -935,7 +957,6 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 	char value[MAX_STRING];
 	char value2[MAX_STRING];
 	char fieldname[MAX_STRING];
-	char software[MAX_STRING];
 	char tmpline[MAX_STRING];
 	char logfilename[MAX_STRING];
 	char logfilename_rac[MAX_STRING];
@@ -2112,21 +2133,26 @@ MM.dd.yyyy
 		if (software_version>0) {
 			sprintf(tmpline," %1.1f",software_version);
 			strcat(comment,tmpline);
+			strcat(software, tmpline);
 		}
 		if (software_beta==0) {
 			strcat(comment,"beta");
+			strcat(software, tmpline);
 		}
 		if (software_beta>0) {
 			sprintf(tmpline,"b%d",software_beta);
 			strcat(comment,tmpline);
+			strcat(software, tmpline);
 		}
 		if (strlen(software_version_string)>0) {
 			sprintf(tmpline," %s",software_version_string);
 			strcat(comment,tmpline);
+			strcat(software, tmpline);
 		}
 		if (software_version_x86>0) {
 			sprintf(tmpline," %2db",software_version_x86);
 			strcat(comment,tmpline);
+			strcat(software, tmpline);
 		}
 
 		return EXIT_SUCCESS;

@@ -3,12 +3,16 @@
 //
 
 #pragma once
-//#include "afxwin.h"
+#include "stdafx.h"
+/*#include <afxwin.h>         // MFC core and standard components
+#include <afxext.h>         // MFC extensions
+#include <afxdisp.h>        // MFC Automation classes
+#include <afxdtctl.h>		// MFC support for Internet Explorer 4 Common Controls*/
 //#include <string>
 //#include <iostream>
 //#include <stdio.h>
 //#include <vector>
-#include "afxcmn.h"
+#include <afxcmn.h>			// MFC support for Windows Common Controls
 #include "resource.h"
 
 #include "dtcgui.hpp"
@@ -55,10 +59,27 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	static CListBox impactDetectionLog;
 	static CProgressCtrl progressBar;
+	static CProgressCtrl progressBar_all;
+	static CStatic impactNull;
+	static CStatic impactLow;
+	static CStatic impactHigh;
+	static CStatic totalProgress;
+	static CStatic fileName;
+	static CStatic computingTime;
+	static CLinkCtrl detectImageslink;
+	static CLinkCtrl zipFilelink;
 	DECLARE_MESSAGE_MAP()
 public:
+	static CButton AS;
+	static CButton dark;
+	static CButton acquisitionLog;
+	static CButton SER;
+	static CButton SERtimestamps;
+	static CButton FITS;
+	static CButton FileInfo;
+	static CStatic acquisitionSW;
 	afx_msg void OnBnClickedOk();
-	afx_msg void OnFileOpen32771();
+	afx_msg void OnFileOpenFolder();
 	afx_msg void OnHelpExit();
 	afx_msg void OnHelpTutorial();
 	afx_msg void OnHelpChecksForUpdate();
@@ -73,10 +94,62 @@ public:
 	static CProgressCtrl* getProgress() {
 		return &progressBar;
 	}
+	static CProgressCtrl* getProgress_all() {
+		return &progressBar_all;
+	}
+	static CStatic* getimpactNull() {
+		return &impactNull;
+	}
+	static CStatic* getimpactLow() {
+		return &impactLow;
+	}
+	static CStatic* getimpactHigh() {
+		return &impactHigh;
+	}
+	static CStatic* gettotalProgress() {
+		return &totalProgress;
+	}
+	static CStatic* getfileName() {
+		return &fileName;
+	}
+	static CStatic* getcomputingTime() {
+		return &computingTime;
+	}
+	static CLinkCtrl* getdetectImageslink() {
+		return &detectImageslink;
+	}
+	static CLinkCtrl* getzipFilelink() {
+		return &zipFilelink;
+	}
+	static CButton* getAS() {
+		return &AS;
+	}
+	static CButton* getdark() {
+		return &dark;
+	}
+	static CButton* getacquisitionLog() {
+		return &acquisitionLog;
+	}
+	static CButton* getSER() {
+		return &SER;
+	}
+	static CButton* getSERtimestamps() {
+		return &SERtimestamps;
+	}
+	static CButton* getFITS() {
+		return &FITS;
+	}
+	static CButton* getFileInfo() {
+		return &FileInfo;
+	}
+	static CStatic* getacquisitionSW() {
+		return &acquisitionSW;
+	}
 	//std::vector<std::string> file_list = {};
 	//std::vector<std::string> acquisition_file_list = {};
 	AcquisitionFilesList acquisition_files;
 	afx_msg void OnFileOpenfile();
+	afx_msg void OnFileResetFileList();
 	std::string scan_folder_path = {};
 	std::wstring max_mean_folder_path = {};
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
@@ -85,6 +158,11 @@ public:
 //WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 private:
 	CWndResizer m_resizer;
+public:
+	afx_msg void OnStnClickedStaticComputing();
+	afx_msg void OnBnClickedCheck2();
+	afx_msg void OnBnClickedCheck1();
+	afx_msg void OnBnClickedCheck3();
 };
 #pragma once
 
@@ -169,7 +247,7 @@ public:
 	CComboBox debayeringCode;
 
 	afx_msg void OnCbnSelchangeCombo2();
-	afx_msg void OnBnClickedCheck11();
+	//afx_msg void OnBnClickedCheck11();
  };
 #pragma once
 
@@ -251,5 +329,6 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	CProgressCtrl dtcProgress;
+	CProgressCtrl dtcProgress_all;
 	CStatic progressInfo;
 };

@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.2.1"
+#define VERSION_NB		"3.2.2"
 #define VERSION_DATE	"(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -50,7 +50,8 @@
 
 #define AUTOSTAKKERT_EXT		"as3"
 #define WJ_DEROT_STRING			"-DeRot."
-#define WJ_DEROT_EXT			"drs"
+#define WJ_DEROT_EXT			"drs.xml"
+#define WJ_DEROT_EXT_OLD		"drs"
 #define PIPP_STRING				"_pipp."
 #define DARK_STRING				"dark"
 #define IGNORE_WJ_DEROTATION	FALSE

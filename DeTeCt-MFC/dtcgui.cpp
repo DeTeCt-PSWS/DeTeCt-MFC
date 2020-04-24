@@ -17,6 +17,7 @@
 #include <numeric>
 //#include <algorithm>
 #include <regex>
+#include <fstream>
 
 #include "DeTeCt-MFCDlg.h"
 #include <strsafe.h>
@@ -37,6 +38,8 @@ char zipfile[MAX_STRING] = "";
 char log_detection_dirname[MAX_STRING] = "";
 
 extern CDeTeCtMFCDlg dlg;
+//extern CDeTeCtMFCDlg::CButton AS;
+//extern CDeTeCtMFCDlg dark;
 
 void StreamDeTeCtOSversions(std::wstringstream *ss)
 {
@@ -164,62 +167,58 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 			std::string file(entry->d_name);
 			std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
 			std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower); //warning C4244
-			if ((!IGNORE_DARK || ((folder.find(DARK_STRING) == std::string::npos) && (file.find(DARK_STRING) == std::string::npos))) &&
-				(!IGNORE_PIPP || ((folder.find(PIPP_STRING) == std::string::npos) && (file.find(PIPP_STRING) == std::string::npos))) &&
-				(!IGNORE_WJ_DEROTATION || ((folder.find(WJ_DEROT_STRING) == std::string::npos) && (file.find(WJ_DEROT_STRING) == std::string::npos)))) {
-				acquisition_file = "";
-				if (std::find(supported_videoext.begin(), supported_videoext.end(), extension) != supported_videoext.end()) {
+			acquisition_file = "";
+			if (std::find(supported_videoext.begin(), supported_videoext.end(), extension) != supported_videoext.end()) {
+				acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
+				acquisition_file = folder + "\\" + entry->d_name;
+				acquisition_files->acquisition_file_list.push_back(acquisition_file);
+				acquisition_files->nb_prealigned_frames.push_back(0);
+			}
+			else if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) {
+				int found = false;
+				for (std::string filename_number : supported_filename_number) {
+					if (file.find(filename_number) != std::string::npos) {
+						found = true;
+						for (std::string suffix : not_supported_suffix) {
+							if (file.find(suffix) != std::string::npos) found = false;
+						}
+					}
+				}
+				if (!found) {
+					for (std::string filename_number : supported_fullfilename_number) {
+						if (file.find(filename_number) == 0) found = true;
+					}
+				}
+				if (found) {
 					acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
 					acquisition_file = folder + "\\" + entry->d_name;
 					acquisition_files->acquisition_file_list.push_back(acquisition_file);
 					acquisition_files->nb_prealigned_frames.push_back(0);
 				}
-				else if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) {
-					int found = false;
-					for (std::string filename_number : supported_filename_number) {
-						if (file.find(filename_number) != std::string::npos) {
-							found = true;
-							for (std::string suffix : not_supported_suffix) {
-								if (file.find(suffix) != std::string::npos) found = false;
-							}
-						}
-					}
-					if (!found) {
-						for (std::string filename_number : supported_fullfilename_number) {
-							if (file.find(filename_number) == 0) found = true;
-						}
-					}
-					if (found) {
-						acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
-						acquisition_file = folder + "\\" + entry->d_name;
-						acquisition_files->acquisition_file_list.push_back(acquisition_file);
-						acquisition_files->nb_prealigned_frames.push_back(0);
-					}
-				}
-				else if (std::find(supported_otherext.begin(), supported_otherext.end(), extension) != supported_otherext.end()) {
-					if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
-						//std::vector<cv::Point> cm_list;
-						int cm_list_start = 0;
-						int cm_list_end = 9999999;
-						int cm_frame_count = 0;
-
-						read_autostakkert_file(folder + "\\" + file, &acquisition_file, NULL, &cm_list_start, &cm_list_end, &cm_frame_count);
-
-						if (acquisition_file.length() > 0) {
-							acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
-							acquisition_files->acquisition_file_list.push_back(acquisition_file);
-							acquisition_files->nb_prealigned_frames.push_back(MIN(cm_list_end - cm_list_start+1, cm_frame_count));
-						}
-					}
-					else {
-						acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
-						acquisition_file = folder + "\\" + entry->d_name;
-						acquisition_files->acquisition_file_list.push_back(acquisition_file);
-						acquisition_files->nb_prealigned_frames.push_back(0);
-					}
-				}
-//if (acquisition_file.length() > 0) debug_log << "file " << folder.c_str() << "\\" << entry->d_name << "     " << acquisition_file.c_str() << "\n";
 			}
+			else if (std::find(supported_otherext.begin(), supported_otherext.end(), extension) != supported_otherext.end()) {
+				if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+					//std::vector<cv::Point> cm_list;
+					int cm_list_start = 0;
+					int cm_list_end = 9999999;
+					int cm_frame_count = 0;
+
+					read_autostakkert_file(folder + "\\" + file, &acquisition_file, NULL, &cm_list_start, &cm_list_end, &cm_frame_count);
+
+					if (acquisition_file.length() > 0) {
+						acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
+						acquisition_files->acquisition_file_list.push_back(acquisition_file);
+						acquisition_files->nb_prealigned_frames.push_back(MIN(cm_list_end - cm_list_start+1, cm_frame_count));
+					}
+				}
+				else {
+					acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
+					acquisition_file = folder + "\\" + entry->d_name;
+					acquisition_files->acquisition_file_list.push_back(acquisition_file);
+					acquisition_files->nb_prealigned_frames.push_back(0);
+				}
+			}
+//if (acquisition_file.length() > 0) debug_log << "file " << folder.c_str() << "\\" << entry->d_name << "     " << acquisition_file.c_str() << "\n";
 		}
 	} while (entry = readdir(directory));
 	closedir(directory);
@@ -565,56 +564,94 @@ int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector
  **************************************************************************************************/
 
 int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path) {
+	
+	// ******************** INITIALIZATION *********************
 	clock_t begin, end;
 	const int wait_seconds = 3;
 
 	cv::setUseOptimized(true);
-	std::string logcation(scan_folder_path);
-	std::string logcation2(scan_folder_path);
+
+	//log directory when not in autostakkert mode
+	std::string log_directory;
+	if (!opts->autostakkert) log_directory = scan_folder_path;
+	else {
+		//log directory when autostakkert mode
+		CString log_directory_cstring(DeTeCt_exe_folder());
+		CT2CA log_directory_tmp(log_directory_cstring);
+		log_directory = log_directory_tmp;
+	}
+	std::string log_consolidated(log_directory);	// Location where log will be written
+	std::string log(log_directory);					// Location where consolidated log will be written
 	std::stringstream logline_tmp;
+	int queue_scan_time = 1000;						// waiting time for scanning new jobs (ms)
+
+	CString DetectQueueFilename(DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX));
+	CString log_cstring;
 
 	std::string start_runtime = getRunTime().str().c_str();
 	std::wstring wstart_time = std::wstring(start_runtime.begin(), start_runtime.end());
-	logcation2.append("\\Impact_detection_run@").append(start_runtime);
+	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"");
+	if (GetItemFromQueue(&log_cstring, "output_dir", DetectQueueFilename)) {
+		CT2CA log_ansi(log_cstring);
+		std::string log_string(log_ansi);
+		log = log_string;
+		
+		opts->master_instance = FALSE;
+		queue_scan_time = 2000; // waiting time (ms) for scanning new jobs - slave instance
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"SLAVE instance, will CLOSE AUTOMATICALLY");
+	} else {
+		log.append("\\Impact_detection_run@").append(start_runtime);
+		CString log_string(log.c_str());
+		WriteItemToQueue(log_string, "output_dir", DetectQueueFilename);
+
+		opts->master_instance = TRUE;
+		queue_scan_time = 1; // waiting time (ms) for scanning new jobs - master instance
+		
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"MASTER instance, DO NOT CLOSE unless told to do so");
+	}
+	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"");
+	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+	CDeTeCtMFCDlg::getLog()->RedrawWindow();
+
 	std::vector<int> img_save_params = { CV_IMWRITE_JPEG_QUALITY, 100 };
 	
-	std::wstring detection_folder_path = {};
-	std::wstring detection_folder_name = {};
-	std::wstring details_folder_path = {};
+	std::wstring detection_folder_fullpathname = {};	// folder to store detection results (
+	std::wstring detection_folder_name = {};			// folder to store detection results
+	std::wstring details_folder_fullpathname = {};		// subfolder to store details for detection results
 
 	char max_folder_path_filename[MAX_STRING];
 	char diff_folder_path_filename[MAX_STRING];
 	char tmpstring[MAX_STRING];
 	DIR *dir_tmp;
 
-	detection_folder_path = std::wstring(scan_folder_path.begin(), scan_folder_path.end());
-	detection_folder_path = detection_folder_path.append(L"\\Impact_detection_run@").append(wstart_time);
-	std::string detection_folder_path_string(detection_folder_path.begin(), detection_folder_path.end());
-	detection_folder_name = detection_folder_name.append(L"Impact_detection_run@").append(wstart_time);
+//	detection_folder_fullpathname = std::wstring(scan_folder_path.begin(), scan_folder_path.end());
+//	detection_folder_fullpathname =	std::wstring(log_directory.begin(), log_directory.end());
+//	detection_folder_fullpathname =	detection_folder_fullpathname.append(L"\\Impact_detection_run@").append(wstart_time);
+	detection_folder_fullpathname =	std::wstring(log.begin(), log.end());
+	std::string detection_folder_fullpathname_string(detection_folder_fullpathname.begin(), detection_folder_fullpathname.end());
+	detection_folder_name =			detection_folder_name.append(L"Impact_detection_run@").append(wstart_time);
 	std::string detection_folder_name_string(detection_folder_name.begin(), detection_folder_name.end());
-	strcpy(opts->impactdirname, detection_folder_path_string.c_str());
-	strcpy(impact_detection_dirname, detection_folder_path_string.c_str());
+	strcpy(opts->impactdirname, detection_folder_fullpathname_string.c_str());
+	strcpy(impact_detection_dirname, detection_folder_fullpathname_string.c_str());
 
 	// usage of mkdir only solution found to handle directory names with special characters (eg. é, à, ...)
-		//if (GetFileAttributes(detection_folder_path.c_str()) == INVALID_FILE_ATTRIBUTES)
-		//CreateDirectory(detection_folder_path.c_str(), 0);
-	if (!(dir_tmp = opendir(detection_folder_path_string.c_str()))) mkdir(detection_folder_path_string.c_str());
+		//if (GetFileAttributes(detection_folder_fullpathname.c_str()) == INVALID_FILE_ATTRIBUTES)
+		//CreateDirectory(detection_folder_fullpathname.c_str(), 0);
+	if (!(dir_tmp = opendir(detection_folder_fullpathname_string.c_str()))) mkdir(detection_folder_fullpathname_string.c_str());
 	else closedir(dir_tmp);
 	if (opts->detail || opts->allframes) {
-		details_folder_path = std::wstring(detection_folder_path.begin(), detection_folder_path.end());
-		details_folder_path = details_folder_path.append(L"\\details");
-		std::string details_folder_path_string(details_folder_path.begin(), details_folder_path.end());
-		// usage of mkdir only solution found to handle directory names with special characters (eg. é, à, ...)
-			//if (GetFileAttributes(details_folder_path.c_str()) == INVALID_FILE_ATTRIBUTES)
-			//CreateDirectory(details_folder_path.c_str(), 0);
-		if (!(dir_tmp = opendir(detection_folder_path_string.c_str()))) mkdir(detection_folder_path_string.c_str());
+		details_folder_fullpathname = std::wstring(detection_folder_fullpathname.begin(), detection_folder_fullpathname.end());
+		details_folder_fullpathname = details_folder_fullpathname.append(L"\\details");
+		std::string details_folder_fullpathname_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
+		if (!(dir_tmp = opendir(details_folder_fullpathname_string.c_str()))) mkdir(details_folder_fullpathname_string.c_str());
 		else closedir(dir_tmp);
 	}
 
-	dtcWriteLogHeader(logcation);
-	dtcWriteLogHeader(logcation2);
+	dtcWriteLogHeader(log_consolidated);
+	dtcWriteLogHeader(log);
 
-	std::wstring output_log_file(scan_folder_path.begin(), scan_folder_path.end());
+//	std::wstring output_log_file(scan_folder_path.begin(), scan_folder_path.end());
+	std::wstring output_log_file(log_directory.begin(), log_directory.end());
 	output_log_file = output_log_file.append(L"\\Impact_detection_run@").append(wstart_time).append(L"\\").append(OUTPUT_FILENAME).append(DTC_LOG_SUFFIX);
 	std::wofstream output_log(output_log_file.c_str(), std::ios_base::app);
 
@@ -630,14 +667,17 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 	std::string logmessage3;
 	std::wstring wlogmessage;
 	CString Clogmessage;
+	CString message_cstring;
 
 	AcquisitionFilesList local_acquisition_files_list;
 	
 	local_acquisition_files_list.file_list = current_file_list;
 	local_acquisition_files_list.acquisition_file_list = current_file_list;
 	local_acquisition_files_list.nb_prealigned_frames = {};
+	for (int i = 0; i < local_acquisition_files_list.file_list.size(); i++) local_acquisition_files_list.nb_prealigned_frames.push_back(0);
 	
 	int acquisition_index = 0;
+	int acquisitions_processed = 0;
 	double duration_total = 0;
 	double computation_time_total = 0;
 	double start_time_min = gregorian_calendar_to_jd(2080, 1, 1, 0, 0, 0);
@@ -649,68 +689,74 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 	int nb_null_impact = 0;
 	int nb_low_impact = 0;
 	int nb_high_impact = 0;
+	int acquisitions_to_be_processed = 0;
+	short max_range_progressall = 32767;
+	float progress_all_status = 0;
+
+	// Initializes the impacts classification in dialog window
+	CDeTeCtMFCDlg::getimpactNull()->SetWindowText(std::to_wstring(nb_null_impact).c_str());
+	CDeTeCtMFCDlg::getimpactLow()->SetWindowText(std::to_wstring(nb_low_impact).c_str());
+	CDeTeCtMFCDlg::getimpactHigh()->SetWindowText(std::to_wstring(nb_high_impact).c_str());
+	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(L"Total\n(0/0)");
+	CString processing_time_cstring;
+	processing_time_cstring.Format(L"Processing time: %.*fs (file)  %.*fs (total)", 1, 0.0, 1,0.0);
+	CDeTeCtMFCDlg::getcomputingTime()->SetWindowText(processing_time_cstring);
+	//CDeTeCtMFCDlg::getdetectImageslink()->SetWindowText((CString)"Test");
+	//CDeTeCtMFCDlg::detectImageslink.ShowWindow(SW_HIDE);
+
+	std::wstring totalProgress_wstring;
+
+	Datation_source datation_source;
 
 	//std::vector<std::string> local_file_list;
 	//local_file_list = file_list;
 	do
 	{
-			//for (std::string filename : local_file_list) {
+		acquisitions_to_be_processed += local_acquisition_files_list.acquisition_file_list.size();
+		//CDeTeCtMFCDlg::getProgress_all()->SetMarquee(TRUE, 20);
+		//CDeTeCtMFCDlg::getProgress_all()->SetState(PBST_NORMAL);
+		//CDeTeCtMFCDlg::getProgress_all()->SetRange(0, (short)local_acquisition_files_list.acquisition_file_list.size());
+		CDeTeCtMFCDlg::getProgress_all()->SetRange(0, max_range_progressall);
+		CDeTeCtMFCDlg::getProgress_all()->SetStep(1);
+		CDeTeCtMFCDlg::getProgress_all()->SetPos(0);
+
+
+		//for (std::string filename : local_file_list) {
 		for (std::string filename : local_acquisition_files_list.acquisition_file_list) {
-//***** gets acquisition file from autostakkert session file
+			/********** Init **********/
+
 			acquisition_index++;
 			std::vector<cv::Point> cm_list = {};
 			int cm_list_start = 0;
 			int cm_list_end = 9999999;
 			int cm_frame_count = 0;
+			CDeTeCtMFCDlg::getAS()->SetCheck(0);
+			CDeTeCtMFCDlg::getdark()->SetCheck(0);
+			CDeTeCtMFCDlg::getacquisitionLog()->SetCheck(0);
+			CDeTeCtMFCDlg::getSER()->SetCheck(0);
+			CDeTeCtMFCDlg::getSERtimestamps()->SetCheck(0);
+			CDeTeCtMFCDlg::getFITS()->SetCheck(0);
+			CDeTeCtMFCDlg::getFileInfo()->SetCheck(0);
+			CDeTeCtMFCDlg::getacquisitionSW()->SetWindowText(L"");
 
+//***** gets acquisition file and number of framesfrom autostakkert session file
 			std::string extension = filename.substr(filename.find_last_of(".")+1, filename.size()-filename.find_last_of(".")-1);
 			if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
 				std::string filename_acquisition;
 
+				CDeTeCtMFCDlg::getAS()->SetCheck(1);
 				read_autostakkert_file(filename, &filename_acquisition, &cm_list, &cm_list_start, &cm_list_end, &cm_frame_count);
 				filename = filename_acquisition;
 				local_acquisition_files_list.nb_prealigned_frames.push_back(MIN(cm_list_end - cm_list_start + 1, cm_frame_count));
 			}
 			else {
+				CDeTeCtMFCDlg::getAS()->SetCheck(0);
 				local_acquisition_files_list.nb_prealigned_frames.push_back(cm_frame_count);
-			}
-//***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
-			BOOL process = TRUE;
-			if (!opts->reprocessing) {
-				CT2A DeTeCtLogFilename(DeTeCt_additional_filename(logcation.c_str(), DTC_LOG_SUFFIX));
-				std::ifstream input_file(DeTeCtLogFilename, std::ios_base::in);
-				if (input_file) {
-					std::string line;
-	//0.0000		 0       ; 2015/01/17 04:42,059300 UT; 2015/01/17 04:44,058567 UT; 2015/01/17 04:43,058933 UT; 119.9560 s; 43.000 fr/s; G:\Work\Impact\tests\data_set\bugs\ACo\J_2015Jan17_044203_RGB.avi; DeTeCt v3.1.8.20190512_x64 (Firecapture 2.4beta); Win8(or_above)_64b
-					while ((std::getline(input_file, line)) && (process == TRUE)) {
-						if ((!starts_with(line, "DeTeCt")) && (!starts_with(line, "PLEASE")) && (!starts_with(line, "confidence"))) {
-							BOOL line_rated;
-							if (starts_with(line, "N/A")) line_rated = FALSE;
-							else line_rated = TRUE;
-							int nb_separators = 0;
-							int pos_separator;
-							do {
-								pos_separator = (int)line.find_first_of(";");
-								if (pos_separator != std::string::npos) {
-									nb_separators++;
-									line = line.substr(pos_separator + 1, line.size() - pos_separator - 1);
-								}
-							} while ((pos_separator != std::string::npos) && (nb_separators < 6));
-							while (starts_with(line, " ")) line = line.substr(1, line.size() - 1);
-							while (starts_with(line, "\t")) line = line.substr(1, line.size() - 1);
-							if ((nb_separators == 6)
-								&& (line.find_first_of(";") != std::string::npos)
-									&& (starts_with(line, filename))
-										&& (!opts->dateonly)
-											&& (line_rated)) process = FALSE;
-						}
-					}
-					input_file._close();
-				}
 			}
 			opts->filename = strdup(filename.c_str());
 			std::string outputFolder = filename.substr(0, filename.find_last_of("\\") + 1);
-			outputFolder = outputFolder.replace(0, scan_folder_path.length() + 1, "");
+//			outputFolder = outputFolder.replace(0, scan_folder_path.length() + 1, "");
+			outputFolder = outputFolder.replace(0, log_directory.length() + 1, "");
 			std::replace(outputFolder.begin(), outputFolder.end(), '\\', '_');
 			std::replace(outputFolder.begin(), outputFolder.end(), ' ', '_');
 			std::string folderPath = filename.substr(0, filename.find_last_of("\\") + 1);
@@ -718,12 +764,20 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 			filePath = filePath.substr(0, filePath.find_last_of("."));
 			std::string outputfilename = folderPath.append(outputFolder).append(filePath).append(".jpg");
 			opts->ofilename = strdup(outputfilename.c_str());
-			std::wstring fname(filename.begin(), filename.end());
+			std::wstring filename_wstring(filename.begin(), filename.end());
 			std::string short_filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+			std::wstring short_filename_wstring(short_filename.begin(), short_filename.end());
 
-			if (process) {
-				std::string message  = "----- " + std::to_string(acquisition_index) + "/" + std::to_string(local_acquisition_files_list.acquisition_file_list.size()) + " : " + short_filename + " start --------------";
-				std::string message2 = "----- " + std::to_string(acquisition_index) + "/" + std::to_string(local_acquisition_files_list.acquisition_file_list.size()) + " : " + filename + " start  --------------";
+/*			if (process) {*/
+				std::string message  = "----- " + std::to_string(acquisition_index) + "/" + std::to_string(acquisitions_to_be_processed) + " : " + short_filename + " start --------------";
+				std::string message2 = "----- " + std::to_string(acquisition_index) + "/" + std::to_string(acquisitions_to_be_processed) + " : " + filename + " start  --------------";
+				totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisition_index) + L"/" + std::to_wstring(acquisitions_to_be_processed) + L")";
+				CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
+				CDeTeCtMFCDlg::getfileName()->SetWindowText(short_filename_wstring.c_str());
+				message_cstring = (filename_wstring).c_str();
+				//message_cstring = filename_wstring.c_str();
+				CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
+
 				//TODO: usage of cmlist and quality information from as3
 
 				//impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
@@ -733,7 +787,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 				output_log.flush();
 
 				init_string(tmpstring);
-				std::string detail_folder_path_string(details_folder_path.begin(), details_folder_path.end());
+				std::string detail_folder_path_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
 
 
 				int fps_int = 0;
@@ -817,7 +871,6 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 				double maxLum = 0;
 
 				int nframe = 0;
-				int framecount = 0;
 
 				int pGryImg_height = 0;
 				int pGryImg_width = 0;
@@ -872,7 +925,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 
 					CDeTeCtMFCDlg::getProgress()->SetStep(1);
 					//***** Opens acquisition file
-					if (!(pCapture = dtcCaptureFromFile2(opts->filename, &framecount))) {
+					if (!(pCapture = dtcCaptureFromFile2(opts->filename, &nframe))) {
 						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Cannot open file " +
 							(CString)opts->filename);
 						CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
@@ -881,45 +934,22 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						output_log.flush();
 						continue;
 					}
-					switch (pCapture->type) {
-					case CAPTURE_SER:
-						nframe = (int)pCapture->u.sercapture->header.FrameCount;
-						break;
-					case CAPTURE_FITS:
-					case CAPTURE_FILES:
-						nframe = (int) pCapture->u.filecapture->FrameCount;
-						break;
-					default: // CAPTURE_CV
-						nframe = (int)(dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT));
-					}
 					frame_number = nframe;
-					CDeTeCtMFCDlg::getProgress()->SetRange(0, (short)nframe);
+// sets progress bar configuration
+					CDeTeCtMFCDlg::getProgress()->SetRange(0, (short) (frame_number));
 					CDeTeCtMFCDlg::getProgress()->SetPos(0);
-					//***** Checks if acquisition has a minimum number of frames
-					if ((nframe > 0) && (nframe < opts->minframes)) {
-						logmessage = "INFO: only " + std::to_string(nframe) + " ";
-						if (nframe == 1)  logmessage = logmessage + "frame";
-						else logmessage = logmessage + "frames";
-						logmessage = logmessage + " (minimum is " + std::to_string(opts->minframes) +
-							"), stopping processing\n";
 
-						CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + logmessage.c_str());
-						CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-						CDeTeCtMFCDlg::getLog()->RedrawWindow();
-						output_log << getDateTime().str().c_str() << logmessage.c_str();
-						output_log.flush();
-						sprintf(rating_classification, "Unknown      ");
-						dtcReleaseCapture(pCapture);
-						pCapture = NULL;
-
-						if (!opts->dateonly) {
-							log_messages.push_back(short_filename + ":" + "    " + logmessage);
-							// log_messages.push_back("    " + logmessage);
-						}
-						continue;
+					// ***** Gets datation info from acquisition
+					dtcGetDatation(pCapture, opts->filename, nframe, &start_time, &end_time, &duration, &fps_real, &timetype, comment, &planet, &datation_source);
+					if (datation_source.acquisition_log_file) {
+						CDeTeCtMFCDlg::getacquisitionLog()->SetCheck(1);
+						CString datation_source_cstring(datation_source.acquisition_software);
+						CDeTeCtMFCDlg::getacquisitionSW()->SetWindowText(datation_source_cstring);
 					}
-					//***** Gets datation info from acquisition
-					dtcGetDatation(pCapture, opts->filename, nframe, &start_time, &end_time, &duration, &fps_real, &timetype, comment, &planet);
+					if (datation_source.ser_file)				CDeTeCtMFCDlg::getSER()->SetCheck(1);
+					if (datation_source.ser_file_timestamp)		CDeTeCtMFCDlg::getSERtimestamps()->SetCheck(1);
+					if (datation_source.fits_file)				CDeTeCtMFCDlg::getFITS()->SetCheck(1);
+					if (datation_source.file_info)				CDeTeCtMFCDlg::getFileInfo()->SetCheck(1);
 
 					if (planet == Jupiter) planet_jupiter++;
 					else if (planet == Saturn) planet_saturn++;
@@ -951,16 +981,20 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						LogInfo info(opts->filename, start_time, end_time, duration, fps_real, timetype, comment, 0, 0, 0, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, rating_classification);
 						
 						std::stringstream logline;
-						dtcWriteLog2(logcation, info, &logline);
+						dtcWriteLog2(log_consolidated, info, &logline);
 						log_messages.push_back(logline.str() + "\n");
-						dtcWriteLog2(logcation2, info, &logline_tmp);
+						dtcWriteLog2(log, info, &logline_tmp);
 						dtcReleaseCapture(pCapture);
 						pCapture = NULL;
 						continue;
 					}
 
 					//****************** NON DATE ONLY MODE *******************************/
-					message = "Initializing capture: " + std::to_string(nframe) + " frames @ " + std::to_string(fps_int) + " (" + std::to_string((int)duration) + "s duration)";
+					//message = "Initialization & differential photometry: " + std::to_string(nframe) + " frames @ " + std::to_string(fps_int) + " fps (" + std::to_string((int)duration) + "s duration)";
+					message = std::to_string(nframe) + " frames @ " + std::to_string(fps_int) + " fps (" + std::to_string((int)duration) + "s duration)";
+					message_cstring = message_cstring + (CString)"\n" + (CString)message.c_str() + (CString)"\n";
+					CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
+
 /*					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initializing capture: " +
 						(CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps" +
 						L" (" + (CString)std::to_string(impact_frames_min).c_str() + L" frames min for impact)");*/
@@ -1020,6 +1054,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 							output_log << getDateTime().str().c_str() << "Warning: cannot read dark frame:  " << darklongfilename << "\n";
 							output_log.flush();*/
 							darkfile_ok = 0;
+							CDeTeCtMFCDlg::getdark()->SetCheck(0);
 						}
 						else {
 							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Reading dark frame " +
@@ -1029,6 +1064,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 							output_log << getDateTime().str().c_str() << "Reading dark frame:  " << darklongfilename << "\n";
 							output_log.flush();
 							darkfile_ok = 1;
+							CDeTeCtMFCDlg::getdark()->SetCheck(1);
 						}
 					}
 
@@ -1074,6 +1110,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 										<< pADUdarkMat.cols << " vs " << pGryMat.cols << " cols " << "\n";
 									output_log.flush();
 									darkfile_ok = 0;
+									CDeTeCtMFCDlg::getdark()->SetCheck(0);
 								}
 								else {
 									cv::Mat pGryDarkMat;
@@ -1082,6 +1119,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 									cv::threshold(pGryDarkMat, pGryMat, 0, 0, CV_THRESH_TOZERO);
 									pGryDarkMat.release();
 									pGryDarkMat = NULL;
+									CDeTeCtMFCDlg::getdark()->SetCheck(1);
 								}
 							}
 
@@ -1520,8 +1558,16 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 
 						}
 
+						//CDeTeCtMFCDlg::getProgress()->SetRange(0, (short)(nframe)); // do not know why it solves some problems of unfinished bars
 						CDeTeCtMFCDlg::getProgress()->StepIt();
 						CDeTeCtMFCDlg::getProgress()->UpdateWindow();
+						progress_all_status = max_range_progressall * ((acquisition_index - 1 + ((float) nframe / frame_number)) / acquisitions_to_be_processed);
+						CDeTeCtMFCDlg::getProgress_all()->SetPos((short) (progress_all_status));
+						CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+						end = clock();
+						processing_time_cstring.Format(L"Processing time: %.*fs (file)  %.*fs (total)", 1, ((double)(end - begin) / (double)CLOCKS_PER_SEC), 1, ((double)computation_time_total + (double)(end - begin) / (double)CLOCKS_PER_SEC));
+						//processing_time_cstring.Format(L"Total processing time: %.*f s", 1, ((double) computation_time_total + (double) (clock() - begin) / (double) CLOCKS_PER_SEC));
+						CDeTeCtMFCDlg::getcomputingTime()->SetWindowText(processing_time_cstring);
 					}
 					/********************************* END OF CAPTURE READING******************************************/
 
@@ -1533,7 +1579,18 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 					//cv::imshow("End", pADUavgMat);
 					//cv::waitKey(0);
 
-							/*********************************IMPACT PROCESSING******************************************/
+					CDeTeCtMFCDlg::getProgress()->SetPos((short)(frame_number));
+					CDeTeCtMFCDlg::getProgress()->UpdateWindow();
+					//CDeTeCtMFCDlg::getProgress_all()->StepIt();
+					CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(max_range_progressall * (float)acquisition_index / acquisitions_to_be_processed));
+					CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+//					message_cstring = message_cstring + (CString)"\n" + (CString)"Impact detection";
+					//CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
+
+
+
+					/*********************************IMPACT PROCESSING******************************************/
+					
 					double distance = 0;
 					ITEM* maxDtcImg = NULL; // Detection image
 					// img stats {min, average, max }
@@ -1575,7 +1632,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						cv::subtract(pADUmaxMat, pADUavgMat, pADUdtcMat);
 						//dtcApplyMaskToFrame(pADUdtcMat);
 
-					/********** mean image **********/
+						/********** mean image **********/
 /*					pADUavgMat2 = cv::Mat(pADUavgMat.rows, pADUavgMat.cols, CV_32F);
 					pADUavgMat2.convertTo(pADUavgMat, CV_8U);
 					if (opts->detail)
@@ -1592,7 +1649,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						pADUavgMat.convertTo(pADUavgMat, CV_8U);
 						mean_stat[1] = mean(pADUavgMat)[0];
 						cv::minMaxLoc(pADUavgMat, &mean_stat[0], &mean_stat[2], NULL, NULL);
-						cv::imwrite(dtc_full_filename(opts->ofilename, DTC_MEAN_SUFFIX, detection_folder_path_string.c_str(), tmpstring), pADUavgMat, img_save_params);
+						cv::imwrite(dtc_full_filename(opts->ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), pADUavgMat, img_save_params);
 
 						/********** diff image **********/
 						pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 1.0 / (nframe - frame_errors), 0);
@@ -1688,7 +1745,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 
 					// usage of mkdir only solution found to handle directory names with special characters (eg. é, à, ...)
 					//CreateDirectory(wdir_csv_name.c_str(), 0);
-					std::string dir_csv_name = detection_folder_path_string;
+					std::string dir_csv_name = detection_folder_fullpathname_string;
 					dir_csv_name = dir_csv_name.append("\\csv");
 					if (!(dir_tmp = opendir(dir_csv_name.c_str()))) mkdir(dir_csv_name.c_str());
 					else closedir(dir_tmp);
@@ -1749,26 +1806,29 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						/* reprise ADUdtc algorithm******************************************/
 						/* max-mean normalized image */
 						if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0)) {
-							dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
+							dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 255, 0), 20, 30); // Pale Yellow, was CV_RGB(255, 0, 0) initially
 							distance = sqrt(pow(maxDtcImg->point->x - maxDtcImp->point->x, 2) + pow(maxDtcImg->point->y - maxDtcImp->point->y, 2));
 						}
 						else {
 							/* algorithm did not work */
 							distance = 9999;
 						}
-						dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
+						dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 128, 255), 15, 25); // Blue, was CV_RGB(0, 255, 0) initially
 						cv::imshow("Detection image", pADUdtcImg); // moved up
-						cv::imwrite(dtc_full_filename(opts->ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_path_string.c_str(), tmpstring), pADUdtcImg, img_save_params);
+						cv::imwrite(dtc_full_filename(opts->ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), pADUdtcImg, img_save_params);
 
 						/* max-mean non normalized image */
 						if (opts->detail) {
-							if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0))
-								dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 0, 0), 20, 30);
-							dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 255, 0), 15, 25);
+							if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0)) 
+								dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 255, 0), 20, 30); // Pale Yellow, was CV_RGB(255, 0, 0) initially
+							dtcDrawImpact(pADUdtcImg2, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 128, 255), 15, 25); // Blue, was CV_RGB(0, 255, 0) initially
 							cv::imwrite(dtc_full_filename(opts->ofilename, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), pADUdtcImg2, img_save_params);
 						}
 
 						/* final end of ADUdtc algorithm******************************************/
+						logmessage = "";
+						logmessage2 = "";
+						logmessage3 = "";
 						if (!is_image_correct) {
 							logmessage = logmessage + "ERROR: No planet detected in acquisition images...\n";
 							CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + logmessage.c_str());
@@ -1777,6 +1837,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 							sprintf(rating_classification, "Error        ");
 							confidence = -1;
 							nb_impact = -1;
+
 						}
 						else if (nb_impact > 0) {
 							outdtc.nMinFrame = frameNumbers[outdtc.nMinFrame];
@@ -1893,6 +1954,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 								sprintf(rating_classification, "Low          ");
 							}
 						}
+						message_cstring = message_cstring + (CString)"\n" + (CString)logmessage.c_str();
+						if (logmessage2.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage2.c_str();
+						if (logmessage3.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage3.c_str();
+						CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
 
 /*						else {
 							logmessage = "No impact detected.\n";
@@ -1901,9 +1966,12 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 							output_log.flush();
 							sprintf(rating_classification, "Null         ");
 						}*/
-
+						// Calculates computing time
 						end = clock();
-						computation_time_total += (end - begin) / CLOCKS_PER_SEC;
+						computation_time_total += (double)(end - begin) / (double)CLOCKS_PER_SEC;
+						processing_time_cstring.Format(L"Processing time: %.*fs (file)  %.*fs (total)", 1, (double)(end - begin) / (double)CLOCKS_PER_SEC, 1, (double)computation_time_total);
+						//processing_time_cstring.Format(L"Total processing time: %.*f s", 1, (double)computation_time_total);
+						CDeTeCtMFCDlg::getcomputingTime()->SetWindowText(processing_time_cstring);
 						std::string s = "";
 //						log_messages.push_back(short_filename + ":");
 						std::stringstream str(logmessage);
@@ -1923,6 +1991,11 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						output_log << getDateTime().str().c_str() << "Showing detection image" << " (automatically closed in " << wait_seconds << " seconds)...."
 							<< "\n";
 						output_log.flush();
+
+						// Refreshes the impacts classification in dialog window
+						CDeTeCtMFCDlg::getimpactNull()->SetWindowText(std::to_wstring(nb_null_impact).c_str());
+						CDeTeCtMFCDlg::getimpactLow()->SetWindowText(std::to_wstring(nb_low_impact).c_str());
+						CDeTeCtMFCDlg::getimpactHigh()->SetWindowText(std::to_wstring(nb_high_impact).c_str());
 
 						//					cv::imshow("Detection image", pADUdtcImg);
 						//					cv::waitKey(3000);
@@ -1953,8 +2026,8 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 //						if (!is_image_correct) {
 
 						LogInfo info(opts->filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence, distance, mean_stat, mean2_stat, max_mean_stat, max_mean2_stat, diff_stat, diff2_stat, rating_classification);
-						dtcWriteLog2(logcation, info, &logline_tmp);
-						dtcWriteLog2(logcation2, info, &logline_tmp);
+						dtcWriteLog2(log_consolidated, info, &logline_tmp);
+						dtcWriteLog2(log, info, &logline_tmp);
 
 						/*FINAL CLEANING**************************************/
 						if (opts->viewDif) cv::destroyWindow("Initial differential photometry");
@@ -2020,6 +2093,8 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 					}
 					dtcReleaseCapture(pCapture);
 					pCapture = NULL;
+					// acquition has been processed, increasing counter					
+					acquisitions_processed++;
 				}
 				catch (std::exception& e) {
 						std::string exception_message(e.what());
@@ -2035,16 +2110,15 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 						// log_messages.push_back("    " + logmessage);
 					}
 					//message = "--------- " + short_filename + " analysis done ---------";
-					message = ""; 
-					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
-					output_log << getDateTime().str().c_str() << message.c_str() << "\n";
-					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-					CDeTeCtMFCDlg::getLog()->RedrawWindow();
+				CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str());
+				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+				CDeTeCtMFCDlg::getLog()->RedrawWindow();
+				output_log << getDateTime().str().c_str() << message.c_str() << "\n";
 				if (opts->filename) {
 					CString objectname(opts->filename);
-					RemoveFromQueue(objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX));
+					RemoveFromQueue(objectname, DetectQueueFilename);
 				}
-			} else {
+/*			} else {
 				std::string message = "INFO: " + short_filename + " already processed, ignoring";
 				std::string message2 = "INFO: " + short_filename + " already processed, ignoring";
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
@@ -2053,233 +2127,369 @@ int detect(std::vector<std::string> current_file_list, OPTS *opts, std::string s
 				output_log << getDateTime().str().c_str() << message2.c_str() << "\n";
 				output_log.flush();
 				log_messages.push_back(message);
-			}
+			}*/
 		}
 
 		if (opts->dirname) {
 			CString objectname(opts->dirname);
-			RemoveFromQueue(objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX));
+			RemoveFromQueue(objectname, DetectQueueFilename);
 		}
 		local_acquisition_files_list.acquisition_file_list = std::vector<std::string>();
-		if (!opts->interactive) {
+
+		// ***********************************************************************
+// ******************** Looks for new job in queue ***********************
+// ***********************************************************************
+
+//		if (!opts->interactive) {
+		if ((opts->autostakkert) && (AutostakkertInstancesNumber() > 0)) {
+			std::string message = "PLEASE WAIT, checking for pending or new files to be processed from AutoStakkert...";
+			CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+			CDeTeCtMFCDlg::getLog()->RedrawWindow();
+			if (logmessage3.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage3.c_str();
+			CDeTeCtMFCDlg::getfileName()->SetWindowText((CString)message.c_str());
+
+		}
+		BOOL QueueListEmpty = FALSE;
+
+		do {
+			Sleep(queue_scan_time); // wait (in ms)
 			CString objectname;
-			if (PopFromQueue(&objectname, DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX))) {
-				std::ifstream file(objectname);
-				if (file) {
+			QueueListEmpty = FALSE;
+			if (PopFromQueue(&objectname, DetectQueueFilename)) {
+				std::ifstream file_stream(objectname);
+				if (file_stream) {
 					CT2A objectnamechar(objectname);
 					opts->filename = objectnamechar;
-					file.close();
-					local_acquisition_files_list.acquisition_file_list.push_back(std::string(opts->filename));
+					file_stream.close();
+//						local_acquisition_files_list.acquisition_file_list.push_back(std::string(opts->filename));
+//						dlg.OnFileOpenfile();
+					std::wstringstream ss;
+					std::string file;
+					std::string filename_acquisition;
+					int nframe = -1;
+
+					file = std::string(opts->filename);
+					std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+
+					if (Is_Capture_OK_from_File(file, &filename_acquisition, &nframe, &ss)) {
+						// ********* Error if acquisition has not enough frames
+						if (Is_Capture_Long_Enough(file, nframe, &ss)) {
+							// ********* Ignores dark, pipp, winjupos derotated files
+							if (!Is_Capture_Special_Type(file, &ss)) {
+								if (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss)) {
+									// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+
+									// ********* Finally adds file to the list !
+									// Set-up global variable
+									scan_folder_path = file.substr(0, file.find_last_of("\\"));
+									local_acquisition_files_list.acquisition_file_list.push_back(std::string(opts->filename));
+									file = file.substr(file.find_last_of("\\") + 1, file.length());
+									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " for analysis\n";
+									else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+									CDeTeCtMFCDlg::getfileName()->SetWindowText(L"");
+								}
+							}
+						}
+					}
+					// Prints message
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)ss.str().c_str());
+					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+					CDeTeCtMFCDlg::getLog()->RedrawWindow();
 				}
 				else {
 					DIR *folder_object;
 					CT2A objectnamechar(objectname);
 					if (folder_object = opendir(objectnamechar)) {
-						opts->dirname = objectnamechar;
-						//strcpy(opts->dirname,objectnamechar);
+						opts->dirname = objectnamechar;	//strcpy(opts->dirname,objectnamechar);
 						std::string path = std::string(opts->dirname);
 						read_files(path, &local_acquisition_files_list);
 						closedir(folder_object);
+
+						if (local_acquisition_files_list.file_list.size() > 0) {
+							int index = 0;
+							std::string filename;
+							while (index < local_acquisition_files_list.file_list.size()) {
+								filename = local_acquisition_files_list.file_list.at(index);
+								std::wstringstream ss3;
+								std::string filename_acquisition;
+								int nframe = -1;
+
+								if ((Is_Capture_OK_from_File(filename, &filename_acquisition, &nframe, &ss3))
+									// ********* Error if acquisition has not enough frames
+									&& (Is_Capture_Long_Enough(filename, nframe, &ss3))
+									// ********* Ignores if less than minimum frames
+									&& (!Is_Capture_Special_Type(filename, &ss3))
+									// ********* Ignores dark, pipp, winjupos derotated files
+									&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))) {
+									// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+
+												// ********* Finally adds file to the list !
+									std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+									std::string file = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " for analysis\n";
+									else ss3 << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+									index++;
+								}
+								else {
+									local_acquisition_files_list.file_list.erase(local_acquisition_files_list.file_list.begin() + index);
+									local_acquisition_files_list.acquisition_file_list.erase(local_acquisition_files_list.acquisition_file_list.begin() + index);
+									local_acquisition_files_list.nb_prealigned_frames.erase(local_acquisition_files_list.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
+								}
+								CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)ss3.str().c_str());
+								CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+								CDeTeCtMFCDlg::getLog()->RedrawWindow();
+							}
+						}
+
 					}
 				}
 			}
-		}
+			else QueueListEmpty = TRUE;
+		} while		((local_acquisition_files_list.acquisition_file_list.size() == 0) && 
+						((!QueueListEmpty) ||																// if no file in list but queue still not empty
+							((opts->master_instance) && 
+								((AutostakkertInstancesNumber() > 0) ||
+									(DectectInstancesNumber() > 1)
+								)
+							)
+						)
+					);	// Waiting mode for master instance if AutoStakkert! still running or other DeTeCt instances running
+//		}
 	} while (local_acquisition_files_list.acquisition_file_list.size() > 0);
 
-	/* Renames logfile in impact_detection directory */
-	double second;
-	int minute;
-	int hour;
-	int day_min, day_max;
-	int month_min, month_max;
-	int year_min,year_max;
-	char suffix_char[MAX_STRING];
-	char planet_char[MAX_STRING] = "";
-
-/*	switch (planet) {
-		case Jupiter:	strcpy(planet_char, "_jupiter");
-						break;
-		case Saturn:	strcpy(planet_char, "_saturn");
-						break;
-		default: strcpy(planet_char, "");
-	}*/
-
-	if (planet_jupiter>0) strcat(planet_char, "_jupiter");;
-	if (planet_saturn > 0) strcat(planet_char, "_saturn");;
-
-	jd_to_date(start_time_min, &second, &minute, &hour, &day_min, &month_min, &year_min);
-	jd_to_date(start_time_max, &second, &minute, &hour, &day_max, &month_max, &year_max);
-	sprintf(suffix_char, "%s_%04d%02d%02d", planet_char, year_min, month_min, day_min);
-	if ((day_min != day_max) || (month_min != month_max) || (year_min != year_max)) sprintf(suffix_char, "%s-%04d%02d%02d", suffix_char, year_max, month_max, day_max);
-	sprintf(suffix_char, "%s.log", suffix_char);
-
-	std::string message = "Total duration analyzed ";
-	int days;
-	int hours;
-	int minutes;
-	int seconds;
-
-	days = (int)floor(duration_total / 60 / 60 / 24);
-	if (days > 0)  message = message + std::to_string(days) + "d";
-	hours = (int)floor((duration_total - days * 24 * 60 * 60) / 60 / 60);
-	if (hours > 0)  message = message + std::to_string(hours) + "h";
-	minutes = (int)floor((duration_total - (days * 24 + hours) * 60 * 60) / 60);
-	if (minutes > 0)  message = message + std::to_string(minutes) + "m";
-	seconds = (int)floor((duration_total - ((days * 24 + hours) * 60 + minutes) * 60));
-	message = message + std::to_string(seconds) + "s";
-
-	if (acquisition_index > 1) {
-		message = message + " (" + std::to_string(acquisition_index) + " acquisitions processed in ";
-		days = (int)floor(computation_time_total / 60 / 60 / 24);
-		if (days > 0)  message = message + std::to_string(days) + "d";
-		hours = (int)floor((computation_time_total - days * 24 * 60 * 60) / 60 / 60);
-		if (hours > 0)  message = message + std::to_string(hours) + "h";
-		minutes = (int)floor((computation_time_total - (days * 24 + hours) * 60 * 60) / 60);
-		if (minutes > 0)  message = message + std::to_string(minutes) + "m";
-		seconds = (int)floor((computation_time_total - ((days * 24 + hours) * 60 + minutes) * 60));
-		message = message + std::to_string(seconds) + "s";
-		message = message + ")";
+	// delete process queue if master instance
+	if (opts->master_instance) {
+		CT2A DetectQueueFileName(DeTeCt_additional_filename_exe_folder(DTC_QUEUE_SUFFIX));
+		remove(DetectQueueFileName);
 	}
-
-	char tmpchar[MAX_STRING];
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"In " + (CString)(logcation.c_str()) + L", please find:");
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * log file " + (CString)(left(DeTeCtFileName(tmpchar), InRstr(DeTeCtFileName(tmpchar), "."), tmpchar)) + DTC_LOG_SUFFIX);
-	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * folder " + (CString)(right(detection_folder_path_string.c_str(), strlen(detection_folder_path_string.c_str()) - InRstr(detection_folder_path_string.c_str(), "\\") - 1, tmpchar)) + L" for checking images");
-	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-	CDeTeCtMFCDlg::getLog()->RedrawWindow();
-
-	//	CT2A pathlog (DeTeCt_additional_filename(CString(logcation.c_str()), DTC_LOG_SUFFIX));
-	//	std::string pathlogstr(pathlog);
-	output_log << getDateTime().str().c_str() << "Log file available at " << CW2A(DeTeCt_additional_filename(CString(logcation.c_str()), DTC_LOG_SUFFIX)) << ", zip file created for sending\n";
-	if (opts->dateonly) output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";
-	output_log << getDateTime().str().c_str() << message.c_str() << "\n";
-
-	std::wstring output_log_file2(scan_folder_path.begin(), scan_folder_path.end());
-	output_log_file2 = output_log_file2.append(L"\\").append(OUTPUT_FILENAME).append(DTC_LOG_SUFFIX);
-	std::wofstream output_log2(output_log_file2.c_str(), std::ios_base::app);
-	if (opts->dateonly) output_log2 << "WARNING, datation info only, no detection analysis was performed\n";
-	std::wifstream output_log_in(output_log_file.c_str());
-	output_log2 << output_log_in.rdbuf();
-	output_log_in.close();
-	output_log2 << getDateTime().str().c_str() << "\n";
-	output_log2 << getDateTime().str().c_str() << message.c_str() << "\n";
-	output_log2 << "======================================================================================================\n\n";
-	output_log2.flush();
-	output_log2.close();
-	output_log.flush();
-	output_log.close();
-
-	CT2A LogOrgFilename(DeTeCt_additional_filename(CString(logcation2.c_str()), DTC_LOG_SUFFIX));
-	CT2A LogNewFilename(DeTeCt_additional_filename(CString(logcation2.c_str()), (CString)suffix_char));
-	rename(LogOrgFilename, LogNewFilename);
-
-	CT2A tmp_log_detection_dirname(DeTeCt_additional_filename("", suffix_char));
-	strcpy(log_detection_dirname, tmp_log_detection_dirname);
-		
-	CT2A OutOrgFilename2(CString(logcation2.c_str()) + L"\\" + OUTPUT_FILENAME + DTC_LOG_SUFFIX);
-	CT2A OutNewFilename2(CString(logcation2.c_str()) + L"\\" + OUTPUT_FILENAME + (CString)suffix_char);
-	rename(OutOrgFilename2, OutNewFilename2);
-
-	strcpy(zipfile, "");
-	strcat(zipfile, "\0");
-	strcpy(zip_detection_dirname, zipfile);
-	strcpy(opts->zipname, zipfile);
-	char item_to_be_zipped_shortname[MAX_STRING] = "";
-	if (opts->zip) {
-		char item_to_be_zipped[MAX_STRING] = "";
-		char item_to_be_zipped_location[MAX_STRING] = "";
-
-		strcat(item_to_be_zipped, detection_folder_path_string.c_str());
-		strcat(item_to_be_zipped, "\0");
-		
-		strcat(item_to_be_zipped_shortname, detection_folder_name_string.c_str());
-		strcat(item_to_be_zipped_shortname, ".zip");
-		strcat(item_to_be_zipped_shortname, "\0");
-		strcpy(opts->zipname, item_to_be_zipped_shortname);
-		
-		strcat(item_to_be_zipped_location, logcation.c_str());
-		strcat(item_to_be_zipped_location, "\0");
-
-		strcat(zipfile, detection_folder_path_string.c_str());
-		strcat(zipfile, ".zip");
-		strcat(zipfile, "\0");
-
-		strcpy(zip_detection_dirname, zipfile);
-		strcpy(zip_detection_location, item_to_be_zipped_location);
-
-		// Deactivated and replaced by new version below
-		zip(zipfile, item_to_be_zipped);
-		
-		struct stat st;
-		if (stat(zipfile, &st) == 0) if (st.st_size < 23) remove(zipfile);
-
-		// see project https://www.codeproject.com/articles/4135/xzip-and-xunzip-add-zip-and-or-unzip-to-your-app-w
-		
-		//USES_CONVERSION;
-		//HZIP newZip0 = CreateZip(L"E:\\Sample.zip", NULL, ZIP_FILENAME);
-		//BOOL retval0 = AddFolderContent(newZip0, L"E:", L"TEMP");
-		//CloseZip(newZip0);
-
-		//HZIP newZip = CreateZip(A2T(zipfile), NULL, ZIP_FILENAME);
-		//BOOL retval = AddFolderContent(newZip, A2T(item_to_be_zipped_location), A2T(item_to_be_zipped_shortname));
-		//CloseZip(newZip);
-
-		std::ifstream filetest(zipfile);
-		if (filetest) CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * zip file " + (CString)(right(zipfile, strlen(zipfile) - InRstr(zipfile, "\\") - 1, tmpchar)) + L" for sending");
-		else CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * ERROR: zip file " + (CString)(right(zipfile, strlen(zipfile) - InRstr(zipfile, "\\") - 1, tmpchar)) + L" not created!");
-	}
-
-	if (opts->dateonly) CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis was performed\n");
 	CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str());
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
 
-	log_messages.push_back("");
-	std::string plural;
-	if (nb_high_impact > 0) {
-		if (nb_high_impact > 1) plural = "s";
-		else plural = "";
-		log_messages.push_back(std::to_string(nb_high_impact) + " acquisition" + plural + " with high probability impact" + plural);
-	}
-	if (nb_low_impact > 0) {
-		if (nb_low_impact > 1) plural = "s";
-		else plural = "";
-		log_messages.push_back(std::to_string(nb_low_impact) + " acquisition" + plural + " with low probability impact" + plural);
-	}
-	if (nb_null_impact > 0) {
-		if (nb_null_impact > 1) plural = "s";
-		else plural = "";
-		log_messages.push_back(std::to_string(nb_null_impact) + " acquisition" + plural + " without any impact" + plural);
-	}
-	log_messages.push_back("");
-	log_messages.push_back("Please click on \"Check detection images\" button to open :");
-	log_messages.push_back(" - an explorer in the \"" + detection_folder_name_string + "\" folder to check the detection images stored there.");
-	
-	std::ifstream filetest(zipfile);
-	if (filetest) {
-		std::string stritem_to_be_zipped_shortname(item_to_be_zipped_shortname);
-		log_messages.push_back(" - an explorer in the folder where the \"" + stritem_to_be_zipped_shortname + "\" file is, to be sent by email.");
-		if (opts->email)
-			log_messages.push_back(" - an email to send the results by attaching the \"" + stritem_to_be_zipped_shortname + "\" file.");
-		else log_messages.push_back("Please send an email with the results by attaching the\"" + stritem_to_be_zipped_shortname + "\" file.");
-	}
-	else {
-		std::string strlog_detection_dirname(log_detection_dirname);
-		if (opts->email) log_messages.push_back(" - an email to send the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder.");
-		else log_messages.push_back("Please send an email with the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder.");
-	}
+	if (acquisitions_processed > 0) {
+		/* Renames logfile in impact_detection directory */
+		double second_min, second_max;
+		int minute_min, minute_max;
+		int hour_min, hour_max;
+		int day_min, day_max;
+		int month_min, month_max;
+		int year_min, year_max;
+		char suffix_char[MAX_STRING];
+		char planet_char[MAX_STRING] = "";
 
-	SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
+		/*	switch (planet) {
+				case Jupiter:	strcpy(planet_char, "_jupiter");
+								break;
+				case Saturn:	strcpy(planet_char, "_saturn");
+								break;
+				default: strcpy(planet_char, "");
+			}*/
 
+		if (planet_jupiter > 0) strcat(planet_char, "_jupiter");;
+		if (planet_saturn > 0) strcat(planet_char, "_saturn");;
+
+		jd_to_date(start_time_min, &second_min, &minute_min, &hour_min, &day_min, &month_min, &year_min);
+		jd_to_date(start_time_max, &second_max, &minute_max, &hour_max, &day_max, &month_max, &year_max);
+		sprintf(suffix_char, "%s_%04d%02d%02d_%02d%02d%02.0f", planet_char, year_min, month_min, day_min, hour_min, minute_min, second_min);
+		if ((day_min != day_max) || (month_min != month_max) || (year_min != year_max)) sprintf(suffix_char, "%s-%04d%02d%02d_%02d%02d%02.0f", suffix_char, year_max, month_max, day_max, hour_max, minute_max, second_max);
+		else if ((hour_min != hour_max) || (minute_min != minute_max) || (second_min != second_max)) sprintf(suffix_char, "%s-%02d%02d%02.0f", suffix_char, hour_max, minute_max, second_max);
+		sprintf(suffix_char, "%s.log", suffix_char);
+
+		std::string message = "Total duration analyzed ";
+		int days;
+		int hours;
+		int minutes;
+		int seconds;
+
+		days = (int)floor(duration_total / 60 / 60 / 24);
+		if (days > 0)  message = message + std::to_string(days) + "d";
+		hours = (int)floor((duration_total - days * 24 * 60 * 60) / 60 / 60);
+		if (hours > 0)  message = message + std::to_string(hours) + "h";
+		minutes = (int)floor((duration_total - (days * 24 + hours) * 60 * 60) / 60);
+		if (minutes > 0)  message = message + std::to_string(minutes) + "m";
+		seconds = (int)floor((duration_total - ((days * 24 + hours) * 60 + minutes) * 60));
+		message = message + std::to_string(seconds) + "s";
+
+		if (acquisition_index > 1) {
+			message = message + " (" + std::to_string(acquisition_index) + " acquisitions processed in ";
+			days = (int)floor(computation_time_total / 60 / 60 / 24);
+			if (days > 0)  message = message + std::to_string(days) + "d";
+			hours = (int)floor((computation_time_total - days * 24 * 60 * 60) / 60 / 60);
+			if (hours > 0)  message = message + std::to_string(hours) + "h";
+			minutes = (int)floor((computation_time_total - (days * 24 + hours) * 60 * 60) / 60);
+			if (minutes > 0)  message = message + std::to_string(minutes) + "m";
+			seconds = (int)floor((computation_time_total - ((days * 24 + hours) * 60 + minutes) * 60));
+			message = message + std::to_string(seconds) + "s";
+			message = message + ")";
+		}
+
+		char tmpchar[MAX_STRING];
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + (CString)message.c_str());
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"In " + (CString)(log_consolidated.c_str()) + L", please find:");
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * log file " + (CString)(left(DeTeCtFileName(tmpchar), InRstr(DeTeCtFileName(tmpchar), "."), tmpchar)) + DTC_LOG_SUFFIX);
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * folder " + (CString)(right(detection_folder_fullpathname_string.c_str(), strlen(detection_folder_fullpathname_string.c_str()) - InRstr(detection_folder_fullpathname_string.c_str(), "\\") - 1, tmpchar)) + L" for checking images");
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+		CDeTeCtMFCDlg::getLog()->RedrawWindow();
+
+		//	CT2A pathlog (DeTeCt_additional_filename(CString(log.c_str()), DTC_LOG_SUFFIX));
+		//	std::string pathlogstr(pathlog);
+		output_log << getDateTime().str().c_str() << "Log file available at " << CW2A(DeTeCt_additional_filename(CString(log_consolidated.c_str()), DTC_LOG_SUFFIX)) << ", zip file created for sending\n";
+		if (opts->dateonly) output_log << getDateTime().str().c_str() << "WARNING, datation info only, no detection analysis was performed\n";
+		output_log << getDateTime().str().c_str() << message.c_str() << "\n";
+
+//		std::wstring output_log_file2(scan_folder_path.begin(), scan_folder_path.end());
+		std::wstring output_log_file2(log_directory.begin(), log_directory.end());
+		output_log_file2 = output_log_file2.append(L"\\").append(OUTPUT_FILENAME).append(DTC_LOG_SUFFIX);
+		std::wofstream output_log(output_log_file2.c_str(), std::ios_base::app);
+		if (opts->dateonly) output_log << "WARNING, datation info only, no detection analysis was performed\n";
+		std::wifstream output_log_in(output_log_file.c_str());
+		output_log << output_log_in.rdbuf();
+		output_log_in.close();
+		output_log << getDateTime().str().c_str() << "\n";
+		output_log << getDateTime().str().c_str() << message.c_str() << "\n";
+		output_log << "======================================================================================================\n\n";
+		output_log.flush();
+		output_log.close();
+		output_log.flush();
+		output_log.close();
+
+		CT2A LogOrgFilename(DeTeCt_additional_filename(CString(log.c_str()), DTC_LOG_SUFFIX));
+		CT2A LogNewFilename(DeTeCt_additional_filename(CString(log.c_str()), (CString)suffix_char));
+		rename(LogOrgFilename, LogNewFilename);
+
+		CT2A tmp_log_detection_dirname(DeTeCt_additional_filename("", suffix_char));
+		strcpy(log_detection_dirname, tmp_log_detection_dirname);
+
+		CT2A OutOrgFilename2(CString(log.c_str()) + L"\\" + OUTPUT_FILENAME + DTC_LOG_SUFFIX);
+		CT2A OutNewFilename2(CString(log.c_str()) + L"\\" + OUTPUT_FILENAME + (CString)suffix_char);
+		rename(OutOrgFilename2, OutNewFilename2);
+
+		CDeTeCtMFCDlg::getdetectImageslink()->SetItemUrl(0,(CString)detection_folder_fullpathname.c_str());
+		CDeTeCtMFCDlg::getdetectImageslink()->SetWindowText((CString)"Detection images");
+		//CDeTeCtMFCDlg::getdetectImageslink()->ShowWindow(SW_SHOW);
+
+		strcpy(zipfile, "");
+		strcat(zipfile, "\0");
+		strcpy(zip_detection_dirname, zipfile);
+		strcpy(opts->zipname, zipfile);
+		char item_to_be_zipped_shortname[MAX_STRING] = "";
+		if (opts->zip) {
+			char item_to_be_zipped[MAX_STRING] = "";
+			char item_to_be_zipped_location[MAX_STRING] = "";
+
+			strcat(item_to_be_zipped, detection_folder_fullpathname_string.c_str());
+			strcat(item_to_be_zipped, "\0");
+
+			strcat(item_to_be_zipped_shortname, detection_folder_name_string.c_str());
+			strcat(item_to_be_zipped_shortname, ".zip");
+			strcat(item_to_be_zipped_shortname, "\0");
+			strcpy(opts->zipname, item_to_be_zipped_shortname);
+
+			strcat(item_to_be_zipped_location, log_consolidated.c_str());
+			strcat(item_to_be_zipped_location, "\0");
+
+			strcat(zipfile, detection_folder_fullpathname_string.c_str());
+			strcat(zipfile, ".zip");
+			strcat(zipfile, "\0");
+
+			strcpy(zip_detection_dirname, zipfile);
+			strcpy(zip_detection_location, item_to_be_zipped_location);
+
+			// Deactivated and replaced by new version below
+			zip(zipfile, item_to_be_zipped);
+
+			struct stat st;
+			if (stat(zipfile, &st) == 0) if (st.st_size < 23) remove(zipfile);
+
+			// see project https://www.codeproject.com/articles/4135/xzip-and-xunzip-add-zip-and-or-unzip-to-your-app-w
+
+			//USES_CONVERSION;
+			//HZIP newZip0 = CreateZip(L"E:\\Sample.zip", NULL, ZIP_FILENAME);
+			//BOOL retval0 = AddFolderContent(newZip0, L"E:", L"TEMP");
+			//CloseZip(newZip0);
+
+			//HZIP newZip = CreateZip(A2T(zipfile), NULL, ZIP_FILENAME);
+			//BOOL retval = AddFolderContent(newZip, A2T(item_to_be_zipped_location), A2T(item_to_be_zipped_shortname));
+			//CloseZip(newZip);
+
+			std::ifstream filetest(zipfile);
+			if (filetest) CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * zip file " + (CString)(right(zipfile, strlen(zipfile) - InRstr(zipfile, "\\") - 1, tmpchar)) + L" for sending");
+			else CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L" * ERROR: zip file " + (CString)(right(zipfile, strlen(zipfile) - InRstr(zipfile, "\\") - 1, tmpchar)) + L" not created!");
+		}
+
+		if (opts->dateonly) CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, datation info only, no detection analysis was performed\n");
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str());
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+		CDeTeCtMFCDlg::getLog()->RedrawWindow();
+
+		log_messages.push_back("");
+		std::string plural;
+		if (nb_high_impact > 0) {
+			if (nb_high_impact > 1) plural = "s";
+			else plural = "";
+			log_messages.push_back(std::to_string(nb_high_impact) + " acquisition" + plural + " with high probability impact" + plural);
+		}
+		if (nb_low_impact > 0) {
+			if (nb_low_impact > 1) plural = "s";
+			else plural = "";
+			log_messages.push_back(std::to_string(nb_low_impact) + " acquisition" + plural + " with low probability impact" + plural);
+		}
+		if (nb_null_impact > 0) {
+			if (nb_null_impact > 1) plural = "s";
+			else plural = "";
+			log_messages.push_back(std::to_string(nb_null_impact) + " acquisition" + plural + " without any impact" + plural);
+		}
+		log_messages.push_back("");
+		log_messages.push_back("Please click on \"Check detection images\" button to open :");
+		log_messages.push_back(" - an explorer in the \"" + detection_folder_name_string + "\" folder to check the detection images stored there.");
+
+		std::ifstream filetest(zipfile);
+		if (filetest) {
+			std::string stritem_to_be_zipped_shortname(item_to_be_zipped_shortname);
+			log_messages.push_back(" - an explorer in the folder where the \"" + stritem_to_be_zipped_shortname + "\" file is, to be sent by email.");
+			if (opts->email)
+				log_messages.push_back(" - an email to send the results by attaching the \"" + stritem_to_be_zipped_shortname + "\" file.");
+			else log_messages.push_back("Please send an email with the results by attaching the\"" + stritem_to_be_zipped_shortname + "\" file.");
+		}
+		else {
+			std::string strlog_detection_dirname(log_detection_dirname);
+			if (opts->email) log_messages.push_back(" - an email to send the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder.");
+			else log_messages.push_back("Please send an email with the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder.");
+		}
+		if (opts->autostakkert) {
+			char tmp[MAX_PATH];
+			std::string DeTeCtFileNameString(DeTeCtFileName(tmp));
+			log_messages.push_back("Once done, you can SAFELY CLOSE " + DeTeCtFileNameString);
+		}
+
+//		SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
 //DBOUT("Interactive=" << opts->interactive << "\n");
 
-	if (opts->interactive) {
-		email->DoModal();
-	} else {
-		dlg.OnFileExit();
-		//m_pMainWnd->DestroyWindows();
+		if ((opts->interactive) || ((opts->autostakkert) && (opts->master_instance))) { 
+			SendEmailDlg* email = new SendEmailDlg(NULL, log_messages); 
+			email->DoModal();
+//		} else {
+//			dlg.OnFileExit();
+			//m_pMainWnd->DestroyWindows();
+		}
+	} // end if acquisition > 0
+	else {
+		// TODO: Message nothing has been done
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"WARNING, no file has been processed\n");
+		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str());
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+		CDeTeCtMFCDlg::getLog()->RedrawWindow();
+
+		output_log << getDateTime().str().c_str() << "WARNING, no file has been processed\n";
+		output_log.flush();
+		output_log.close();
+		
+		// TODO: Delete log if empty
 	}
+
+	dlg.OnFileExit();
+
 	return TRUE;
 }
 
@@ -2307,12 +2517,12 @@ char *dtc_full_filename(const char *acquisition_filename, const char *suffix, co
 ******************************************************************************************************/
 
 
-void zip(char *zipfile, char *item_to_be_zipped)
+void zip(char *zipfilename, char *item_to_be_zipped)
 {
-	#define MAX_THREADS 500
+	#define MAX_THREADS 5000
 
 	// Create zip file
-	FILE* f = fopen(zipfile, "wb");
+	FILE* f = fopen(zipfilename, "wb");
 	fwrite("\x50\x4B\x05\x06\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 22, 1, f);
 	fclose(f);
 
@@ -2329,9 +2539,9 @@ void zip(char *zipfile, char *item_to_be_zipped)
 
 	if (SUCCEEDED(hResult) && pISD != NULL)
 	{
-		strlen = MultiByteToWideChar(CP_ACP, 0, zipfile, -1, 0, 0);
+		strlen = MultiByteToWideChar(CP_ACP, 0, zipfilename, -1, 0, 0);
 		strptr1 = SysAllocStringLen(0, strlen);
-		MultiByteToWideChar(CP_ACP, 0, zipfile, -1, strptr1, strlen);
+		MultiByteToWideChar(CP_ACP, 0, zipfilename, -1, strptr1, strlen);
 
 		VariantInit(&vDir);
 		vDir.vt = VT_BSTR;

@@ -16,6 +16,9 @@
     <Filter Include="libraries">
       <UniqueIdentifier>{cdd7bf5a-6bdd-4c17-a554-25497af09472}</UniqueIdentifier>
     </Filter>
+    <Filter Include="postprocessing">
+      <UniqueIdentifier>{da2418f4-7fcd-476a-9f0a-eb78ba55e3f3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -213,6 +216,15 @@
     </None>
     <None Include="fits\libfits.dll">
       <Filter>libraries</Filter>
+    </None>
+    <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\extract_impact_detection_zip.bat">
+      <Filter>postprocessing</Filter>
+    </None>
+    <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.bat">
+      <Filter>postprocessing</Filter>
+    </None>
+    <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.vbs">
+      <Filter>postprocessing</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -801,10 +801,10 @@ void dtcDrawCM(Image image, cv::Point cm)
  **************************************************************************************************/
 
 void dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, int lmax) {
-	cv::line(frame, cv::Point(point.x + lmin, point.y), cv::Point(point.x + lmax, point.y), colour, 1, 8, 0);
-	cv::line(frame, cv::Point(point.x - lmax, point.y), cv::Point(point.x - lmin, point.y), colour, 1, 8, 0);
-	cv::line(frame, cv::Point(point.x, point.y - lmax), cv::Point(point.x, point.y - lmin), colour, 1, 8, 0);
-	cv::line(frame, cv::Point(point.x, point.y + lmin), cv::Point(point.x, point.y + lmax), colour, 1, 8, 0);
+	cv::line(frame, cv::Point(point.x + lmin, point.y), cv::Point(point.x + lmax, point.y), colour, 2, 8, 0);
+	cv::line(frame, cv::Point(point.x - lmax, point.y), cv::Point(point.x - lmin, point.y), colour, 2, 8, 0);
+	cv::line(frame, cv::Point(point.x, point.y - lmax), cv::Point(point.x, point.y - lmin), colour, 2, 8, 0);
+	cv::line(frame, cv::Point(point.x, point.y + lmin), cv::Point(point.x, point.y + lmax), colour, 2, 8, 0);
 }
 
 /**********************************************************************************************//**

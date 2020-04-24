@@ -15,6 +15,8 @@
 #include "common.h"
 #include "processes_queue.h"
 
+#include "wrapper2.h"
+
 #ifdef _DEBUG
 
 /**********************************************************************************************//**
@@ -29,9 +31,27 @@
 #define new DEBUG_NEW
 #endif
 
-CListBox CDeTeCtMFCDlg::impactDetectionLog;
-CProgressCtrl CDeTeCtMFCDlg::progressBar;
-CListBox SendEmailDlg::outputLog;
+CListBox		CDeTeCtMFCDlg::impactDetectionLog;
+CProgressCtrl	CDeTeCtMFCDlg::progressBar;
+CProgressCtrl	CDeTeCtMFCDlg::progressBar_all;
+CStatic			CDeTeCtMFCDlg::impactNull;
+CStatic			CDeTeCtMFCDlg::impactLow;
+CStatic			CDeTeCtMFCDlg::impactHigh;
+CStatic			CDeTeCtMFCDlg::totalProgress;
+CStatic			CDeTeCtMFCDlg::fileName;
+CStatic			CDeTeCtMFCDlg::computingTime;
+CLinkCtrl		CDeTeCtMFCDlg::detectImageslink;
+CLinkCtrl		CDeTeCtMFCDlg::zipFilelink;
+CButton			CDeTeCtMFCDlg::AS;
+CButton			CDeTeCtMFCDlg::dark;
+CButton			CDeTeCtMFCDlg::acquisitionLog;
+CButton			CDeTeCtMFCDlg::SER;
+CButton			CDeTeCtMFCDlg::SERtimestamps;
+CButton			CDeTeCtMFCDlg::FITS;
+CButton			CDeTeCtMFCDlg::FileInfo;
+CStatic			CDeTeCtMFCDlg::acquisitionSW;
+
+CListBox	SendEmailDlg::outputLog;
 std::vector<LPCTSTR> SendEmailDlg::logMessages;
 
 CStatic c_Frame;
@@ -204,6 +224,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.videotest = 0;
 	opts.wROI = 0;
 	opts.hROI = 0;
+
 	//AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	//AFX_MANAGE_STATE(AFX_MODULE_STATE* pModuleState);
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
@@ -226,6 +247,23 @@ void CDeTeCtMFCDlg::DoDataExchange(CDataExchange* pDX)
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_LIST1, impactDetectionLog);
 	DDX_Control(pDX, IDC_PROGRESS1, progressBar);
+	DDX_Control(pDX, IDC_PROGRESS2, progressBar_all);
+	DDX_Control(pDX, IDC_IMPACTNULL, impactNull);
+	DDX_Control(pDX, IDC_IMPACTLOW, impactLow);
+	DDX_Control(pDX, IDC_IMPACTHIGH, impactHigh);
+	DDX_Control(pDX, IDC_STATIC_TOTALPROGRESS, totalProgress);
+	DDX_Control(pDX, IDC_STATIC_FILENAME, fileName);
+	DDX_Control(pDX, IDC_STATIC_COMPUTING, computingTime);
+	DDX_Control(pDX, IDC_MFCLINK_DETECTIMAGES, detectImageslink);
+	DDX_Control(pDX, IDC_MFCLINK_ZIPFILE, zipFilelink);
+	DDX_Control(pDX, IDC_CHECK_AS, AS);
+	DDX_Control(pDX, IDC_CHECK_DARK, dark);
+	DDX_Control(pDX, IDC_CHECK_ACQUISITIONLOG, acquisitionLog);
+	DDX_Control(pDX, IDC_CHECK_SER, SER);
+	DDX_Control(pDX, IDC_CHECK_SERTIMESTAMP, SERtimestamps);
+	DDX_Control(pDX, IDC_CHECK_FITS, FITS);
+	DDX_Control(pDX, IDC_CHECK_FILEINFO, FileInfo);
+	DDX_Control(pDX, IDC_STATIC_ACQUISITIONSW, acquisitionSW);
 }
 
 /*
@@ -236,7 +274,7 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
 	ON_BN_CLICKED(IDOK, &CDeTeCtMFCDlg::OnBnClickedOk)
-	ON_COMMAND(ID_FILE_OPEN32771, &CDeTeCtMFCDlg::OnFileOpen32771)
+	ON_COMMAND(ID_FILE_OPEN32771, &CDeTeCtMFCDlg::OnFileOpenFolder)
 	ON_COMMAND(ID_HELP_EXIT, &CDeTeCtMFCDlg::OnHelpExit)
 	ON_COMMAND(ID_HELP_TUTORIAL, &CDeTeCtMFCDlg::OnHelpTutorial)
 	ON_COMMAND(ID_HELP_DOCUMENTATION, &CDeTeCtMFCDlg::OnHelpDocumentation)
@@ -246,8 +284,13 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_FILE_EXIT, &CDeTeCtMFCDlg::OnFileExit)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CDeTeCtMFCDlg::OnLbnSelchangeList1)
 	ON_COMMAND(ID_FILE_OPENFILE, &CDeTeCtMFCDlg::OnFileOpenfile)
+	ON_COMMAND(ID_FILE_RESETFILELIST, &CDeTeCtMFCDlg::OnFileResetFileList)
 	ON_WM_GETMINMAXINFO()
 	ON_BN_CLICKED(IDC_FRAME, &CDeTeCtMFCDlg::OnBnClickedFrame)
+	ON_STN_CLICKED(IDC_STATIC_COMPUTING, &CDeTeCtMFCDlg::OnStnClickedStaticComputing)
+	ON_BN_CLICKED(IDC_CHECK2, &CDeTeCtMFCDlg::OnBnClickedCheck2)
+	ON_BN_CLICKED(IDC_CHECK1, &CDeTeCtMFCDlg::OnBnClickedCheck1)
+	ON_BN_CLICKED(IDC_CHECK3, &CDeTeCtMFCDlg::OnBnClickedCheck3)
 END_MESSAGE_MAP()
 
 
@@ -267,6 +310,9 @@ END_MESSAGE_MAP()
 BOOL CDeTeCtMFCDlg::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	AS.SetCheck(0);
+	dark.SetCheck(0);
 
 	//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 	BOOL bOk;
@@ -291,7 +337,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
 		}
 	}
-
+	
 	// Set the icon for this dialog.  The framework does this automatically
 	//  when the application's main window is not a dialog
 	//SetIcon(m_hIcon, TRUE);			// Set big icon
@@ -301,7 +347,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 
 	// Set title bar
 	//SetWindowText(_T(FULL_PROGNAME));
-	std::wstring wstr(full_version.begin(), full_version.end());
+	std::wstring wstr(app_title.begin(), app_title.end());
 	SetWindowText(wstr.c_str());
 
 	// Following does not work
@@ -326,8 +372,11 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	// also set the min/max for this dlg. you have to use "" for the panel name
 	//  bOk = m_resizer.SetAnchor(_T("_root"), ANCHOR_ALL | ANCHOR_PRIORITY_RIGHT);
 	//  ASSERT(bOk);
-	x_size = 441 + 221;
-	y_size = 267 + 168;
+	//x_size = 441 + 221;
+	x_size = 576 + 221;
+	//y_size = 267 + 168;
+	//y_size = 287 + 168;
+	y_size = 346 + 168;
 	bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
 	ASSERT(bOk);
 
@@ -370,12 +419,23 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	*/
 
 	// TODO: Add extra initialization here
+	impactNull.SetWindowText(L"N/A");
+	impactLow.SetWindowText(L"N/A");
+	impactHigh.SetWindowText(L"N/A");
+
 	std::wstringstream ss2;
 	StreamDeTeCtOSversions(&ss2);
+	const auto processor_count = std::to_string(std::thread::hardware_concurrency());
+	ss2 << " " << processor_count.c_str() << " processors";
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 	if (opts.dateonly) impactDetectionLog.AddString((CString) "WARNING, datation info only monde on, no detection analysis will be performed");
 	if (!opts.interactive) impactDetectionLog.AddString((CString) "Automatic mode on");
 	if (!opts.reprocessing) impactDetectionLog.AddString((CString) "No reprocessing mode on");
+	if (opts.maxinstances >= 1) {
+		CString maxinstances_cstring;
+		maxinstances_cstring.Format(L"%d", opts.maxinstances);
+		if (opts.maxinstances > 1) impactDetectionLog.AddString(L"Will use maximum " + maxinstances_cstring + " " + PROGNAME + " instances");
+	}
 
 	int index_message = 0;
 	while ((opts.message[index_message].size() > 1) && (index_message < 100)) {
@@ -387,7 +447,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 		dir = opendir(opts.dirname);
 		if (dir != NULL) {
 			closedir(dir);
-			OnFileOpen32771();
+			OnFileOpenFolder();
 		}
 		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.dirname + " directory not found.");
 	} else if (opts.filename) {
@@ -513,11 +573,96 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 		
 	} else {
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Error: no files selected");
+		if (!opts.interactive) dlg.OnFileExit();
 	}
 }
 
 /**********************************************************************************************//**
- * @fn	void CDeTeCtMFCDlg::OnFileOpen32771()
+ * @fn	void CDeTeCtMFCDlg::OnFileOpenfile()
+ *
+ * @brief	Executes the file open dialog.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnFileOpenfile()
+{
+	acquisition_files.file_list = {};
+	std::wstringstream ss, ssint, ssopt;
+	std::wstring file_path;
+	std::string file;
+	std::string filename_acquisition;
+
+	CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
+
+	// Gets filename from parameter or dialog window
+	if (opts.filename) file = std::string(opts.filename);
+	else if (dialog.DoModal() == IDOK) {
+		file_path = std::wstring(dialog.GetPathName().GetString());
+		file = std::string(file_path.begin(), file_path.end());
+	}
+	std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+
+	if (file.size() <= 0) {
+		//********* Error if no file selected
+
+		ss << "No file selected";
+		//			if (!opts.interactive) CDeTeCtMFCDlg::OnFileExit();
+	}
+	else {
+		std::ifstream filetest(file);
+		if (!filetest) {
+			// ********* Error if file is missing
+
+			ss << "Ignoring " << file.c_str() << ", file is missing)\n";
+		}
+		else {
+			// Clears window
+			std::wstringstream ss2;
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
+			ss2 << "Resetting file list for analysis";
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+
+			// Gets file acquisition name from autostakkert session file
+			int nframe = 0;
+
+			if (Is_Capture_OK_from_File(file, &filename_acquisition, &nframe, &ss)) {
+				// ********* Error if acquisition has not enough frames
+				if (Is_Capture_Long_Enough(file, nframe, &ss)) {
+					// ********* Ignores dark, pipp, winjupos derotated files
+					if (!Is_Capture_Special_Type(file, &ss)) {
+						if (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss)) {
+							// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+
+							// ********* Finally adds file to the list !
+															// Set-up global variable
+							scan_folder_path = file.substr(0, file.find_last_of("\\"));
+							acquisition_files.file_list.push_back(file);
+							file = file.substr(file.find_last_of("\\") + 1, file.length());
+							if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " for analysis\n";
+							else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+
+							std::wstring totalProgress_wstring = L"Total\n(0/1)";
+							CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
+							CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Click on Detect impacts!");
+
+						}
+					}
+				}
+			}
+		}
+	}
+	// Prints message
+	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
+	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+	this->RedrawWindow();
+	if (!opts.interactive) OnBnClickedOk();
+}
+
+/**********************************************************************************************//**
+ * @fn	void CDeTeCtMFCDlg::OnFileOpenFolder()
  *
  * @brief	Executes the multiple file open action.
  *
@@ -525,10 +670,8 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
  * @date	2017-05-12
  **************************************************************************************************/
 
-void CDeTeCtMFCDlg::OnFileOpen32771()
+void CDeTeCtMFCDlg::OnFileOpenFolder()
 {
-	//file_list = {};
-	//acquisition_file_list = {};
 	acquisition_files.file_list = {};
 	acquisition_files.acquisition_file_list = {};
 	acquisition_files.nb_prealigned_frames = {};
@@ -552,6 +695,7 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 	} else {
 		std::wstringstream ss2;
 
+		// Set-up global variable
 		scan_folder_path = path;
 //TODO: clearscreen
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
@@ -559,48 +703,61 @@ void CDeTeCtMFCDlg::OnFileOpen32771()
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 		this->RedrawWindow();
-		//read_files(path, &file_list, &acquisition_file_list);
 		
 		read_files(path, &acquisition_files);
+		
 		if (acquisition_files.file_list.size() > 0) {
-			for (std::string filename : acquisition_files.file_list) {
+			int index = 0;
+			std::string filename;
+			while (index< acquisition_files.file_list.size()) {
+				filename = acquisition_files.file_list.at(index);
 				std::wstringstream ss3;
-				bool fileexists = FALSE;
 				std::string filename_acquisition;
+				int nframe = -1;
 
-				std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
-				if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
-					int cm_list_start = 0;
-					int cm_list_end = 9999999;
-					int cm_frame_count = 0;
+				if ((Is_Capture_OK_from_File(filename, &filename_acquisition, &nframe, &ss3))
+					// ********* Error if acquisition has not enough frames
+					&& (Is_Capture_Long_Enough(filename, nframe, &ss3))
+					// ********* Ignores if less than minimum frames
+					&& (!Is_Capture_Special_Type(filename, &ss3))
+					// ********* Ignores dark, pipp, winjupos derotated files
+					&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))) {
+					// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
 
-					read_autostakkert_file(filename, &filename_acquisition, NULL, &cm_list_start, &cm_list_end, &cm_frame_count);
-					std::ifstream filetest(filename_acquisition);
-					if (filetest) fileexists = TRUE;
-					filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
-					//TODO: test if filename_acquisition is already in the list and remove it
+								// ********* Finally adds file to the list !
+								std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+								std::string file = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+								if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " for analysis\n";
+								else ss3 << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+								index++;
+								/*				std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+
+												filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+												if ((extension.compare(AUTOSTAKKERT_EXT) != 0) || (fileexists)) {
+													if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << filename.c_str() << " for analysis";
+													else ss3 << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
+												}
+												else if ((extension.compare(AUTOSTAKKERT_EXT) == 0) && (!fileexists)) {
+													ss3 << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";*/
 				}
-				filename = filename.substr(filename.find_last_of("\\") + 1, filename.length());
-				if ((extension.compare(AUTOSTAKKERT_EXT) != 0) || (fileexists)) {
-					if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << filename.c_str() << " for analysis";
-					else ss3 << "Adding " << filename.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
-				}
-				else if ((extension.compare(AUTOSTAKKERT_EXT) == 0) && (!fileexists)) {
-					ss3 << "Ignoring " << filename.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
+				else {
+					acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
+					acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
+					acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
 				}
 				impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 				this->RedrawWindow();
 			}
 		}
-		else {
+		if (acquisition_files.file_list.size() <= 0) {
 			ss << "No file selected";
-		}
-		//		if (file_list.size() > 0) {
-		//			max_mean_folder_path = folder_path.append(L"\\Impact_detection");
-		//			if (GetFileAttributes(max_mean_folder_path.c_str()) == INVALID_FILE_ATTRIBUTES) CreateDirectory(max_mean_folder_path.c_str(), 0);
-		//		}
+		} else CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Click on Detect impacts!");
+
 	}
+	std::wstring totalProgress_wstring = L"Total\n(0/" + std::to_wstring(acquisition_files.file_list.size()) + L")";
+	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
+
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	this->RedrawWindow();
@@ -1130,84 +1287,28 @@ void CAboutDlg::OnBnClickedMfclink1()
 }
 
 /**********************************************************************************************//**
- * @fn	void CDeTeCtMFCDlg::OnFileOpenfile()
+ * @fn	OnFileResetFileList()
  *
- * @brief	Executes the file open dialog.
+ * @brief	Reset to be processed file list
  *
- * @author	Jon
- * @date	2017-05-12
+ * @author	Marc
+ * @date	2020-04-18
  **************************************************************************************************/
 
-void CDeTeCtMFCDlg::OnFileOpenfile()
-{
-		acquisition_files.file_list = {};
-		std::wstringstream ss,ssint, ssopt;
-		std::wstring file_path;
-		std::string file;
-		std::string shortfile;
-		CFileDialog dialog(true, NULL, NULL, OFN_FILEMUSTEXIST | OFN_ENABLESIZING, filter, this, sizeof(OPENFILENAME), true);
+void CDeTeCtMFCDlg::OnFileResetFileList() {
+	acquisition_files.file_list = {};
 
-		if (opts.filename) file = std::string(opts.filename);
-		else if (dialog.DoModal() == IDOK) {
-				file_path = std::wstring(dialog.GetPathName().GetString());
-				file = std::string(file_path.begin(), file_path.end());
-			}
-		if (file.size() <= 0) {
-			ss << "No file selected";
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
-			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-//			if (!opts.interactive) CDeTeCtMFCDlg::OnFileExit();
-		}
-		else {
-			std::wstringstream ss2;
-			//TODO: clearscreen
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
-			ss2 << "Resetting file list for analysis";
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
-			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+	std::wstring totalProgress_wstring = L"Total\n(0/0)";
+	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 
-			if ((!IGNORE_DARK || (file.find(DARK_STRING) == std::string::npos)) &&
-				(!IGNORE_PIPP || (file.find(PIPP_STRING) == std::string::npos)) &&
-				(!IGNORE_WJ_DEROTATION || (file.find(WJ_DEROT_STRING) == std::string::npos))) {
-				bool fileexists = FALSE;
-				std::string filename_acquisition;
+	std::wstringstream ss2;
+	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
+	ss2 << "Resetting file list for analysis";
+	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
+	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+	CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Open file or folder!");
 
-				std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
-				if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
-					int cm_list_start = 0;
-					int cm_list_end = 9999999;
-					int cm_frame_count = 0;
-
-					read_autostakkert_file(file, &filename_acquisition, NULL, &cm_list_start, &cm_list_end, &cm_frame_count);
-					std::ifstream filetest(filename_acquisition);
-					if (filetest) fileexists = TRUE;
-					filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
-				}
-				if ((extension.compare(AUTOSTAKKERT_EXT) != 0) || (fileexists)) {
-					scan_folder_path = file.substr(0, file.find_last_of("\\"));
-					acquisition_files.file_list.push_back(file);
-					file = file.substr(file.find_last_of("\\") + 1, file.length());
-					if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " for analysis";
-					else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis";
-				}
-				else if ((extension.compare(AUTOSTAKKERT_EXT) == 0) && (!fileexists)) {
-					file = file.substr(file.find_last_of("\\") + 1, file.length());
-					ss << "Ignoring " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " is missing)";
-				}
-			}
-			else {
-				shortfile = file.substr(file.find_last_of("\\") + 1, file.length());
-				ss << "Ignoring " << shortfile.c_str();
-				if (file.find(DARK_STRING) != std::string::npos) ss << " dark file";
-				else if (file.find(PIPP_STRING) != std::string::npos) ss << " PIPP file";
-				else if (file.find(WJ_DEROT_STRING) != std::string::npos) ss << " WinJupos derotated file";
-				else ss << " file";
-			}
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
-			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-		}
-		this->RedrawWindow();
-	if (!opts.interactive) OnBnClickedOk();
+	this->RedrawWindow();
 }
 
 /**********************************************************************************************//**
@@ -1448,6 +1549,7 @@ void ProgressDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	DDX_Control(pDX, IDC_PROGRESS1, dtcProgress);
+	DDX_Control(pDX, IDC_PROGRESS2, dtcProgress_all);
 	DDX_Control(pDX, IDC_STATICI, progressInfo);
 }
 
@@ -1729,6 +1831,30 @@ void SendEmailDlg::OnStnClickedStaticf4()
 
 
 void SendEmailDlg::OnStnClickedStaticf()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+}
+
+
+void CDeTeCtMFCDlg::OnStnClickedStaticComputing()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+}
+
+
+void CDeTeCtMFCDlg::OnBnClickedCheck2()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+}
+
+
+void CDeTeCtMFCDlg::OnBnClickedCheck1()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
+}
+
+
+void CDeTeCtMFCDlg::OnBnClickedCheck3()
 {
 	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 }

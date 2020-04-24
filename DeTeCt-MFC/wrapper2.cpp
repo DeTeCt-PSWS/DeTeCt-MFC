@@ -5,6 +5,9 @@
 /*    WRAPPER: Different acquisitions format routing functions					*/
 /*                                                                              */
 /********************************************************************************/
+#include "processes_queue.h"
+#include <windows.h> //after processes_queue.h
+
 #include "common.h"
 
 #include <stdio.h>
@@ -16,6 +19,7 @@ extern "C" {
 #include "wrapper2.h"
 #include "serfmt.h"
 #include "dtcgui.hpp"
+
 
 /**********************************************************************************************//**
 * @fn	DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
@@ -94,12 +98,12 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 				fprintf(stderr, "ERROR in dtcCaptureFromFile opening file %s\n", fname);
 				exit(EXIT_FAILURE);
 			}
+			capt->framecount = (int)(dtcGetCaptureProperty(capt, CV_CAP_PROP_FRAME_COUNT));
 		}
 		(*pframecount) = capt->framecount;
 	}
 	return capt;
 }
-
 
 /**********************************************************************************************//**
 * @fn	cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror)
@@ -225,3 +229,187 @@ void dtcReleaseCapture(DtcCapture *capture)
 	}
 }
 
+/**********************************************************************************************//**
+* @fn	BOOL Is_Capture_OK_From_File(const std::string file, std::string *pfilename_acquisition, int *pnframe, std::wstringstream *pmessage)
+*
+* @brief	Check if capture is ok (file can be opened, capture from autostakkert session file ok)
+*			Returns number of frames
+*			Returns potential error message
+*
+* @author	Marc
+* @date	2020-04-13
+*
+* @param [in]		file						string of capture filename
+* @param [out]		pfilename_acquisition	   	pointer to acquisition filename
+* @param [out]		pnframe						pointer to number of acquisition frames
+* @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
+*
+* @return			True if ok, False if error
+**************************************************************************************************/
+
+BOOL Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acquisition, int *pnframe, std::wstringstream *pmessage)
+{
+	DtcCapture *pCapture;
+
+	pCapture = NULL;
+	std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+	(*pnframe) = -1;
+
+	if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+		int tmp1 = 0;
+		int tmp2 = 9999999;
+		int tmp3 = 0;
+		read_autostakkert_file(file, pfilename_acquisition, NULL, &tmp1, &tmp2, &tmp3);
+		//					filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+	}
+	else
+		(*pfilename_acquisition) = std::string(file.begin(), file.end());
+
+	if (!file_exists((*pfilename_acquisition).c_str())) {
+		if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+			// Error if autostakkert acquisition file cannot be found
+			(*pmessage) << "Ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (acquisition file " << (*pfilename_acquisition).c_str() << " is missing)\n";
+		}
+		else
+			(*pmessage) << "Ignoring " << (*pfilename_acquisition).c_str() << ", file is missing\n";
+		return FALSE;
+	}
+
+	if (!(pCapture = dtcCaptureFromFile2((*pfilename_acquisition).c_str(), pnframe))) {
+		// ********* Error if acquisition file cannot be opened / is missing
+		dtcReleaseCapture(pCapture);
+		pCapture = NULL;
+		if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+			// Error if autostakkert acquisition file cannot be found
+			(*pmessage) << "Ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (acquisition file " << (*pfilename_acquisition).c_str() << " cannot be opened)\n";
+		}
+		else
+			(*pmessage) << "Ignoring " << (*pfilename_acquisition).c_str() << ",  cannot be opened\n";
+		return FALSE;
+	}
+	else return TRUE;
+}
+
+/**********************************************************************************************//**
+* @fn	BOOL Is_Capture_Long_Enough(const std::string file, const int nframe, std::wstringstream *pmessage)
+*
+* @brief	Check if capture has more than the minimum number of frames required
+*			Returns potential error message
+*
+* @author	Marc
+* @date	2020-04-13
+*
+* @param [in]		file						string of capture filename
+* @param [out]		nframe						number of acquisition frames
+* @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
+*
+* @return			True if capture has more than the minimum number of frames
+**************************************************************************************************/
+
+BOOL Is_Capture_Long_Enough(const std::string file, const int nframe, std::wstringstream *pmessage) {
+	std::string shortfile = file.substr(file.find_last_of("\\") + 1, file.length());
+
+	if ((nframe > 0) && (nframe < opts.minframes)) {
+//********* Error if acquisition has not enough frames
+		(*pmessage) << "Ignoring " << shortfile.c_str() << ", only " << nframe << " frame";
+		if (nframe != 1)  (*pmessage) << "s";
+		(*pmessage) << " (minimum is " << opts.minframes << ")\n";
+		return FALSE;
+	}
+	return TRUE;
+}
+
+/**********************************************************************************************//**
+* @fn	BOOL Is_Capture_Special_Type(const std::string file, std::wstringstream *pmessage)
+*
+* @brief	Check if capture is of a special type (dark, from PIPP, from WinJupos)
+*			Ignore the special type capture if flag is setup for it
+*			Returns potential error message
+*
+* @author	Marc
+* @date	2020-04-13
+*
+* @param [in]		file						string of capture filename
+* @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
+*
+* @return			True if of special type to be ignored, False otherwise if not to be ignored
+**************************************************************************************************/
+
+BOOL Is_Capture_Special_Type(const std::string file, std::wstringstream *pmessage)
+{
+	std::string shortfile = file.substr(file.find_last_of("\\") + 1, file.length());
+
+	if (IGNORE_DARK && (file.find(DARK_STRING) != std::string::npos)) {
+		(*pmessage) << "Ignoring " << shortfile.c_str() << " dark file\n";
+		return TRUE;
+	} else if (IGNORE_PIPP && (file.find(PIPP_STRING) != std::string::npos)) {
+		(*pmessage) << "Ignoring " << shortfile.c_str() << " PIPP file\n";
+		return TRUE;
+	} else if (IGNORE_WJ_DEROTATION && (file.find(WJ_DEROT_STRING) != std::string::npos)) {
+		(*pmessage) << "Ignoring " << shortfile.c_str() << " WinJupos derotated file\n";
+		return TRUE;
+	}
+	return FALSE;
+}
+
+/**********************************************************************************************//**
+* @fn	BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std::wstringstream *pmessage)
+*
+* @brief	Depending if no reprocessing option is on, checks if file has already been processed
+*			Returns if file has to be processed depending on the option or if already processed
+*			Returns potential error message
+
+* @author	Marc
+* @date	2020-04-13
+*
+* @param [in]		filename_acquisition		string of capture filename
+* @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
+*
+* @return			True if file has to be processed, False otherwise
+**************************************************************************************************/
+
+BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std::wstringstream *pmessage) {
+
+// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+	if (!opts.reprocessing) {
+		std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
+		CT2A DeTeCtLogFilename(DeTeCt_additional_filename((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
+		std::ifstream input_file(DeTeCtLogFilename, std::ios_base::in);
+		if (input_file) {
+			std::string line;
+			//0.0000		 0       ; 2015/01/17 04:42,059300 UT; 2015/01/17 04:44,058567 UT; 2015/01/17 04:43,058933 UT; 119.9560 s; 43.000 fr/s; G:\Work\Impact\tests\data_set\bugs\ACo\J_2015Jan17_044203_RGB.avi; DeTeCt v3.1.8.20190512_x64 (Firecapture 2.4beta); Win8(or_above)_64b
+			while (std::getline(input_file, line)) {
+				if ((!starts_with(line, PROGNAME)) && (!starts_with(line, "PLEASE")) && (!starts_with(line, "confidence"))) {
+					BOOL line_rated;
+					if (starts_with(line, "N/A")) line_rated = FALSE;
+					else line_rated = TRUE;
+					int nb_separators = 0;
+					int pos_separator;
+					do {
+						pos_separator = (int)line.find_first_of(";");
+						if (pos_separator != std::string::npos) {
+							nb_separators++;
+							line = line.substr(pos_separator + 1, line.size() - pos_separator - 1);
+						}
+					} while ((pos_separator != std::string::npos) && (nb_separators < 6));
+					while (starts_with(line, " ")) line = line.substr(1, line.size() - 1);
+					while (starts_with(line, "\t")) line = line.substr(1, line.size() - 1);
+					if ((nb_separators == 6)
+						&& (line.find_first_of(";") != std::string::npos)
+						&& (starts_with(line, filename_acquisition))
+						&& (!opts.dateonly)
+						&& (line_rated)) {
+							std::string shortfile = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
+
+							(*pmessage) << "Ignoring " << shortfile.c_str() << ", already processed\n";
+							input_file._close();
+							return FALSE;
+					}
+				}
+			}
+			input_file._close();
+			return TRUE;
+		}
+	}
+	return TRUE;
+}

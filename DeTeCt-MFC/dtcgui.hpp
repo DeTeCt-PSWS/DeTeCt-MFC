@@ -27,6 +27,7 @@ extern "C" {
 #include <vector>
 
 extern std::string full_version;
+extern std::string app_title;
 
 struct options {
 	char *filename;
@@ -89,6 +90,8 @@ struct options {
 	BOOL interactive; // Normal interactive mode or automatic mode
 	int maxinstances; // Maximum number of DeTeCt instances running in parallel
 	BOOL reprocessing; // Reprocessing files already in DeTeCt.log
+	BOOL autostakkert; // Launched from autostakkert
+	BOOL master_instance;
 };
 typedef struct options OPTS;
 extern OPTS opts;
@@ -131,4 +134,4 @@ void	GetOSversion(std::string *pos_version);
 
 char	*dtc_full_filename(const char *acquisition_filename, const char *suffix, const char *path_name, char *full_filename);
 
-void	zip(char *zipfile, char *item_to_be_zipped);
+void	zip(char *zipfilename, char *item_to_be_zipped);

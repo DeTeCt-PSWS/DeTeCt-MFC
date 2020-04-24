@@ -3,51 +3,80 @@
 ===============================================================================================================
 Suspended:
 ----------
-Bugfix: correct darkfile comment in log (not reproductable)
-Files:  color ser to be fixed (code correct - Siril issue?)
-GUI: Implement new parameters (some advanced parameters not suitable for user own definition)
-Detection: open explorer for checking (no option to open with miniatures)
+Bugfix:		correct darkfile comment in log (not reproductable)
+Files:		color ser to be fixed (code correct - Siril issue?)
+GUI:		implement new parameters (some advanced parameters not suitable for user own definition)
 
 Low priority:
 -------------
-GUI: checkboxes for selecting files/folders to be processed (Lewis)
-GUI: Drag & drop functionality
+GUI:		checkboxes for selecting files/folders to be processed (M.Lewis)
+GUI:		Drag & drop functionality
+GUI:		Pause button (M.Lewis)
+GUI:		End after next video (M.Lewis)
 Firecapture: code for live detection
-General: video card offload library usage (OpenCL) (Wesley)
+General:	video card offload library usage (OpenCL) (A.Wesley)
 
 Medium priority:
 ----------------
-Algorithm: minimum size for flash
-Algorithm: binning depending on size of planet to decrease computing (Wesley)
-Algorithm: Use WJ ims file for initial RoI/center of gravity
+Algorithm:		minimum size for flash
+Algorithm:		binning depending on size of planet to decrease computing A.(Wesley)
+Algorithm:		use WJ ims file for initial RoI/center of gravity
+WinJupos:		use of planet and equatorial radius information from measurement files (incl. from derotation file)
 
-Files: 16b FIT/FITS support to be fixed
-Files: avi support to be fixed
-
-Autostakkert: Use as3(+acquisition) file for processing queue
+Files:			16b FIT/FITS support to be fixed
+Files:			avi support to be fixed
 
 High priority:
 --------------
-Files: Check minimum frames when adding files from folder
-General: Automatic version update
-Detection: Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
-Logs: include impact rating in filename or folder
+Exit:			Not after email ?
+Sendmail:		Integration in main window
+GUI:			Zipfile & image detection folder links
+GUI:			master/slave instance and call from AS
+Instances:		Identified Autostakkert launching from PID
+Instances:		Track linked instances through PID and check PID not running before exiting
+Instances:		What to do with multiple Autostakkerts (if different, processes list different, ....)
+Instances:		Have a blocker for currently processed file ?
+Autostakkert:	Implement "stop waiting" option to exit
+
+General:		Automatic version update
+Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
+Logs:			include impact rating in filename or folder
+dateonly:		do not zip / send email if dateonly mode
 
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+v3.2.2
+Autostakkert:	wait for autostakkert to exit before finishing processings (zip, aso...)
+Autostakkert:	Store impact detection folder and general logs within DeTeCt.exe folder
+Autostakkert:	use as3 file for processing queue (to compute faster)
+Algorithm:		red cross changed to yellow, Green to blue to see them better, and be color blind compliant (M. Lewis)
+Logs:			do not zip / send email if no file has been processed
+Logs:			renames logs with date-time min and max
+Files:			do not add processed file (if -noreproc on) / file with too few frames / file with type to be ignored (dark, ...) to the processing list
+WinJupos:		Reads xml derot configuration file
+GUI:			Full interface with small logs
+GUI:			Global progress bar
+GUI:			Shows live # of null/low/high probability impacts processed
+GUI:			Reset file list menu
+Bugfix:			do not launch several DeTeCt instances if maxinstances = 1 even in non auto mode
+Bugfix:			in automatic mode, exits if no valid file selected
+Options:		Reads options from ini before interpreting command line options
+General			Displays number of processors
+Command:		add shorter names for all options
+--------------------------------------------------------------------------------------
 v3.2.1
 Detection:	rename output files with planet and dates of analysis
 Detection:  button to opens explorer in the detection folder (systematic), on the zip file (depending on the generation), and send email (by default, but deactivable)
 Detection:  messages in the final window to synthetize the resuts (no impact, low probablity, high probability)
-Detection:  messages in the final window to push for 
+Detection:  messages in the final window to push for analyzing images and sending email with zipfile
 Parameters:	options to generate zip file and send email
 Logs:		store .csv separately (S. Sylla)
 Command line:-nozip option
-Bug:		zip file empty in automatic mode (L.Keith)
-Bug:		zip file empty when relative path use as parameter for directory or file
-Bug:		*.exe file tested when detect exe launched without the upper cases
-Bug:		accents (ie û) in directory name prevents image / directory creation
+Bugfix:		zip file empty in automatic mode (L.Keith)
+Bugfix:		zip file empty when relative path use as parameter for directory or file
+Bugfix:		*.exe file tested when detect exe launched without the upper cases
+Bugfix:		accents (ie û) in directory name prevents image / directory creation
 --------------------------------------------------------------------------------------
 v3.2 (/v3.1.12):
 Algorithm:		Check #of frames calculated from fps for impacts (duration 0.6s)

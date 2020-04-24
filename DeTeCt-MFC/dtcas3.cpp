@@ -49,11 +49,18 @@ void read_autostakkert_file(std::string configfile, std::string *filename, std::
 		(*filename) = dirfilename(configfile, acquisition_file2);
 //***** test if acquisition file is WJ derotated file
 		if ((!file_exists(filename->c_str())) && (acquisition_file2.find_last_of(WJ_DEROT_STRING) > 0)) {
+			(*filename) = ""; 
 			std::string winjupos_derotation_filename(acquisition_file2);
-			winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_DEROT_EXT;
+			std::string WJ_derot_extension;
+			WJ_derot_extension = WJ_DEROT_EXT;
+			winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
+			if (!file_exists(winjupos_derotation_filename)) {
+				WJ_derot_extension = WJ_DEROT_EXT_OLD;
+				winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
+			}
 //***** test if WJ derotation file exists
 			if (file_exists(winjupos_derotation_filename)) {
-				read_winjupos_file(winjupos_derotation_filename, filename);
+				read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
 				if (!file_exists((*filename))) {
 					(*filename) = dirfilename(configfile, (*filename));
 					if (!file_exists((*filename))) (*filename) = "";
@@ -63,7 +70,7 @@ void read_autostakkert_file(std::string configfile, std::string *filename, std::
 				//winjupos_derotation_filename = configfile.substr(0, configfile.find_last_of("\\") + 1) + winjupos_derotation_filename.substr(winjupos_derotation_filename.find_last_of("\\") + 1, winjupos_derotation_filename.length());
 				winjupos_derotation_filename = dirfilename(configfile, winjupos_derotation_filename);
 				if (file_exists(winjupos_derotation_filename)) {
-					read_winjupos_file(winjupos_derotation_filename, filename);
+					read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
 //					if (!file_exists((*filename))) {
 //						(*filename) = dirfilename(configfile, (*filename));
 					if (!file_exists((*filename))) (*filename) = "";
@@ -121,34 +128,65 @@ void read_autostakkert_config_line(std::string line, std::string *filename, std:
 	}
 }
 
-void read_winjupos_file(std::string winjupos_derotation_filename, std::string *filename)
+/**********************************************************************************************//**
+* @fn	void read_winjupos_file(const std::string winjupos_derotation_filename, std::string *filename, std::string extension)
+*
+* @brief	Returns in filename name of acquisition used in winjupos_derotation_filename
+*
+* @author	Marc
+* @date	2020-04-16
+*
+* @param [in]		winjupos_derotation_filename	WinJupos derotation filename
+* @param [out]		filename  						pointer to acquisition filename
+* @param [out]		extension						extension of winjupos derotation filename (eg drs or drs.xml)
+* @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
+**************************************************************************************************/
+
+void read_winjupos_file(const std::string winjupos_derotation_filename, std::string *filename, std::string extension)
 {
-	std::ifstream input(winjupos_derotation_filename, std::ios::binary);
-	char separator[] = "*WS*12345678901234";
-	int separator_len = 4;
-	char filename_char[MAX_STRING];
-	filename_char[0] = '\0';
+	(*filename) = "";
+	if (extension == WJ_DEROT_EXT_OLD) {
+		std::ifstream input(winjupos_derotation_filename, std::ios::binary);
+		char separator[] = "*WS*12345678901234";
+		int separator_len = 4;
+		char filename_char[MAX_STRING];
+		filename_char[0] = '\0';
 
-	// copies all data into buffer
-	std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
-	bool get_string = false;
-	int index = 0;
+		// copies all data into buffer
+		std::vector<unsigned char> buffer(std::istreambuf_iterator<char>(input), {});
+		bool get_string = false;
+		int index = 0;
 
-	for (std::vector<unsigned char>::size_type i = 0; i != buffer.size(); i++) {
-		if (!get_string) {
-			if ((i >= strlen(separator)) && (strncmp(reinterpret_cast<char*> (&buffer[i-strlen(separator)+1]), separator, separator_len) == 0)) get_string = true;
-		} else {
-			if (strncmp(reinterpret_cast<char*> (&buffer[i]), "*", 1) != 0) {
-//				if (!strncmp(reinterpret_cast<char*> (&buffer[i]), "\0", 1) == 0) filename_char[index++] = buffer[i];
-				if (buffer[i] >= ' ') {
-					filename_char[index++] = buffer[i];
-					filename_char[index] = '\0';
+		for (std::vector<unsigned char>::size_type i = 0; i != buffer.size(); i++) {
+			if (!get_string) {
+				if ((i >= strlen(separator)) && (strncmp(reinterpret_cast<char*> (&buffer[i - strlen(separator) + 1]), separator, separator_len) == 0)) get_string = true;
+			}
+			else {
+				if (strncmp(reinterpret_cast<char*> (&buffer[i]), "*", 1) != 0) {
+					//				if (!strncmp(reinterpret_cast<char*> (&buffer[i]), "\0", 1) == 0) filename_char[index++] = buffer[i];
+					if (buffer[i] >= ' ') {
+						filename_char[index++] = buffer[i];
+						filename_char[index] = '\0';
+					}
 				}
-			} else break;
+				else break;
+			}
+		}
+		(*filename) = std::string(filename_char);
+		if ((filename->length() > 2) && (filename->find_first_of(":") == std::string::npos)) (*filename) = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_first_of(":") + 1) + (*filename);
+	}
+	else if (extension == WJ_DEROT_EXT) {
+		// <SourceVideoFile>G:\work\Impact\tests\winjupos\Jup_L_03_06_2010_203058b.avi< / SourceVideoFile>
+		std::ifstream input(winjupos_derotation_filename);
+		std::string line;
+		std::string sourcevideo_tag("<SourceVideoFile>");
+		std::string sourcevideo_tag_end("</SourceVideoFile>");
+		while (std::getline(input, line) && ((*filename)=="")) {
+			if (line.find(sourcevideo_tag) != std::string::npos) {
+				(*filename) = line.substr(line.find(sourcevideo_tag) + sourcevideo_tag.length(), line.find(sourcevideo_tag_end)-(line.find(sourcevideo_tag) + sourcevideo_tag.length()));
+			}
 		}
 	}
-	(*filename) = std::string(filename_char);
-	if ((filename->length() > 2) && (filename->find_first_of(":") == std::string::npos)) (*filename) = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_first_of(":")+1) + (*filename);
 }
 
 /**** return if file with filename exists ***/
