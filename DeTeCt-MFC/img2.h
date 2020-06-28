@@ -3,7 +3,6 @@
 #define __IMG2_H__
 
 #include <opencv/cv.h>
-//#include <opencv2\imgproc\imgproc.hpp>
 #include <opencv2\highgui\highgui.hpp>
 
 extern "C" {
@@ -82,9 +81,9 @@ extern "C" {
 
 	cv::Mat 		dtcGetHistogramImage(cv::Mat src, float scale, double thr);	//cvCreateImage
 
-	static void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);
-	int doublecmp(const void *a, const void *b);
-	void printtbuf(double *uc, size_t s);
+	static void		dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);
+	int				doublecmp(const void *a, const void *b);
+	void			printtbuf(double *uc, size_t s);
 
 	bool			isEqual(cv::Mat m1, cv::Mat m2);
 

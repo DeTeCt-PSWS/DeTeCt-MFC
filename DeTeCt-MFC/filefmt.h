@@ -2,8 +2,12 @@
 #define __FILEFMT_H__
 //#include "common.h"
 
+
+//#include <opencv2\core\core.hpp>
+//#include <opencv2\highgui\highgui.hpp> 
+
 //#include <opencv/highgui.h>
-#include "dirent.h"
+	#include "dirent.h"
 
 	struct _FileCapture
 	{
@@ -12,11 +16,13 @@
 		FILE *fh;
 		int frame;
 		IplImage *image;
+		//cv::Mat image;
 		size_t ImageBytes;
 		size_t BytesPerPixel;
-		int ImageWidth;  // pixels
-		int ImageHeight; // pixels
-		int PixelDepth; // <= 8 (BytePerPixel==1), >8 (BytePerPixel==2)
+		int ImageWidth;		// pixels
+		int ImageHeight;	// pixels
+		int PixelDepth;		// <= 8 (BytePerPixel==1), >8 (BytePerPixel==2)
+		int MaxBits;	// real maximum number of bits (eg could be 14 bits instead of 16 bits)
 		unsigned int ColorID;
 		size_t header_size;
 
@@ -40,6 +46,7 @@
 		char filename_folder[MAX_STRING];
 	};
 	typedef struct _FileCapture FileCapture;
+
 
 	/****************************************************************************************************/
 	/*									Procedures and functions										*/

@@ -9,12 +9,12 @@
 
 struct _ImpactDetectParams {
 	std::vector<std::string> file_list;
-	OPTS opts;
+	OPTS *popts;
 	std::string scan_folder_path;
 
-	_ImpactDetectParams(std::vector<std::string> fl, OPTS o, std::string sfp) {
+	_ImpactDetectParams(std::vector<std::string> fl, OPTS *o, std::string sfp) {
 		file_list = fl;
-		opts = o;
+		popts = o;
 		scan_folder_path = sfp;
 	}
 };

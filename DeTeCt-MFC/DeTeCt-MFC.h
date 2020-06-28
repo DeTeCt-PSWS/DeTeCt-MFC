@@ -26,11 +26,13 @@ public:
 // Overrides
 public:
 	virtual BOOL InitInstance();
-
+	
 // Implementation
 
 	DECLARE_MESSAGE_MAP()
 };
 
-extern CDeTeCtMFCApp theApp;
-extern CDeTeCtMFCDlg dlg;
+extern CDeTeCtMFCApp	theApp;
+extern CDeTeCtMFCDlg	dlg;
+
+void CreateQueueFileName();

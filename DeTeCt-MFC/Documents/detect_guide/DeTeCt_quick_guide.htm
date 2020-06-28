@@ -1,0 +1,450 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+
+
+
+
+  
+  <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>DeTeCt quick user guide</title></head><body>
+<div style="text-align: center; font-family: Arial;"><big><big><span style="font-weight: bold;">DeTeCt
+quick user guide</span></big></big><br>
+<small><span style="font-style: italic;">(on version 3.2.3, June 26,
+2020, by Marc Delcroix</span>)<br>
+<br>
+</small>
+<div style="text-align: left;"><small>Detect software is the tool to support the <a href="http://www.astrosurf.com/planetessaf/doc/project_detect.php" target="_blank">impact flashes detection project</a>, aiming at:</small><br>
+<small>- analyzing Jupiter and Saturn videos to look for potential flashes provoked by small bodies impacts</small><br>
+<small>- collecting the results of these analyses wether successful or
+not (dates, impact found) to estimate the frequency of impacts on the
+giant planets</small> <small>(which has an impact on refining the age of bodies in this part of the solar system by counting craters on their surface)</small><br>
+<small>- discovering as many impacts as possible to refine the physical
+characteristics of these impactors (size, composition) as well as the
+energy and components released int the giant planets' atmosphere</small><br>
+</div>
+<small>
+</small><br>
+<a href="#basic">Basic usage</a><br>
+<br>
+<a href="#advanced">GUI guide</a><br>
+<br>
+<a href="#tutorial">Detection images check tutorial</a><br>
+<br>
+<a href="#instances">Multi-instances mode</a><br>
+<span style="font-weight: bold; text-decoration: underline;"><a name="basic"></a></span><br>
+<span style="font-weight: bold; text-decoration: underline;"></span>
+<hr style="width: 100%; height: 2px;"><span style="font-weight: bold; text-decoration: underline;">Basic usage</span><br>
+<br>
+<img title="DeTeCt GUI 101" style="width: 799px; height: 647px;" alt="DeTeCt GUI 101" src="v3.2.3_101.jpg"><br>
+<small>1. Ensure autoprocessing is checked to have impact detection
+starting automatically when folder or file is selected<br>
+<br>
+2. Choose folder (all acquisition files with supported format found
+recursively in this folder will be selected for impact detection), or
+directly a single file<br>
+<br>
+3. Check detection images and send results: 3 windows will be opened:<br>
+- an explorer where are the detection images to be checked (see <a href="#tutorial">tutorial</a> for help) :<br>
+<img style="width: 1453px; height: 989px;" alt="folder with detection images to check" title="folder with detection images to check" src="v3.2.3_6.jpg"><br>
+<br>
+- an explorer where is the zip file to send to the project :<br>
+<img style="width: 1720px; height: 730px;" alt="folder with zip file to send" title="folder with zip file to send" src="v3.2.3_8.jpg"><br>
+<br>
+- an email, you should attach the zip file to it (by drag and drop for
+example) before sending it to</small> <small style="color: rgb(51, 102, 255);">delcroix.marc at free.fr</small><br style="font-weight: bold;">
+<img style="width: 626px; height: 526px;" alt="email, attach zip file before sending" title="email, attach zip file before sending" src="v3.2.3_7.jpg"><br>
+<small><br>
+4. - gives you the number of potential impacts detected on all files
+processed, according to their probability (Null, Low or High)</small><br>
+<span style="font-weight: bold;"><span style="text-decoration: underline;"><a name="advanced"></a></span></span><span style="font-weight: bold;"><br>
+<span style="text-decoration: underline;"></span></span>
+<hr style="width: 100%; height: 2px;"><span style="font-weight: bold;"><span style="text-decoration: underline;">GUI guide</span></span><br style="font-weight: bold;">
+<img style="width: 1480px; height: 980px;" alt="GUI full legend" title="GUI full legend" src="v3.2.3_legend.jpg"><span style="font-weight: bold;"><br>
+</span><span style="font-weight: bold;"><span style="text-decoration: underline;"><a name="tutorial"></a></span></span><br>
+<hr style="width: 100%; height: 2px;"><span style="font-weight: bold;"><span style="text-decoration: underline;">Detection images check tutorial</span></span><br>
+<small><br>
+</small>
+<div style="text-align: justify;"><small><span style="font-weight: bold;">Detection images are generated
+in a folder named "Impact_detection_run@rundate_runtime"</span>. There is one
+"dtc_mean.jpg" image, mean of the aligned acquisition images, and a
+"dtc_max-mean.jpg" image where each <span style="font-weight: bold;">pixel is its maximum brightness minus its mean </span></small><small><span style="font-weight: bold;">brightness</span></small><small><span style="font-weight: bold;"> of all frames</span>.<br>This
+"max-mean" image aim is to<span style="font-weight: bold;"> show any transient bright phenomena</span>. A
+<span style="font-weight: bold;">blue cross </span>will show the<span style="font-weight: bold;"> brightest point in this detection image</span>, and potentially
+a <span style="font-weight: bold;">yellow cross</span> showing the area where the <span style="font-weight: bold;">differential photometry
+algorithm identified a potential impact</span> flash.<br>
+Additionaly in the GUI,
+and in <span style="font-weight: bold;">detect log</span>, you will find a <span style="font-weight: bold;">rating (Null, Low or High)</span> measuring
+the probability of an impact, followed <span style="font-weight: bold;">when relevant by a frame number</span> corresponding
+when this possible event is visible. Examples: Null ; Low ; HIGH (@
+3231). For the high probability impacts, you have also a confidence
+number, the higher the better.<br>
+You need to look at those images, to see visually if there is anything
+suspect for you. With a <span style="font-weight: bold;">bit of experience, you will do that in one or
+two seconds</span>, you have below some examples to help you interpret those
+images.</small><br>
+</div>
+<br>
+<table style="text-align: left; width: 320px; margin-left: auto; margin-right: auto; height: 320px;" border="1" cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td style="font-weight: bold; vertical-align: top; text-align: center;"><small>Explantion</small></td>
+      <td style="vertical-align: top; font-weight: bold; text-align: center;"><small>dtc_max-mean.jpg "detection image"<br>
+      </small></td>
+      <td style="vertical-align: top; font-weight: bold; text-align: center;"><small>dtc_mean.jpg image<br>
+      </small></td>
+    </tr>
+<tr>
+      <td style="white-space: nowrap; text-align: right;"><small><span style="text-decoration: underline;">2019-08-07 impact discovered by Ethan Chappel thanks to DeTeCt</span><br>
+      <br>
+Detection is obvious, both crosses are centered around a bright patch in max-mean image,<br>
+while nothing special is identified in the mean image at this location.<br>
+      <br>
+Confidence/Rating = <span style="font-family: Courier New;">8.3875&nbsp;&nbsp;&nbsp; HIGH (@ 9282)</span><br>
+      </small></td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="positives/detection/20190807_2019-08-07-0406_9-EC-R-Jup_dtc_max-mean.jpg" alt=""></td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="positives/detection/20190807_2019-08-07-0406_9-EC-R-Jup_dtc_mean.jpg" alt=""></td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><br>
+      <small><span style="text-decoration: underline;">2016-03-17 impact observed by John Mc Keon</span><br>
+<br>Detection is obvious allthough on the limb. Both crosses are
+centered around a bright patch in max-mean image, while nothing special
+is identified in the mean image at this location. <br>
+      <br>
+Confidence/Rating: <span style="font-family: Courier New;">14.0570&nbsp;&nbsp;&nbsp; HIGH (@ 1167)</span></small><br>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="positives/detection/20160317_Jup_001733_impact_JohnMcKeon_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="positives/detection/20160317_Jup_001733_impact_JohnMcKeon_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">2017-05-26 impact discovered by Sauveur Pedranghelu</span><br>
+<br>The differential photometry algorithm did not detect the impact properly (no yellow cross). <br>
+Nonetheless the brightest point in the image looks quite suspicous, it
+is spread over a few pixel, with some less bright pixels around.
+Nothing is seen at this area in the mean image. Here the direct
+analysis of the video proves that a flash was captured.<br>
+<br>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp; &nbsp;Low</span> </small>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 400px;" src="positives/nodifferentialphotometry/20170526_Sauveur_Pedangrhelu_Jup_212523%20flash_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 400px;" src="positives/nodifferentialphotometry/20170526_Sauveur_Pedangrhelu_Jup_212523%20flash_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">2010-08-20 impact observed by Kazuo Aoki</span><br>
+      <br>
+      </small><small>The differential photometry algorithm did not detect the impact properly (no yellow cross).<br>
+Furthermore, the brightest point of the detection image is not the
+impact flash (located a bit left and below the center of the planet),
+but on Ganymede on the top left corner of the image (as seen in the
+mean image)</small><br>
+      <br>
+      <small>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp; &nbsp;Low</span></small><br>
+
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="positives/satellite/20100820_Kazuo_Aoki_aoki_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="positives/satellite/20100820_Kazuo_Aoki_aoki_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="vertical-align: middle; text-align: right;"><small><span style="text-decoration: underline;">Satellite shadow transit</span><br>
+<br>
+      </small><small>The slow move of the shadow of Io on Jupiter globe
+hide a part of the planet which then appears bright in the max - mean
+detection image.<br>
+      </small><br>
+
+      <small>No impact here.<br>
+      </small><small>Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp;&nbsp; Null</span></small><br>
+      </td>
+      <td style="vertical-align: top; text-align: center;"><img src="negative/satellite/bugs_PRo_jup620121025-004033463_dtc_max-mean.jpg" alt=""></td>
+      <td style="vertical-align: top; text-align: center;"><img src="negative/satellite/bugs_PRo_jup620121025-004033463_dtc_mean.jpg" alt=""></td>
+    </tr>
+<tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">Bright pixel(s)</span><br>
+<br>
+      </small><small>The differential photometry algorithm did not detect anything (no yellow cross).<br>The
+brightest part of the detection image is pnly a couple of fully
+saturated pixels, looking really artificial. A careful look at the
+video show that this is due to bright pixels only present on a couple
+of frames. This is due either to temporary hot pixels, or a cosmic ray
+event.</small><br>
+
+      <br>
+
+      <small>No impact here.<br>
+      </small><small>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp; &nbsp;Low</span></small><span style="font-family: Courier New;">&nbsp;</span>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="negative/hotpixels/false_detections_20131106-LdV_071113_012500.01_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="negative/hotpixels/false_detections_20131106-LdV_071113_012500.01_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">Dust mole</span><br>
+      <br>
+The differential photometry algorithm did not detect anything (no yellow cross).<br>
+There are strange bright circles on the detection images, looking at
+the mean image reason is obvious: two dust moles, at different places
+due to the move of the planet on the sensor, are present. They hide
+part of the planet, for which the substraction of the mean image to the
+max imagemakes them bright. <br></small><br>
+
+
+      <small>No impact here.<br>
+      </small><small>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp; &nbsp;Low</span></small><span style="font-family: Courier New;">&nbsp;</span>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 369px;" src="negative/dust/movies_FITS_2_000000_20120808_064633_296_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 369px;" src="negative/dust/movies_FITS_2_000000_20120808_064633_296_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">Artifact</span><br>
+      <br>
+The differential photometry algorithm did not detect anything (no yellow cross).<br>The
+brightest part is detected in the detection image is "pixellized", on
+the limb where several bright areas appear in this kind of image, when
+alignment or seeing is not so good.<br>
+This has no real explanation, this is only an artifact generated during processing.<br></small><br>
+
+
+
+      <small>No impact here.<br>
+      </small><small>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp; &nbsp;Low</span></small><span style="font-family: Courier New;">&nbsp;</span>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="negative/limb/movies_FireCapture_FC2.3beta16_Jup_133315_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="negative/limb/movies_FireCapture_FC2.3beta16_Jup_133315_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">No outstanding bright area</span><br>
+      <br>
+The differential photometry algorithm detected something not obviously
+spread and birght, same for the brightest part of the image. Both are
+totally separated. No detection was made here, rating is Null.<br></small><br>
+
+
+
+
+      <small>No impact here.<br>
+      </small><small>
+Confidence/Rating: <span style="font-family: Courier New;">1.4782&nbsp;&nbsp;&nbsp; Null</span></small><span style="font-family: Courier New;">&nbsp;</span>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 408px;" src="negative/other/bugs_AlexeiPace_20160308_2016-03-08-0057_4_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 408px;" src="negative/other/bugs_AlexeiPace_20160308_2016-03-08-0057_4_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">No outstanding bright area</span><br>
+<br>
+      </small><small>The differential photometry algorithm did not detect anything (no yellow cross).<br>The
+brightest part is detected in the detection image is "pixellized", where several bright areas appear in this area (NEB).<br>
+There is no real explanation, this is only an artifact generated during processing</small><small>, rating is Null.</small><br>
+      <br>
+
+
+
+
+      <small>No impact here.<br>
+      </small><small>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp;&nbsp; </span></small><small style="font-family: Courier New;">Null</small></td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="negative/other/bugs_FLocklear_Jup_054459_Jup_054459_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img src="negative/other/bugs_FLocklear_Jup_054459_Jup_054459_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">Dark zone generating pixellized bright area</span><br>
+      <br>
+The differential photometry algorithm did not detect anything (no yellow cross).<br>The
+brightest part is detected in the detection image is well spread but
+really "pixellized", at a place where very dark feaston lies in the
+mean image.<br>The
+seeing/alignment probably made probably this dark zone move, generating
+a bright area in&nbsp; the detection image. A careful look ar the
+original video did not show anything suspect, and </small><small>, rating is Null.</small><br>
+      <br>
+
+
+
+
+
+      <small>No impact here.<br>
+      </small><small>
+Confidence/Rating: <span style="font-family: Courier New;">0.0000&nbsp;&nbsp;&nbsp; </span></small><small style="font-family: Courier New;">Null</small>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 413px;" src="negative/other/bugs_MLewis_Jup_20170521_ZWO%20ASI174MM_642nm_20_213939_pipp_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 413px;" src="negative/other/bugs_MLewis_Jup_20170521_ZWO%20ASI174MM_642nm_20_213939_pipp_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align: right;"><small><span style="text-decoration: underline;">Bright area in the rings</span><br>
+<br>In this Saturn acquisition, both the differential photometry
+algorithm and the brightest area in detection image are a close match.<br>
+But this is in the rings, between brighter B ring and darker C ring, where turbulence moved the appareance from bright to dark.<br>Looking at the original
+video around the frame specified, nothing suspect was found</small><small>.</small><br>
+
+      <br>
+      <br>
+
+
+
+
+
+
+      <small>No impact here.<br>
+Confidence/Rating: <span style="font-family: Courier New;">0.4497&nbsp;&nbsp; &nbsp;Low&nbsp; (@&nbsp; 915)</span></small>
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 340px;" src="negative/saturn/Saturn_2014-03-09-0418.1-MD-G_dtc_max-mean.jpg" alt="">
+      </td>
+      <td style="vertical-align: top; width: 320px; text-align: center;"><img style="width: 400px; height: 340px;" src="negative/saturn/Saturn_2014-03-09-0418.1-MD-G_dtc_mean.jpg" alt="">
+      </td>
+    </tr>
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+  </tbody>
+</table>
+<small><br>
+As a conclusion, after running detect:<br>
+<br>
+- <span style="font-weight: bold;">always check the detection images</span> using this tutorial, to interpret the detection image and see if you have discovered an impact.<br>
+<span style="font-style: italic;">For that you can open the first image
+in the "Impact_detection_run@rundate_runtime" folder in your
+acquisition folder, analyze it and click right arrow to see the other
+ones</span><br>
+-<span style="font-weight: bold;"> focus on "high" and "low" </span>probability detections<br>
+- in case of <span style="font-weight: bold;">doubt</span>, check the mean image, the ephemeris for a transiting satellite or shadow, have a deeper <span style="font-weight: bold;">look at your original video</span> (<a href="http://www.autostakkert.com/" target="_blank">AutoStakkert!</a> or <a href="https://sites.google.com/site/astropipp/ser-player" target="_blank">SER Player</a> can read the acquisitions frame by frame).<br>
+<span style="font-style: italic;">If a frame number was specified in the log file, have a deeper look around that place in the acquisition video.</span><br>
+- <span style="font-weight: bold;">always send the generated zip file to delcroix.marc at free.fr</span>, we will have <span style="font-weight: bold;">another look</span> at your images<br>
+</small><small>- <span style="font-weight: bold;">even if you found nothing, always send the generated zip file to delcroix.marc at free.fr</span>, <span style="font-weight: bold;">no detection matters</span> and has high value to help us to <span style="text-decoration: underline;">estimate the frequency of impacts</span> on Jupiter and Saturn<br>
+- <span style="text-decoration: underline;">do not erase your videos </span>till you got an <span style="text-decoration: underline;">acknowledgment from me</span> that we had a look at your results.<br>
+<span style="font-style: italic;"><span style="font-weight: bold;">Precious scientific studies</span> were made by analyzing the lightcurves of <span style="font-weight: bold;">impact flashes discovered/observed by amateur astronomers</span>.</span><br>
+<br>
+- </small><span style="color: rgb(0, 0, 0); font-family: Arial; font-size: small; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255); font-weight: bold; font-style: italic;">If you are lucky enoough to detect an impact, please inform me.<span>&nbsp;</span></span><span style="color: rgb(0, 0, 0); font-family: Arial; font-size: small; font-style: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255); display: inline ! important; float: none;">Send your files generated by DeTeCt, and make your&nbsp;acquisition file available.<br>
+Prepare also for a temporary celibrity, once announced to all
+international amateur community, medias, web sites, the pros will
+contact your to get more info, this is everything I wish for you!</span><br style="color: rgb(0, 0, 0); font-family: Arial; font-size: small; font-style: normal; font-weight: 400; letter-spacing: normal; orphans: 2; text-align: left; text-indent: 0px; text-transform: none; white-space: normal; widows: 2; word-spacing: 0px; background-color: rgb(255, 255, 255);">
+<br>
+<small>Happy impact hunting!</small><br style="font-weight: bold;">
+<br style="font-weight: bold;">
+<span style="font-weight: bold;"><span style="text-decoration: underline;"><a name="instances"></a></span></span><span style="font-weight: bold;">&nbsp;<br>
+</span>
+<hr style="width: 100%; height: 2px;"><span style="font-weight: bold;"><span style="text-decoration: underline;">Performance and multi-instances
+mode</span></span><br>
+<br>
+<div style="text-align: justify;"><small>Starting with v3.2.3, DeTeCt
+supports a multi-instance mode, aiming at reducing the total processing
+time. While the software does not process a single acquisition file
+with several parallel threads to take advantage of multi-processors
+CPUs, it can launch several instances of itself to<span style="font-weight: bold;"> process in parallel
+several acquisition files</span>. Principle is to have a <span style="font-weight: bold;">parent instance</span>, the
+first one launched, both processing files and collecting the results of
+<span style="font-weight: bold;">hidden instances </span>(with no graphical user interface displayed).</small><br>
+<br>
+<small>The absolute maximum number of instances is fixed to the number
+of processors (physical or virtual) of your machine, but you can <span style="font-weight: bold;">choose
+the maximum number of instances</span> you want to have with the corresponding
+arrows in the <a href="#advanced">GUI top right corner</a>. Then detect will run as many instances needed to
+process all selected files, respecting the maximum number your defined.
+For example let's imagine you have a 12 core machines, you choose a
+maximum number of 9 instances, and select a folder with 24 files to
+process. The software will initially launch 8 additionnal instances to
+have 9 in total processing the files. Once 16 files has been processed,
+there will be only 8 total instances running to process the 8 files
+left, then 7, etc. down to the last one.</small><br>
+<br>
+<small>Selecting this maximum number of instances is tricky has it
+heavily depends on your configuration. Here are tests results on my
+configuration (i7 12 cores, 24GB RAM) :</small><br>
+</div>
+<small><br>
+On a normal 7200rpm hard drive (HD):<br>
+<img style="width: 760px; height: 281px;" alt="Multi-instances tests on HD" title="Multi-instances tests on HD" src="DeTeCt_multi_instances_HD_test.jpg"></small><br>
+<div style="text-align: justify;"><small>We can see that with 3
+instances running in parallel, we have a 37% gain in processing time.
+Then the time reduces a bit more, to increase again a bit when more
+than 8 processors are used. Looking at hard drive and processor usage
+with windows task manager, I could see that with one instance running,
+the HD is used at 15% capacity while the processor used at maximum
+capacity, and with 4 instances, the HD and the 4 processors are used
+close to maximum capacity. Increasing after the number of processors
+makes each instance use less than the maximum processor capacity while
+the <span style="font-weight: bold;">hard drive </span>does its best despite <span style="font-weight: bold;">being the limiting factor</span>.
+Starting at 7 instances, the hard drive access from so many instances
+makes the total computing time increase again.</small><br>
+<small>In that case, I consider the optimum number of instances is 4 :
+the best processing time with the lowest number of instances (to avoid
+too many HD parallel access which put strains on the hardware).</small><br>
+<small>The computing time is here<span style="font-weight: bold;"> 1.7x faster with 4 instances</span></small>.<br>
+</div>
+<br>
+<small style="font-weight: bold;">On a Solid State Drive (SSD):</small><br>
+<img style="width: 761px; height: 276px;" alt="Multi-instances tests on SSD" title="Multi-instances tests on SSD" src="DeTeCt_multi_instances_SSD_test.jpg"><br>
+<div style="text-align: justify;"><small>In a case of having the
+acquistion files stored on a SSD, read write access is not a limiting
+factor: even with the maximum of instances running, the SSD usages
+peaks only at 15% usage. Nonetheless above 9
+instances used, the total computing time do not decrease: <span style="font-weight: bold;">computing power is the limiting factor</span></small>.<br>
+<small>In that case I consider that 9 instances is the optimimum number
+of instances to use, the rest of the computing power being used by the
+operating system and other applications running.</small><br>
+<small>The computing time is here <span style="font-weight: bold;">5.7x faster with 9 instances</span></small><span style="font-weight: bold;"> </span>!<br>
+</div>
+<br>
+<small><span style="font-style: italic;">Some additional tips:</span><br>
+</small>
+<div style="text-align: justify;"><small>- you can reduce a bit (5 to
+10%) computing time by <span style="font-weight: bold;">activating the save of session files in
+autostakkert </span><span style="font-style: italic;">(menu advanced-&gt;Save
+sessions next to each stack)</span>: then DeTeCt will use the alignment
+information the session files store, to avoid realigning all frames.</small><br>
+<small>- you can <span style="font-weight: bold;">dynamically reduce or increase the maximum number of
+instances</span>, in case you need more power for other tasks, or on the
+contrary you want to use as much computing power as possible for impact
+detection. Beware though, the number of <span style="font-weight: bold;">running instances only changes slowly</span>,
+decreasing when an instance as finished computing an acquisition file,
+or increasing after several seconds when the parent instance checks
+for changes in the number of instances. </small><br>
+</div>
+<br>
+</div>
+
+</body></html>

@@ -60,9 +60,9 @@ void fitsGet_info(FileCapture *fc, const char *fname, double *date)
 	int nbhead=0;
 
 	buffer=(char *) fitsrhead(fname, &lhead, &nbhead);
-	hgeti4 (buffer,"NAXIS1",&fc->ImageWidth);
-	hgeti4 (buffer,"NAXIS2",&fc->ImageHeight);
-	hgeti4 (buffer,"BITPIX",&fc->PixelDepth);
+	hgeti4(buffer, "NAXIS1", &fc->ImageWidth);
+	hgeti4 (buffer,"NAXIS2", &fc->ImageHeight);
+	hgeti4 (buffer,"BITPIX", &fc->PixelDepth);
 										if (debug_mode) { fprintf(stderr, "fitsGet_info: Header length %d, char %d, row %d, pixeldepth %d \n", nbhead,fc->ImageWidth, fc->ImageHeight, fc->PixelDepth); }
 	if (fread(buffer, sizeof (char), nbhead, fc->fh) != (size_t) nbhead)
 	{

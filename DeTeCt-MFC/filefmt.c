@@ -61,6 +61,10 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	init_string(fc->filename_head);
 	init_string(fc->filename_trail);
 	position_found=-1;
+	fc->ImageWidth = 0;
+	fc->ImageHeight = 0;
+	fc->PixelDepth = 0;
+	fc->MaxBits = 0;
 
 /* Look for number syntax */	
 	if ((!(strrstr(fname,"1.")==NULL)) && (strlen(strrstr(fname,"1."))==(strlen("1.")+strlen(fc->filename_ext)))) {	/* *0.* */
@@ -346,6 +350,9 @@ void fileGet_info(FileCapture *fc, const char *fname, double *date)
 	(*date)=gregorian_calendar_to_jd(1,1,1,0,0,0.0);
 	switch (fc->FileType) {
 		case CAPTURE_FITS:
+			fc->ImageWidth = 0;
+			fc->ImageHeight = 0;
+			fc->PixelDepth = 8;
 			fitsGet_info(fc, fname, date);
 			break;
 		case CAPTURE_FILES:

@@ -19,10 +19,19 @@
     <Filter Include="postprocessing">
       <UniqueIdentifier>{da2418f4-7fcd-476a-9f0a-eb78ba55e3f3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="documentation">
+      <UniqueIdentifier>{0e1820b4-52ba-4c95-b94e-9638a51ffab6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="documentation\detect_guide">
+      <UniqueIdentifier>{3f70dc74-56b2-4f3a-b98c-0336435f60a7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
     <Text Include="Version history.txt" />
+    <Text Include="Documents\ReadMe.txt">
+      <Filter>documentation</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeTeCt-MFC.h">
@@ -124,6 +133,9 @@
     <ClInclude Include="max.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="common2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeTeCt-MFC.cpp">
@@ -204,6 +216,9 @@
     <ClCompile Include="common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="common2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DeTeCt-MFC.rc">
@@ -226,10 +241,175 @@
     <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.vbs">
       <Filter>postprocessing</Filter>
     </None>
+    <None Include="Documents\Code Project Open License (WndResizer class).htm">
+      <Filter>documentation</Filter>
+    </None>
+    <None Include="Documents\SER Doc V3b.pdf">
+      <Filter>documentation</Filter>
+    </None>
+    <None Include="Documents\detect_guide\DeTeCt_quick_guide.htm">
+      <Filter>documentation\detect_guide</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DeTeCt-MFC.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\autostakkert.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\DeTeCt_multi_instances_HD_test.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\DeTeCt_multi_instances_SSD_test.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\v3.2.3_6.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\v3.2.3_7.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\v3.2.3_8.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\v3.2.3_101.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\v3.2.3_legend.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\v3.2.3_legend_v2.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\dust\movies_FITS_2_000000_20120808_064633_296_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\limb\movies_FireCapture_FC2.3beta16_Jup_133315_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\limb\movies_FireCapture_FC2.3beta16_Jup_133315_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20131106-LdV_071113_012500.01_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20131106-LdV_071113_012500.01_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\other\bugs_MLewis_Jup_20170521_ZWO ASI174MM_642nm_20_213939_pipp_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\other\bugs_MLewis_Jup_20170521_ZWO ASI174MM_642nm_20_213939_pipp_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20190522-JoseLuis_Pereira_03_10_47Z - Impact Jupiter_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20190522-JoseLuis_Pereira_03_10_47Z - Impact Jupiter_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\other\bugs_AlexeiPace_20160308_2016-03-08-0057_4_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\other\bugs_AlexeiPace_20160308_2016-03-08-0057_4_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\satellite\bugs_PRo_jup620121025-004033463_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\satellite\bugs_PRo_jup620121025-004033463_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\other\bugs_FLocklear_Jup_054459_Jup_054459_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\other\bugs_FLocklear_Jup_054459_Jup_054459_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20190807_2019-08-07-0406_9-EC-R-Jup_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20190807_2019-08-07-0406_9-EC-R-Jup_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jupiter_Impact_Gerrit_Kernbauer_170316_011744_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jupiter_Impact_Gerrit_Kernbauer_170316_011744_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20100603_j2010-06-03-2031_0_AW_Red_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20100603_j2010-06-03-2031_0_AW_Red_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\no_detection\20170526_Andre_Fleckstein_Jup_212501_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\no_detection\20170526_Andre_Fleckstein_Jup_212501_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Sauveur_Pedangrhelu_Jup_212523 flash_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Sauveur_Pedangrhelu_Jup_212523 flash_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20121010_pipp_20190812_124154_20120910_063337_L_pipp_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20121010_pipp_20190812_124154_20120910_063337_L_pipp_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jup_001733_impact_JohnMcKeon_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jup_001733_impact_JohnMcKeon_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20100603_Jup_L_03_06_2010_203058b_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20100603_Jup_L_03_06_2010_203058b_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Thomas_Riessler_Jup_161_192436_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Thomas_Riessler_Jup_161_192436_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20100820_Masayuki_Tachikawa_tachikawa2_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\detection\20100820_Masayuki_Tachikawa_tachikawa2_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\satellite\20100820_Kazuo_Aoki_aoki_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\satellite\20100820_Kazuo_Aoki_aoki_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20100820_Mazayuki_Ichimaru_ichimaru_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20100820_Mazayuki_Ichimaru_ichimaru_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\saturn\Saturn_2014-03-09-0418.1-MD-G_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\saturn\Saturn_2014-03-09-0418.1-MD-G_dtc_mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Documents\detect_guide\negative\dust\movies_FITS_2_000000_20120808_064633_296_dtc_max-mean.jpg">
+      <Filter>documentation\detect_guide</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="DeTeCt.exe.manifest" />
   </ItemGroup>
 </Project>

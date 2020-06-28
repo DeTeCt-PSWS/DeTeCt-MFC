@@ -20,6 +20,7 @@ extern "C" {
 #include "serfmt.h"
 #include "dtcgui.hpp"
 
+#include "common2.h"
 
 /**********************************************************************************************//**
 * @fn	DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
@@ -126,10 +127,17 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 
 cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 	(*perror) = 0;
-	void	*ser_frame_data = nullptr;	// raw SER frame data
-	int		conversion = 0;				// conversion for SER Bayer modes
-	cv::Mat	ser_frame;					// matrix used to contain frame data
-	cv::Scalar black;					// in case of frame reading error we create an empty black matrix
+	void		*ser_frame_data = nullptr;	// raw SER frame data
+	int			conversion = 0;				// conversion for SER Bayer modes
+	int			mat_type = 0;
+	cv::Mat		matrix_frame;					// matrix used to contain frame data
+	cv::Scalar	black;					// in case of frame reading error we create an empty black matrix
+	double		minVal;
+	double		maxVal;
+	cv::Point	minLoc;
+	cv::Point	maxLoc;
+	int			maxbits;
+
 	switch (capture->type) {
 	case CAPTURE_SER:
 		ser_frame_data = serQueryFrameData(capture->u.sercapture, ignore, perror);
@@ -140,45 +148,62 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 			case SER_BAYER_GBRG: conversion = cv::COLOR_BayerGB2RGB; break;
 			default: conversion = 0; break;
 		}
-//cv::imshow("dtcQueryFrame2 1", cv::Mat(capture->u.sercapture->header.ImageHeight, capture->u.sercapture->header.ImageWidth, capture->u.sercapture->mat_type, ser_frame_data));
-//cv::waitKey(0);
 		/* Creation of the matrix with the SER frame data: w·h, 8/16 unsigned bit 1/3 channel image */
 		if (capture->u.sercapture->current_frame <= capture->u.sercapture->header.FrameCount && ser_frame_data == NULL) {
 			if (capture->u.sercapture->nChannels == 3)
 				black = cv::Scalar(0, 0, 0);
 			else
 				black = cv::Scalar(0);
-			ser_frame = cv::Mat((int)capture->u.sercapture->header.ImageHeight, (int)capture->u.sercapture->header.ImageWidth,
+			matrix_frame = cv::Mat((int)capture->u.sercapture->header.ImageHeight, (int)capture->u.sercapture->header.ImageWidth,
 				capture->u.sercapture->mat_type, black);
 		} else {
-			ser_frame = cv::Mat((int)capture->u.sercapture->header.ImageHeight, (int)capture->u.sercapture->header.ImageWidth,
+			matrix_frame = cv::Mat((int)capture->u.sercapture->header.ImageHeight, (int)capture->u.sercapture->header.ImageWidth,
 				(size_t)capture->u.sercapture->mat_type, ser_frame_data);
 		}
-//cv::imshow("dtcQueryFrame2 2", ser_frame);
-//cv::waitKey(0);
 		/* The matrix might be empty (after the last frame) */
-		if (ser_frame.data) {
+		if (matrix_frame.data) {
 			/*
 			 * Normalise 16U matrices
 			 * CV_8UC1 = 0 (0 * 8) and CV_8C3 = 16 (2 * 8)
 			 */
-			int mat_type = (capture->u.sercapture->nChannels - 1) * 8;
-			if (capture->u.sercapture->byte_depth == 2) ser_frame.convertTo(ser_frame, mat_type, 1 / 256.0);
-//cv::imshow("dtcQueryFrame2 3", ser_frame);
-//cv::waitKey(0);
+			mat_type = (capture->u.sercapture->nChannels - 1) * 8;
+			if (capture->u.sercapture->byte_depth == 2) matrix_frame.convertTo(matrix_frame, mat_type, 1 / 256.0);
 			/*
 			 * Conversion from Bayer to colour, when applicable
 			 * Conversion from RGB to BGR (used by OpenCV) to conserve the original colours
 			 * done when getting the gray frame
 			 */
-			if (conversion != 0) cvtColor(ser_frame, ser_frame, conversion);
+			if (conversion != 0) cvtColor(matrix_frame, matrix_frame, conversion);
 		}
-//cv::imshow("dtcQueryFrame2 final", ser_frame);
-//cv::waitKey(0);
-		return ser_frame;
+		return matrix_frame;
 		break;
 	case CAPTURE_FITS: case CAPTURE_FILES:
-		return cv::cvarrToMat(fileQueryFrame(capture->u.filecapture, ignore, perror));
+		matrix_frame = cv::cvarrToMat(fileQueryFrame(capture->u.filecapture, ignore, perror));
+		/* The matrix might be empty (after the last frame) */
+		if (matrix_frame.data) {
+			/*
+			* Normalise 16U matrices
+			* CV_8UC1 = 0 (0 * 8) and CV_8C3 = 16 (2 * 8)
+			*/
+			mat_type = (capture->u.filecapture->image->nChannels - 1) * 8;
+			// find maximum number of bits used
+			minMaxLoc(matrix_frame, &minVal, &maxVal, &minLoc, &maxLoc);
+			if (maxVal > pow(2, capture->u.filecapture->MaxBits)) {
+				maxbits = 16;
+				while (maxVal <= pow(2, maxbits)) maxbits--;
+				maxbits++;
+				if (maxbits < 8) maxbits = 8; // image coded on 2 bytes ...
+				// changes maximum number of bits used from capture if this frame has a higher value
+				if (maxbits > capture->u.filecapture->MaxBits) capture->u.filecapture->MaxBits = maxbits;
+			} else maxbits = capture->u.filecapture->MaxBits;
+			// Scale matrix, ie:
+			//	MaxBit (2^y)		Scalebit (1/2^x)
+			//	8b					0
+			//	12b					4
+			//	16b					8
+			if (capture->u.filecapture->BytesPerPixel == 2) matrix_frame.convertTo(matrix_frame, mat_type, 1 / pow(2.0, capture->u.filecapture->MaxBits - 8));
+		}
+		return matrix_frame;
 		break;
 	default: // CAPTURE_CV
 		return cv::cvarrToMat(cvQueryFrame(capture->u.capture));
@@ -259,7 +284,7 @@ BOOL Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acqu
 		int tmp1 = 0;
 		int tmp2 = 9999999;
 		int tmp3 = 0;
-		read_autostakkert_file(file, pfilename_acquisition, NULL, &tmp1, &tmp2, &tmp3);
+		read_autostakkert_session_file(file, pfilename_acquisition, NULL, &tmp1, &tmp2, &tmp3);
 		//					filename_acquisition = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
 	}
 	else
@@ -373,7 +398,7 @@ BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std:
 // ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
 	if (!opts.reprocessing) {
 		std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
-		CT2A DeTeCtLogFilename(DeTeCt_additional_filename((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
+		CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
 		std::ifstream input_file(DeTeCtLogFilename, std::ios_base::in);
 		if (input_file) {
 			std::string line;

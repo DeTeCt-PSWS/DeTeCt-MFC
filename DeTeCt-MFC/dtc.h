@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.2.2"
+#define VERSION_NB		"3.2.3"
 #define VERSION_DATE	"(Apr.10,2019)"
 
 //#define VERSION_MSVC ""
@@ -38,16 +38,16 @@
 #define MEAN_SUFFIX				"_mean.jpg"
 #define DTC_SUFFIX				"_dtc.jpg"
 
-#define DTC_QUEUE_SUFFIX		L"_processes_queue.lst"
 #define DTC_INI_SUFFIX			L".ini"
 #define DTC_LOG_SUFFIX			L".log"
 #define OUTPUT_FILENAME			L"output"
 
+#define DTC_QUEUE_PREFIX		"_processes_queue"
 #define DTC_MAX_FRAME_PREFIX	"_dtc_max_frame"
 #define DTC_DIFF_FRAME_PREFIX	"_dtc_diff_frame"
 #define SINGLE_PREFIX			"_single_"
 
-
+#define DTC_QUEUE_EXT			".lst"
 #define AUTOSTAKKERT_EXT		"as3"
 #define WJ_DEROT_STRING			"-DeRot."
 #define WJ_DEROT_EXT			"drs.xml"
@@ -68,5 +68,11 @@ extern int debug_mode;
 
 enum _Planet_type { Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptun, Notdefined };
 typedef enum _Planet_type Planet_type;
+
+enum _Rating_type { Error, Null, Low, High };
+typedef enum _Rating_type Rating_type;
+
+enum _Instance_type { autostakkert_parent, parent, autostakkert_single, single, autostakkert_child, child };
+typedef enum _Instance_type Instance_type;
 
 #endif /* __DTC_H__ */

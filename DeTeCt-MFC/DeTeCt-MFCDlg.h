@@ -3,6 +3,9 @@
 //
 
 #pragma once
+//CREATEPROCESS_MANIFEST_RESOURCE_ID RT_MANIFEST "YourApp.exe.manifest"
+//void InitCommonControls();
+
 #include "stdafx.h"
 /*#include <afxwin.h>         // MFC core and standard components
 #include <afxext.h>         // MFC extensions
@@ -47,13 +50,13 @@ public:
 	protected:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV support
 
-
 // Implementation
 protected:
 	HICON m_hIcon;
 
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
+	virtual BOOL EndDialog();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -63,13 +66,19 @@ protected:
 	static CStatic impactNull;
 	static CStatic impactLow;
 	static CStatic impactHigh;
+	static CStatic probability;
+	static CStatic duration;
 	static CStatic totalProgress;
 	static CStatic fileName;
 	static CStatic computingTime;
-	static CLinkCtrl detectImageslink;
-	static CLinkCtrl zipFilelink;
+	static CMFCLinkCtrl detectImageslink;
+	static CMFCLinkCtrl zipFilelink;
+	static CMFCLinkCtrl detectLoglink;
 	DECLARE_MESSAGE_MAP()
 public:
+	static CButton Auto;
+	static CButton Exit;
+	static CButton Shutdown;
 	static CButton AS;
 	static CButton dark;
 	static CButton acquisitionLog;
@@ -78,6 +87,10 @@ public:
 	static CButton FITS;
 	static CButton FileInfo;
 	static CStatic acquisitionSW;
+	static CButton execAS;
+	static CStatic Instance;
+	static CStatic MaxInstances;
+	CSpinButtonCtrl ValueMaxInstances;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnFileOpenFolder();
 	afx_msg void OnHelpExit();
@@ -88,6 +101,11 @@ public:
 	afx_msg void OnSettingsPreferences();
 	afx_msg void OnFileExit();
 	afx_msg void OnLbnSelchangeList1();
+	afx_msg void EnableZipLink(BOOL enable);
+	afx_msg void EnableImagesLink(BOOL enable);
+	afx_msg void EnableLogLink(BOOL enable);
+	afx_msg void OnBnClickedCheckResultsButton();
+	afx_msg void OnDetectImagesClickedOk();
 	static CListBox* getLog() {
 		return &impactDetectionLog;
 	}
@@ -106,6 +124,12 @@ public:
 	static CStatic* getimpactHigh() {
 		return &impactHigh;
 	}
+	static CStatic* getprobability() {
+		return &probability;
+	}
+	static CStatic* getduration() {
+		return &duration;
+	}
 	static CStatic* gettotalProgress() {
 		return &totalProgress;
 	}
@@ -115,11 +139,23 @@ public:
 	static CStatic* getcomputingTime() {
 		return &computingTime;
 	}
-	static CLinkCtrl* getdetectImageslink() {
+	static CMFCLinkCtrl* getdetectImageslink() {
 		return &detectImageslink;
 	}
-	static CLinkCtrl* getzipFilelink() {
+	static CMFCLinkCtrl* getzipFilelink() {
 		return &zipFilelink;
+	}
+	static CMFCLinkCtrl* getdetectLoglink() {
+		return &detectLoglink;
+	}
+	static CButton* getAuto() {
+		return &Auto;
+	}
+	static CButton* getExit() {
+		return &Exit;
+	}
+	static CButton* getShutdown() {
+		return &Shutdown;
 	}
 	static CButton* getAS() {
 		return &AS;
@@ -145,6 +181,15 @@ public:
 	static CStatic* getacquisitionSW() {
 		return &acquisitionSW;
 	}
+	static CButton* getexecAS() {
+		return &execAS;
+	}
+	static CStatic* getInstance() {
+		return &Instance;
+	}
+	static CStatic* getMaxInstances() {
+		return &MaxInstances;
+	}
 	//std::vector<std::string> file_list = {};
 	//std::vector<std::string> acquisition_file_list = {};
 	AcquisitionFilesList acquisition_files;
@@ -163,6 +208,14 @@ public:
 	afx_msg void OnBnClickedCheck2();
 	afx_msg void OnBnClickedCheck1();
 	afx_msg void OnBnClickedCheck3();
+	afx_msg void OnStnClickedStaticComputing2();
+	afx_msg void OnBnClickedOk3();
+	afx_msg void OnStnClickedStaticproba();
+	afx_msg void OnBnClickedOk2();
+	afx_msg void OnBnClickedCheckAuto();
+	afx_msg void OnBnClickedCheckExit();
+	afx_msg void OnBnClickedCheckShutdown();
+	afx_msg void OnDeltaposSpinInstances(NMHDR *pNMHDR, LRESULT *pResult);
 };
 #pragma once
 

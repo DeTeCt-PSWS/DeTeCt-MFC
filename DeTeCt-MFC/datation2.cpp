@@ -17,6 +17,7 @@
 
 #include "datation2.h"
 #include "dtc.h"
+#include "common2.h"
 
 
 /**********************************************************************************************//**
@@ -228,7 +229,7 @@ void dtcWriteWholeLog(std::string location, const char *dtcexename, const double
 /*
 void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 	
-	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString(location.c_str()), DTC_LOG_SUFFIX));
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString(location.c_str()), DTC_LOG_SUFFIX));
 
 	std::ofstream output_file(DeTeCtLogFilename);
 
@@ -288,7 +289,7 @@ void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 }*/
 
 void dtcWriteLogHeader(std::string location) {
-	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString(location.c_str()), DTC_LOG_SUFFIX));
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString(location.c_str()), DTC_LOG_SUFFIX));
 
 	std::ifstream filetest(DeTeCtLogFilename);
 	if (!filetest) {
@@ -306,7 +307,7 @@ void dtcWriteLogHeader(std::string location) {
 
 /*
 void dtcCloseLog(std::string location) {
-	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString(location.c_str()), DTC_LOG_SUFFIX));
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString(location.c_str()), DTC_LOG_SUFFIX));
 
 	std::ofstream output_file(DeTeCtLogFilename);
 
@@ -328,7 +329,7 @@ void dtcCloseLog(std::string location) {
 * @param	videos_info	List of the information describing the algorithm output.
 																								**************************************************************************************************/
 void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *logline) {
-	CT2A DeTeCtLogFilename(DeTeCt_additional_filename(CString (location.c_str()), DTC_LOG_SUFFIX)); 
+	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString (location.c_str()), DTC_LOG_SUFFIX)); 
 	std::ofstream output_file(DeTeCtLogFilename, std::ios_base::app);
 
 	std::string os_version = "";
@@ -514,4 +515,26 @@ std::stringstream getDateTime() {
 	std::stringstream ss;
 	ss << std::put_time(std::localtime(&now_time_t), "%Y-%m-%d %X - ");
 	return ss;
+}
+
+std::stringstream getDateTimeMillis() {
+	auto now = std::chrono::system_clock::now();
+	auto now_time_t = std::chrono::system_clock::to_time_t(now);
+
+	std::stringstream ss;
+
+	char buffer[80];
+
+	auto transformed = now.time_since_epoch().count() / 1000000;
+	auto millis = transformed % 1000;
+	sprintf(buffer, ".%03d - ", (int)millis);
+	CString tmp_cstring;
+	char2CString(buffer, &tmp_cstring);
+	std::string tmp_string = CString2string(tmp_cstring);
+
+
+	ss << std::put_time(std::localtime(&now_time_t), "%Y-%m-%d %X") << tmp_string.c_str();
+	return ss;
+
+	//return std::string(buffer);
 }

@@ -1298,6 +1298,7 @@ const char *in;	/* Character string of sexigesimal or decimal degrees */
     char *dchar;
 
     dec = 0.0;
+	min = 0;
 
     /* Return 0.0 if string is null */
     if (in == NULL)

@@ -414,7 +414,9 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
  * @return	A cv::Mat.
  **************************************************************************************************/
 
-cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
+ // Deactivation Marc 2020.06.02
+
+cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 {
 	cv::Mat old_image;
 	char filename[MAX_STRING];
@@ -484,7 +486,7 @@ cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
 		break;
 	case CAPTURE_FILES:
 		old_image = fc->image;
-		/*			fprintf(stderr, "fileQueryFrame: reading frame %d\n", fc->frame);*/
+		//			fprintf(stderr, "fileQueryFrame: reading frame %d\n", fc->frame);
 		if ((fc->image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
 			if (!ignore) {
 				fprintf(stderr, "ERROR in fileQueryFrame reading frame %d\n", fc->frame);
@@ -515,6 +517,7 @@ cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
 
 	return fc->image;
 }
+
 
 /**********************************************************************************************//**
  * @fn	void fileGet_info(FileCapture *fc, const char *fname, double *date)
@@ -624,7 +627,9 @@ void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
  * @param 		  	nb  	The nb.
  **************************************************************************************************/
 
-void fileGet_filename(char *dest, FileCapture *fc, int nb)
+// Deactivation Marc 2020.06.02
+
+void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 {
 	char tmp_string[MAX_STRING];
 	char tmp_string2[MAX_STRING];
@@ -681,7 +686,9 @@ void fileGet_filename(char *dest, FileCapture *fc, int nb)
  * @param 		  	nb  	The nb.
  **************************************************************************************************/
 
-void fileGenerate_number(char *dest, FileCapture *fc, int nb)
+ // Deactivation Marc 2020.06.02
+
+void fileGenerate_number(char *dest, FileCapture2 *fc, int nb)
 {
 	int max;
 	char nbstring[MAX_STRING];

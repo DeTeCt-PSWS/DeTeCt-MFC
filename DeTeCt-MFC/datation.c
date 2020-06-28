@@ -97,6 +97,8 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 	{
 	case CAPTURE_SER:
 	case CAPTURE_CV:
+//	case CAPTURE_FILES:
+//	case CAPTURE_FITS:
 		if (debug_mode) { fprintf(stderr, "dtcGetDatation: Reading information from file\n"); }
 		dtcGetDatationFromFileInfo(capture, filename, nbframes, &start_time_file, &end_time_file, &duration_file, &fps_file);
 		timetype_file = LT;
@@ -958,6 +960,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 	char value2[MAX_STRING];
 	char fieldname[MAX_STRING];
 	char tmpline[MAX_STRING];
+	char tmpline2[MAX_STRING];
 	char logfilename[MAX_STRING];
 	char logfilename_rac[MAX_STRING];
 	char logfilename_dir[MAX_STRING];
@@ -1031,6 +1034,7 @@ int dtcGetDatationFromLogFile(const char *filename, double *jd_start_time_loginf
 	init_string(fieldname);
 	init_string(software);
 	init_string(tmpline);
+	init_string(tmpline2);
 	init_string(logfilename);
 	init_string(logfilename_rac);
 	init_string(logfilename_dir);
@@ -2002,11 +2006,18 @@ MM.dd.yyyy
 																																/*   2007-06-22, 22:46:42 UTC */
 																																/*   2009-07-27, 02:41:12 = UTC */
 																																/*   2009-08-15, 22:42:58 / UTC */
+																															/*		2007-10-12, 19:50:44 = UTC +2 hours */
 																																/* : Tuesday, 07 August 2012 03:45:27 / UTC */
 																																/* : Saturday, 21 August 2010 05:55:10 / UTC +2 Hours */
 					strcpy(value,replace_str(value," / "," "));		/* same UTC */
 					strcpy(value,replace_str(value,"  :  "," "));
 
+					if ((!strcmp(right(value,3,tmpline),"UTC") == 0) &&  (!strcmp(right(lcase(value, tmpline2),5,tmpline),"hours") == 0)) {
+						(*plogtimezone)=LT;
+					} else {
+						(*plogtimezone) = UT;
+						left(value, InStr(value, "UTC"), value);
+					}
 					if (strlen(value)>26) {
 						strcpy(value,replace_str(value,"Monday, ",""));
 						strcpy(value,replace_str(value,"Tuesday, ",""));
@@ -2042,12 +2053,12 @@ MM.dd.yyyy
 						min=atoi(mid(value,15,2,tmpline));					
 						sec=strtod(mid(value,18,2,tmpline),NULL);
 					}
-					if ((!strcmp(right(value,3,tmpline),"UTC") == 0) &&  (!strcmp(right(value,5,tmpline),"Hours") == 0)) {
-						(*plogtimezone)=LT;
+//					if ((!strcmp(right(value,3,tmpline),"UTC") == 0) &&  (!strcmp(right(value,5,tmpline),"Hours") == 0)) {
+//						(*plogtimezone)=LT;
 /*										hour=hour - oShell.RegRead("HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\TimeZoneInformation\ActiveTimeBias")*-1/60 */
-					} else {
-						(*plogtimezone)=UT;
-					}
+//					} else {
+//						(*plogtimezone)=UT;
+//					}
 					(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
 											if (debug_mode) { fprintf(stderr,"dtcGetDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
 				} else if ((strcmp(fieldname,"Capture duration")==0) ||(strcmp(fieldname,"Recording duration")==0)) { 	/* : 181.12 */

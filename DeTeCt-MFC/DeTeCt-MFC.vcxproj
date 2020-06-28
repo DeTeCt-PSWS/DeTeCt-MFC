@@ -254,12 +254,14 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Text Include="Documents\ReadMe.txt" />
     <Text Include="ReadMe.txt" />
     <Text Include="Version history.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cmdline.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="common2.h" />
     <ClInclude Include="datation.h" />
     <ClInclude Include="datation2.h" />
     <ClInclude Include="DeTeCt-MFC.h" />
@@ -314,6 +316,7 @@
     <ClCompile Include="max.c" />
     <ClCompile Include="processes_queue.cpp" />
     <ClCompile Include="serfmt.c" />
+    <ClCompile Include="common2.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -332,11 +335,72 @@
     <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\extract_impact_detection_zip.bat" />
     <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.bat" />
     <None Include="C:\Users\Marc\OneDrive\work\Impact\DeTeCt Jupiter project\process_dtc_log.vbs" />
+    <None Include="Documents\Code Project Open License (WndResizer class).htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="Documents\detect_guide\DeTeCt_quick_guide.htm">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="Documents\SER Doc V3b.pdf" />
     <None Include="fits\libfits.dll" />
     <None Include="res\DeTeCtMFC.rc2" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Documents\detect_guide\DeTeCt_multi_instances_HD_test.jpg" />
+    <Image Include="Documents\detect_guide\DeTeCt_multi_instances_SSD_test.jpg" />
+    <Image Include="Documents\detect_guide\negative\dust\movies_FITS_2_000000_20120808_064633_296_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\dust\movies_FITS_2_000000_20120808_064633_296_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20131106-LdV_071113_012500.01_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20131106-LdV_071113_012500.01_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20190522-JoseLuis_Pereira_03_10_47Z - Impact Jupiter_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\hotpixels\false_detections_20190522-JoseLuis_Pereira_03_10_47Z - Impact Jupiter_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\limb\movies_FireCapture_FC2.3beta16_Jup_133315_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\limb\movies_FireCapture_FC2.3beta16_Jup_133315_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\other\bugs_AlexeiPace_20160308_2016-03-08-0057_4_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\other\bugs_AlexeiPace_20160308_2016-03-08-0057_4_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\other\bugs_FLocklear_Jup_054459_Jup_054459_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\other\bugs_FLocklear_Jup_054459_Jup_054459_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\other\bugs_MLewis_Jup_20170521_ZWO ASI174MM_642nm_20_213939_pipp_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\other\bugs_MLewis_Jup_20170521_ZWO ASI174MM_642nm_20_213939_pipp_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\satellite\bugs_PRo_jup620121025-004033463_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\satellite\bugs_PRo_jup620121025-004033463_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\saturn\Saturn_2014-03-09-0418.1-MD-G_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\negative\saturn\Saturn_2014-03-09-0418.1-MD-G_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20100603_j2010-06-03-2031_0_AW_Red_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20100603_j2010-06-03-2031_0_AW_Red_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20100603_Jup_L_03_06_2010_203058b_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20100603_Jup_L_03_06_2010_203058b_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20100820_Masayuki_Tachikawa_tachikawa2_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20100820_Masayuki_Tachikawa_tachikawa2_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20121010_pipp_20190812_124154_20120910_063337_L_pipp_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20121010_pipp_20190812_124154_20120910_063337_L_pipp_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jupiter_Impact_Gerrit_Kernbauer_170316_011744_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jupiter_Impact_Gerrit_Kernbauer_170316_011744_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jup_001733_impact_JohnMcKeon_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20160317_Jup_001733_impact_JohnMcKeon_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20190807_2019-08-07-0406_9-EC-R-Jup_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\detection\20190807_2019-08-07-0406_9-EC-R-Jup_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20100820_Mazayuki_Ichimaru_ichimaru_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20100820_Mazayuki_Ichimaru_ichimaru_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Sauveur_Pedangrhelu_Jup_212523 flash_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Sauveur_Pedangrhelu_Jup_212523 flash_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Thomas_Riessler_Jup_161_192436_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\nodifferentialphotometry\20170526_Thomas_Riessler_Jup_161_192436_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\no_detection\20170526_Andre_Fleckstein_Jup_212501_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\no_detection\20170526_Andre_Fleckstein_Jup_212501_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\satellite\20100820_Kazuo_Aoki_aoki_dtc_max-mean.jpg" />
+    <Image Include="Documents\detect_guide\positives\satellite\20100820_Kazuo_Aoki_aoki_dtc_mean.jpg" />
+    <Image Include="Documents\detect_guide\v3.2.3_101.jpg" />
+    <Image Include="Documents\detect_guide\v3.2.3_6.jpg" />
+    <Image Include="Documents\detect_guide\v3.2.3_7.jpg" />
+    <Image Include="Documents\detect_guide\v3.2.3_8.jpg" />
+    <Image Include="Documents\detect_guide\v3.2.3_legend.jpg" />
+    <Image Include="Documents\detect_guide\v3.2.3_legend_v2.jpg" />
+    <Image Include="res\autostakkert.ico" />
     <Image Include="res\DeTeCt-MFC.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Manifest Include="DeTeCt.exe.manifest" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

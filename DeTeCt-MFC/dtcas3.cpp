@@ -1,3 +1,5 @@
+#include "processes_queue.h"
+
 #include "dtcas3.h"
 #include <iostream>
 #include <fstream>
@@ -5,39 +7,22 @@
 #include <cstdio>
 
 #include "cmdline.h" 
+#include "common2.h"
 
+void read_autostakkert_session_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count);
 
-bool starts_with(const std::string& s1, const std::string& s2) {
-	return s2.size() <= s1.size() && s1.compare(0, s2.size(), s2) == 0;
-}
+// ************************************************************
+// ************** AS!3 session and WJ derot files *************
+// ************************************************************
 
-bool replace(std::string& str, const std::string& from, const std::string& to) {
-	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
-		return false;
-	str.replace(start_pos, from.length(), to);
-	return true;
-}
-
-std::vector<std::string> read_txt(std::string path) {
-	std::ifstream file(path);
-	std::string line;
-	std::vector<std::string> lines;
-	while (std::getline(file, line)) {
-		lines.push_back(line);
-	}
-	return lines;
-}
-
-
-void read_autostakkert_file(std::string configfile, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count) {
+void read_autostakkert_session_file(std::string configfile, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count) {
 	(*filename) = "";
 	(*cm_list_start) = -1;
 	(*cm_list_end) = -1;
 	(*cm_frame_count) = -1;
 	
 	for (std::string line : read_txt(configfile)) {
-		read_autostakkert_config_line(line, filename, cm_list, cm_list_start, cm_list_end, cm_frame_count);
+		read_autostakkert_session_config_line(line, filename, cm_list, cm_list_start, cm_list_end, cm_frame_count);
 		//do not read all file if cm list not needed and other values already found
 		if ((cm_list == NULL) && ((*filename) != "") && ((*cm_list_start) != -1) && ((*cm_list_end) != -1) && ((*cm_frame_count) != -1)) break;
 	}
@@ -82,7 +67,7 @@ void read_autostakkert_file(std::string configfile, std::string *filename, std::
 }
 
 /**** read autostakkert session file to return relevant information, including frames' alignment ***/
-void read_autostakkert_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count) {
+void read_autostakkert_session_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count) {
 //	std::ifstream file(path, std::ios::in);
 	std::vector<std::string> lines;
 	float x, y;
@@ -189,15 +174,80 @@ void read_winjupos_file(const std::string winjupos_derotation_filename, std::str
 	}
 }
 
-/**** return if file with filename exists ***/
-bool file_exists(std::string filename) {
-	std::ifstream filetest(filename);
-	if (!filetest) return false;
-	filetest._close();
-	return true;
+
+// ************************************************************
+// ****************** AS! processes ***************************
+// ************************************************************
+
+/**********************************************************************************************
+*
+* @fn	AutostakkertInstancesNumber()
+*
+* @brief	Get number of Autostakkert processes running
+*
+* @author	Marc
+* @date		2020-04-15
+*
+* @return	number of Autostakkert processes running
+**************************************************************************************************/
+
+int AutostakkertInstancesNumber()
+{
+	return ProcessRunningInstancesNumber(AUTOSTAKKERTFILENAME);
 }
 
-/**** return full filename constructed from first file directory and second file short filename ***/
-std::string dirfilename(std::string directoryname_from_path, std::string filename_from_path) {
-	return directoryname_from_path.substr(0, directoryname_from_path.find_last_of("\\") + 1) + filename_from_path.substr(filename_from_path.find_last_of("\\") + 1, filename_from_path.length());
+/**********************************************************************************************
+*
+* @fn	IsParentAutostakkert()
+*
+* @brief	returns if parent of current DeTeCt process is AutoStakkert, and its PID
+*
+* @author	Marc
+* @date		2020-04-15
+*
+* @param	[out]	pASpid	PID of Autostakkert parent
+*
+* @return	TRUE if parent of current DeTeCt process is AutoStakkert, PID of Autostakkert parent
+**************************************************************************************************/
+
+BOOL IsParentAutostakkert(DWORD *pASpid)
+{
+	DWORD pid, ppid;
+	int e;
+	wchar_t wfname[MAX_PATH] = { 0 };
+
+	pid = GetCurrentProcessId();
+	ppid = getParentPID(pid);
+	e = getProcessName(ppid, wfname, MAX_PATH);
+	if (wcsstr(wfname, LAUTOSTAKKERTFILENAME) != NULL) {
+		(*pASpid) = ppid;
+		return TRUE;
+	}
+	(*pASpid) = 0;
+	return FALSE;
 }
+
+BOOL IsParentDeTeCt(DWORD *pASpid)
+{
+	DWORD pid, ppid;
+	int e;
+	wchar_t wfname[MAX_PATH] = { 0 };
+	char DeTeCtNameChar[MAX_PATH];
+
+	pid = GetCurrentProcessId();
+	ppid = getParentPID(pid);
+	e = getProcessName(ppid, wfname, MAX_PATH);
+	if (wcsstr(wfname, (CString) DeTeCtFileName(DeTeCtNameChar)) != NULL) {
+		(*pASpid) = ppid;
+		return TRUE;
+	}
+	(*pASpid) = 0;
+	return FALSE;
+}
+
+BOOL IsParentAutostakkertRunning(const DWORD ASpid)
+{
+	return IsProcessRunning(ASpid);
+}
+
+

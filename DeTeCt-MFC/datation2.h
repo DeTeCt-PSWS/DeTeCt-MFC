@@ -78,7 +78,7 @@ void fprint_jd_wj(std::ofstream *stream, const double jd);
 void fprint_jd_wj_string(std::stringstream *stream, const double jd);
 
 std::stringstream getRunTime();
-
 std::stringstream getDateTime();
+std::stringstream getDateTimeMillis();
 
 #endif

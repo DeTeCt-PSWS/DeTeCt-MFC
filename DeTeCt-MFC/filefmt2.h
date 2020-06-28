@@ -1,6 +1,6 @@
 #pragma once
-#ifndef __FILEFMT_H__
-#define __FILEFMT_H__
+#ifndef __FILEFMT2_H__
+#define __FILEFMT2_H__
 //#include "common.h"
 //#include "dirent.h"
 
@@ -16,7 +16,11 @@
  * @date	2017-05-12
  **************************************************************************************************/
 
-struct _FileCapture
+
+
+ // Deactivation Marc 2020.06.02
+
+struct _FileCapture2
 {
 	int FileType;
 
@@ -50,7 +54,9 @@ struct _FileCapture
 	char filename_ext[EXT_MAX];
 	char filename_folder[MAX_STRING];
 };
-typedef struct _FileCapture FileCapture;
+typedef struct _FileCapture2 FileCapture2;
+
+
 
 /****************************************************************************************************/
 /*									Procedures and functions										*/
@@ -62,7 +68,11 @@ typedef struct _FileCapture FileCapture;
 //void 		fileGet_info(FileCapture *fc, const char *fname, double *date);
 //void 		fileReleaseCapture(FileCapture *fc);
 //void 		fileGenerate_filename(char *dest, FileCapture *fc, int nb);
-void 		fileGet_filename(char *dest, FileCapture *fc, int nb);
-void 		fileGenerate_number(char *dest, FileCapture *fc, int nb);
 
-#endif /* __FILEFMT_H__ */
+ // Deactivation Marc 2020.06.02
+
+void 		fileGet_filename(char *dest, FileCapture2 *fc, int nb);
+void 		fileGenerate_number(char *dest, FileCapture2 *fc, int nb);
+
+
+#endif /* __FILEFMT_H2__ */

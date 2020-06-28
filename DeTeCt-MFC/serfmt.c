@@ -648,11 +648,14 @@ size_t serFrameRead(SerCapture* sc) {
 								r = (r << shift_left) + (r >> shift_right);
 							}
 							else {
-								b += *read_ptr8++;
+//								b += *read_ptr8++;
+								b = *read_ptr8++;
 								b = (b << shift_left) + (b >> shift_right);
-								g += *read_ptr8++;
+//								g += *read_ptr8++;
+								g = *read_ptr8++;
 								g = (g << shift_left) + (g >> shift_right);
-								r += *read_ptr8++;
+//								r += *read_ptr8++;
+								r = *read_ptr8++;
 								r = (r << shift_left) + (r >> shift_right);
 							}
 						}
@@ -686,22 +689,22 @@ size_t serFrameRead(SerCapture* sc) {
 					}
 				}
 				else {
-					uint8_t r, g, b;
+					uint8_t r8, g8, b8;
 					if (sc->header.ColorID == SER_RGB) {
-						r = *read_ptr8++;
-						g = *read_ptr8++;
-						b = *read_ptr8++;
-						frame_data8[b_idx] = b;
-						frame_data8[g_idx] = g;
-						frame_data8[r_idx] = r;
+						r8 = *read_ptr8++;
+						g8 = *read_ptr8++;
+						b8 = *read_ptr8++;
+						frame_data8[b_idx] = b8;
+						frame_data8[g_idx] = g8;
+						frame_data8[r_idx] = r8;
 					}
 					else if (sc->header.ColorID == SER_BGR) {
-						b = *read_ptr8++;
-						g = *read_ptr8++;
-						r = *read_ptr8++;
-						frame_data8[b_idx] = b;
-						frame_data8[g_idx] = g;
-						frame_data8[r_idx] = r;
+						b8 = *read_ptr8++;
+						g8 = *read_ptr8++;
+						r8 = *read_ptr8++;
+						frame_data8[b_idx] = b8;
+						frame_data8[g_idx] = g8;
+						frame_data8[r_idx] = r8;
 					}
 					else {
 						frame_data8[grey_idx] = *read_ptr8_mono++;

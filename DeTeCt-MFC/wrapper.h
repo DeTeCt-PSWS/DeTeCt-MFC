@@ -16,6 +16,7 @@
 
 #define DEFAULT_FPS		25.0
 
+//#pragma warning (disable: 4430)
 struct _DtcCapture
 {
 	int type;
