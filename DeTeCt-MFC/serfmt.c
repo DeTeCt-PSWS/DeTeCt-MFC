@@ -49,6 +49,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 		if (fread(buffer, sizeof(char), SER_HEADER_SIZE, sc->fh) != SER_HEADER_SIZE)
 		{
 			fprintf(stderr, "ERROR in serCaptureFromFile reading %s ser header\n", fname);
+			fclose(sc->fh);
 			exit(EXIT_FAILURE);
 		}
 
@@ -251,6 +252,10 @@ SerCapture *serCaptureFromFile(const char *fname)
 		sc->big_endian_proc = (*(uint16_t *)"\0\xff" < 0x100);
 		// little_endian: 0 for little endian, 1 for big endian
 		sc->data_proc_same_endianness = sc->big_endian_proc == sc->header.LittleEndian;
+		/*if (fclose(sc->fh) != 0) {
+			fprintf(stderr, "ERROR in serCaptureFromFile closing capture file\n");
+			exit(EXIT_FAILURE);
+		}*/
 	}
 
 	return sc;

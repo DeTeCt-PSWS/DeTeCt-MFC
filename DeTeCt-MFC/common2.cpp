@@ -120,13 +120,17 @@ std::vector<std::string> read_txt(std::string path) {
 	while (std::getline(file, line)) {
 		lines.push_back(line);
 	}
+	file.close();
 	return lines;
 }
 
 /**** return if file with filename exists ***/
 bool file_exists(std::string filename) {
 	std::ifstream filetest(filename);
-	if (!filetest) return false;
+	if (!filetest) {
+		filetest.close();
+		return false;
+	}
 	filetest.close();
 	return true;
 }

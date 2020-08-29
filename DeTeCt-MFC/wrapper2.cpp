@@ -293,10 +293,10 @@ BOOL Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acqu
 	if (!file_exists((*pfilename_acquisition).c_str())) {
 		if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
 			// Error if autostakkert acquisition file cannot be found
-			(*pmessage) << "Ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (acquisition file " << (*pfilename_acquisition).c_str() << " is missing)\n";
+			(*pmessage) << "Error, ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (cannot open file acquisition file " << (*pfilename_acquisition).c_str() << ", " << strerror(errno) << ")\n";
 		}
 		else
-			(*pmessage) << "Ignoring " << (*pfilename_acquisition).c_str() << ", file is missing\n";
+			(*pmessage) << "Error, ignoring " << (*pfilename_acquisition).c_str() << ", cannot open file (" << strerror(errno) << ")\n";
 		return FALSE;
 	}
 
@@ -306,13 +306,16 @@ BOOL Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acqu
 		pCapture = NULL;
 		if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
 			// Error if autostakkert acquisition file cannot be found
-			(*pmessage) << "Ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (acquisition file " << (*pfilename_acquisition).c_str() << " cannot be opened)\n";
+			(*pmessage) << "Error, ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (cannot open file acquisition file " << (*pfilename_acquisition).c_str() << ", " << strerror(errno) << ")\n";
 		}
 		else
-			(*pmessage) << "Ignoring " << (*pfilename_acquisition).c_str() << ",  cannot be opened\n";
+			(*pmessage) << "Error, ignoring  " << (*pfilename_acquisition).c_str() << ", cannot open file (" << strerror(errno) << ")\n";
 		return FALSE;
 	}
-	else return TRUE;
+	else {
+		dtcReleaseCapture(pCapture);
+		return TRUE;
+	}
 }
 
 /**********************************************************************************************//**
@@ -427,14 +430,15 @@ BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std:
 							std::string shortfile = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());
 
 							(*pmessage) << "Ignoring " << shortfile.c_str() << ", already processed\n";
-							input_file._close();
+							input_file.close();
 							return FALSE;
 					}
 				}
 			}
-			input_file._close();
+			input_file.close();
 			return TRUE;
 		}
+		input_file.close();
 	}
 	return TRUE;
 }

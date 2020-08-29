@@ -275,7 +275,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.filter.param[2] =	0;
 	opts.filter.param[3] =	0;
 	opts.ADUdtconly =		FALSE;
-	opts.detail =		::GetPrivateProfileInt(L"impact",		L"detail",				TRUE, DeTeCtIniFilename);
+	opts.detail =		::GetPrivateProfileInt(L"impact",		L"detail",				FALSE, DeTeCtIniFilename);
 	opts.allframes =	::GetPrivateProfileInt(L"impact",		L"inter",				FALSE, DeTeCtIniFilename);
 
 	opts.minframes =	::GetPrivateProfileInt(L"other",		L"frmin",				15, DeTeCtIniFilename);
@@ -381,6 +381,7 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CDeTeCtMFCDlg::OnLbnSelchangeList1)
 	ON_COMMAND(ID_FILE_OPENFILE, &CDeTeCtMFCDlg::OnFileOpenfile)
 	ON_COMMAND(ID_FILE_RESETFILELIST, &CDeTeCtMFCDlg::OnFileResetFileList)
+	ON_COMMAND(ID_FILE_CLEAREXECUTIONLOG, &CDeTeCtMFCDlg::OnFileClearExecutionLog)
 	ON_WM_GETMINMAXINFO()
 	ON_BN_CLICKED(IDC_FRAME, &CDeTeCtMFCDlg::OnBnClickedFrame)
 	ON_STN_CLICKED(IDC_STATIC_COMPUTING, &CDeTeCtMFCDlg::OnStnClickedStaticComputing)
@@ -567,7 +568,10 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	CString			instance_type_cstring;
 	int				nb_instances;
 	
-	DisplayInstanceType(&nb_instances);
+	if (opts.parent_instance) {
+		nb_instances = 1;
+		DisplayInstanceType(&nb_instances);
+	}
 
 	std::wstringstream ss2;
 	StreamDeTeCtOSversions(&ss2);
@@ -577,6 +581,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	if (opts.dateonly) impactDetectionLog.AddString((CString) "WARNING, datation info only monde on, no detection analysis will be performed");
 	if (!opts.interactive) impactDetectionLog.AddString((CString) "Automatic mode on");
 	if (!opts.reprocessing) impactDetectionLog.AddString((CString) "No reprocessing mode on");
+	if (opts.flat_preparation) impactDetectionLog.AddString((CString) "Creation of image for flat generation");
 	if (opts.maxinstances > 1) { // Displays maxinstances if multi instances
 		maxinstances_cstring.Format(L"%d", opts.maxinstances);
 		impactDetectionLog.AddString(L"Will use maximum " + maxinstances_cstring + " " + PROGNAME + " instances");
@@ -601,7 +606,10 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 			filetest.close();
 			OnFileOpenfile();
 		}
-		else impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.filename + " file not found.");
+		else {
+			filetest.close();
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.filename + " file not found.");
+		}
 	}
 
 
@@ -943,8 +951,7 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 		std::ifstream filetest(file);
 		if (!filetest) {
 			// ********* Error if file is missing
-
-			ss << "Ignoring " << file.c_str() << ", file is missing)\n";
+			ss << "Error, ignoring " << file.c_str() << ", cannot open file (" << strerror(errno) << ")\n";
 		}
 		else {
 			// Clears window
@@ -971,8 +978,8 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 							scan_folder_path = file.substr(0, file.find_last_of("\\"));
 							acquisition_files.file_list.push_back(file);
 							file = file.substr(file.find_last_of("\\") + 1, file.length());
-							if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " for analysis\n";
-							else ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+							if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
+							else ss << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
 
 							CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(_T("Total\n(0/1)"));
 							CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Click on Detect impacts!");
@@ -987,6 +994,7 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 				}
 			}
 		}
+		filetest.close();
 	}
 	// Prints message
 	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss.str().c_str());
@@ -1052,7 +1060,7 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 //TODO: clearscreen
 		OnFileResetFileList();
 		//impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
-		ss2 << "Scanning " << folder_path << " for files to be analysed...";
+		ss2 << "Scanning " << folder_path << " for files to be analysed, please wait...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 		CDeTeCtMFCDlg::getLog()->RedrawWindow();
@@ -1068,17 +1076,19 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 				std::string filename_acquisition;
 				int nframe = -1;
 
-				if ((Is_Capture_OK_from_File(filename, &filename_acquisition, &nframe, &ss3))
+				if (	
+						(Is_Capture_OK_from_File(filename, &filename_acquisition, &nframe, &ss3)) &&
 					// ********* Error if acquisition has not enough frames
-					&& (Is_Capture_Long_Enough(filename, nframe, &ss3))
+						(Is_Capture_Long_Enough(filename, nframe, &ss3)) &&
 					// ********* Ignores if less than minimum frames
-					&& (!Is_Capture_Special_Type(filename, &ss3))
+						(!Is_Capture_Special_Type(filename, &ss3)) &&
 					// ********* Ignores dark, pipp, winjupos derotated files
-					&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))) {
+						(Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))) {
 					// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
 								// ********* Finally adds file to the list !
-								std::string extension = filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
-								std::string file = filename.substr(filename.find_last_of("\\") + 1, filename.length());
+								std::string extension	= filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+								std::string file		= filename.substr(filename.find_last_of("\\") + 1, filename.length());
+								std::string file_path	= filename.substr(0, filename.find_last_of("\\"));
 // Debug
 								if ((index > 0) && (strlen(opts.DeTeCtQueueFilename) > 1)) {			// if multi instances mode, keep only one acquisition in the list and the rest in the queue
 // Debug
@@ -1099,12 +1109,12 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 									acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
 									acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
 									
-									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " in the queue for analysis\n";
-									else ss3 << "Adding " << file.c_str() << " in the queue (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " (in " << file_path.c_str() << ") for analysis\n";
+									else ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
 								}
 								else {
-									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " for analysis\n";
-									else ss3 << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " (in " << file_path.c_str() << ") for analysis\n";
+									else ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
 									index++;
 								}
 								files_count++;
@@ -1307,6 +1317,18 @@ void CDeTeCtMFCDlg::OnFileResetFileList() {
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
 }
 
+/**********************************************************************************************//**
+ * @fn	OnFileClearExecutionLog()
+ *
+ * @brief	Clears execution full log window
+ *
+ * @author	Marc
+ * @date	2020-04-18
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnFileClearExecutionLog() {
+	CDeTeCtMFCDlg::getLog()->ResetContent();
+}
 
 /**********************************************************************************************//**
  * @fn	void CDeTeCtMFCDlg::OnFileExit()

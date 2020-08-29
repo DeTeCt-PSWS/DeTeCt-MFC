@@ -8,21 +8,27 @@
   <meta content="text/html; charset=UTF-8" http-equiv="content-type"><title>DeTeCt quick user guide</title></head><body>
 <div style="text-align: center; font-family: Arial;"><big><big><span style="font-weight: bold;">DeTeCt
 quick user guide</span></big></big><br>
-<small><span style="font-style: italic;">(on version 3.2.3, June 26,
+<small><span style="font-style: italic;">(based on version 3.2.3, Aug. 29,
 2020, by Marc Delcroix</span>)<br>
 <br>
 </small>
-<div style="text-align: left;"><small>Detect software is the tool to support the <a href="http://www.astrosurf.com/planetessaf/doc/project_detect.php" target="_blank">impact flashes detection project</a>, aiming at:</small><br>
-<small>- analyzing Jupiter and Saturn videos to look for potential flashes provoked by small bodies impacts</small><br>
-<small>- collecting the results of these analyses wether successful or
-not (dates, impact found) to estimate the frequency of impacts on the
-giant planets</small> <small>(which has an impact on refining the age of bodies in this part of the solar system by counting craters on their surface)</small><br>
-<small>- discovering as many impacts as possible to refine the physical
-characteristics of these impactors (size, composition) as well as the
-energy and components released int the giant planets' atmosphere</small><br>
+<div style="text-align: left;">
+    <small>Detect software is the tool to support the <a href="http://www.astrosurf.com/planetessaf/doc/project_detect.php" target="_blank">impact flashes detection project</a>, aiming at:</small><br>
+    <small>- analyzing Jupiter and Saturn videos to look for potential flashes provoked by small bodies impacts</small><br>
+    <small>
+        - collecting the results of these analyses wether successful or
+        not (dates, impact found) to estimate the frequency of impacts on the
+        giant planets
+    </small> <small>(which has an impact on refining the age of bodies in this part of the solar system by counting craters on their surface)</small><br>
+    <small>
+        - discovering as many impacts as possible to refine the physical
+        characteristics of these impactors (size, composition) as well as the
+        energy and components released int the giant planets' atmosphere
+    </small><br><br>
 </div>
 <small>
 </small><br>
+<b><a href="https://github.com/DeTeCt-PSWS/DeTeCt-MFC/releases/latest" target="_blank">Download latest version of DeTeCt software</a></b> at the <a href="https://github.com/DeTeCt-PSWS/DeTeCt-MFC" target="_blank">project github repository</a>.</small><br><br>
 <a href="#basic">Basic usage</a><br>
 <br>
 <a href="#advanced">GUI guide</a><br>
@@ -391,8 +397,8 @@ have 9 in total processing the files. Once 16 files has been processed,
 there will be only 8 total instances running to process the 8 files
 left, then 7, etc. down to the last one.</small><br>
 <br>
-<small>Selecting this maximum number of instances is tricky has it
-heavily depends on your configuration. Here are tests results on my
+<small>Selecting this maximum number of instances might be a bit tricky has it
+ depends on your configuration. Here are tests results on my
 configuration (i7 12 cores, 24GB RAM) :</small><br>
 </div>
 <small><br>
@@ -440,7 +446,7 @@ information the session files store, to avoid realigning all frames.</small><br>
 instances</span>, in case you need more power for other tasks, or on the
 contrary you want to use as much computing power as possible for impact
 detection. Beware though, the number of <span style="font-weight: bold;">running instances only changes slowly</span>,
-decreasing when an instance as finished computing an acquisition file,
+decreasing when an instance has finished computing an acquisition file,
 or increasing after several seconds when the parent instance checks
 for changes in the number of instances. </small><br>
 </div>

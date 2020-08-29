@@ -88,13 +88,13 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// ****************************************
 	// **************** INIT ******************
 	// ****************************************
-
 	DeTeCtFileName(DeTeCtNameChar);
 	std::string DeTeCtName(DeTeCtNameChar); // "DeTeCt.exe"
 
 	// Sets default values for options then reads options from ini file (before it could be changed by command line)
 	//opts.interactive = TRUE; // -interactive / -noautomatic
 	CDeTeCtMFCDlg::CDeTeCtMFCDlg();
+	opts.flat_preparation = FALSE;
 	opts.interactive_bak = opts.interactive;
 
 	opts.autostakkert =		FALSE;
@@ -257,6 +257,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					}
 					else if (starts_with(param, "-maxinst")) param_instances = TRUE;										// -maxinstances
 					else if (starts_with(param, "-dtcpid")) param_dtcpid = TRUE;											// fix detect parent PID (DEV only)
+					else if (starts_with(param, "-flatprep")) opts.flat_preparation = TRUE;									// generate flat preparation image (max of all frames not aligned) (DEV only)
 					else if (starts_with(param, "-asact")) {
 						opts.autostakkert = TRUE;																			// simulate AutoStakkert launch (DEV only)
 
@@ -358,6 +359,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 						}
 						closedir(folder_object);
 					}
+					file.close();
 				}
 			}
 		}
@@ -408,7 +410,6 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				opts.filename = new char[strlen(tmpo)+1];
 				strcpy(opts.filename, tmpo);
 				opts.filename[strlen(tmpo)] = '\0';
-				file._close();
 			}
 			else {
 				DIR *folder_object;
@@ -420,6 +421,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				}
 				else DBOUT("parameter = " << objectname << " not found\n");
 			}
+			file.close();
 		}
 	}
 	if (opts.filename) DBOUT("file = " << opts.filename << "\n");

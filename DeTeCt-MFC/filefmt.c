@@ -39,6 +39,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	if (!(fc->fh = fopen(fname, "rb")))	{
 		fprintf(stderr, "ERROR in FileCaptureFromFile opening first file %s\n", fname);
 		fflush(stderr);
+		fclose(fc->fh);
 		free(fc);
 		fc=NULL;
 		exit(EXIT_FAILURE);
@@ -232,6 +233,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			}
 		}
 	}
+/*fclose(fc->fh);*/
 	return fc;
 }
 
@@ -340,7 +342,6 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 		fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 		exit(EXIT_FAILURE);
 	}
-		
 	return fc->image;
 }
 
@@ -433,10 +434,12 @@ void fileGet_filename(char *dest, FileCapture *fc, int nb)
 		}
 	//	close((int) dir);
 		if (closedir(dir)!=0) {
+			closedir(dir);
 			fprintf(stderr, "ERROR in fileGet_filename closing directory=%s\n", fc->filename_folder);
 			exit(EXIT_FAILURE);
 		}
 	} else {
+		closedir(dir);
 		fprintf(stderr, "ERROR in fileGet_filename opening directory=%s\n", fc->filename_folder);
 	}
 	if (found!=1) {

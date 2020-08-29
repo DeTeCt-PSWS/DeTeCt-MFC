@@ -102,9 +102,11 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 
 
 	if (!(directory = opendir(folder.c_str()))) {
+		closedir(directory);
 		return;
 	}
 	if (!(entry = readdir(directory))) {
+		closedir(directory);
 		return;
 	}
 	do {
@@ -206,7 +208,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 			}
 		}
 	}
-//debug_log._close();
+//debug_log.close();
 }
 
 /**********************************************************************************************//**
@@ -485,7 +487,6 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	std::stringstream	logline_tmp;
 	std::string			start_runtime = getRunTime().str().c_str();
 	std::wstring		wstart_time = std::wstring(start_runtime.begin(), start_runtime.end());
-	CString				instance_cstring;
 	CString				log_cstring;
 	std::string			log_directory;
 	CString				message_init;
@@ -501,6 +502,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	char				max_folder_path_filename[MAX_STRING];
 	char				diff_folder_path_filename[MAX_STRING];
 	char				tmpstring[MAX_STRING];
+	char				tmpstring2[MAX_STRING];
 	DIR					*dir_tmp;
 	BOOL				GUI_display = TRUE;
 
@@ -616,9 +618,11 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	message_init = message_init + _T("\n");
 	LogString(message_init, output_log_file.c_str(), &log_counter, TRUE);
 	
-	nb_instances = 1; // Forks not launched yet, gain of computing time
-	instance_type = DisplayInstanceType(&nb_instances);
-
+	if (opts.parent_instance) {
+		nb_instances = 1; // Forks not launched yet, gain of computing time
+		instance_type = DisplayInstanceType(&nb_instances);
+	} else nb_instances = 0;
+	
 	std::vector<int> img_save_params = { CV_IMWRITE_JPEG_QUALITY, 100 };
 	
 	std::vector<LogInfo> logs;
@@ -797,6 +801,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 //				output_log << getDateTime().str().c_str() << message2.c_str() << "\n";
 				
 			init_string(tmpstring);
+			init_string(tmpstring2);
 			std::string detail_folder_path_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
 
 
@@ -836,6 +841,8 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 			cv::Rect pROI; // Aforementioned region of interest as a delimited rectangle
 			cv::Rect pFrameROI; // ROI of current frame
 			cv::Mat pAvgMat;
+			cv::Mat pFlatADUmaxMat;	// For flat generation
+			cv::Mat pGryFullMat;	// Grey fullframe
 
 			cv::Mat tempROIMat, tempGryMat; // For matrices in which the ROI covers non-existing data
 
@@ -855,6 +862,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 			cv::Mat pADUdtcImg2;
 			cv::Mat pADUavgImg;
 			cv::Mat pADUdarkImg;
+			cv::Mat pFlatADUmaxImg;
 
 			int y_shift = 10;
 			int x_shift = 10;
@@ -887,6 +895,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 
 			char comment[MAX_STRING] = "";
 			char rating_classification[MAX_STRING] = "";
+			char rating_filename_suffix[MAX_STRING] = "";
 			double duration = 0;
 
 			double start_time;
@@ -941,8 +950,8 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 					continue;
 				}
 				frame_number = nframe;
-// sets progress bar configuration
-				//CDeTeCtMFCDlg::getProgress()->SetRange(0, (short) (frame_number));
+				// sets progress bar configuration
+								//CDeTeCtMFCDlg::getProgress()->SetRange(0, (short) (frame_number));
 				CDeTeCtMFCDlg::getProgress()->SetPos(0);
 
 				// ***** Gets datation info from acquisition
@@ -969,17 +978,17 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 
 				double fps = fps_real;
 				if (fps < 0.02)	fps = dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FPS);
-					fps_int = (int)fps;
+				fps_int = (int)fps;
 				impact_frames_min = (int)ceil(MAX(popts->incrFrameImpact, fps * popts->impact_duration_min));
 				/*********************************DATE ONLY MODE******************************************/
 				if (popts->dateonly) {
 					LogString(L"Datation for capture of " + (CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps", output_log_file.c_str(), &log_counter, TRUE);
 					message = "-------------- " + short_filename + " end --------------";
-					LogString( + (CString)message.c_str(), output_log_file.c_str(), &log_counter, TRUE);
+					LogString(+(CString)message.c_str(), output_log_file.c_str(), &log_counter, TRUE);
 					double fake_stat[3] = { 0.0, 0.0, 0.0 };
 					//LogInfo info(popts->filename, start_time, end_time, duration, fps_real, timetype, "WARNING, datation info only", 0, 0);
 					LogInfo info(popts->filename, start_time, end_time, duration, fps_real, timetype, comment, 0, 0, 0, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, rating_classification);
-						
+
 					std::stringstream logline;
 					dtcWriteLog2(log_consolidated, info, &logline);
 					log_messages.push_back(logline.str() + "\n");
@@ -995,13 +1004,13 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 				message_cstring = message_cstring + (CString)"\n" + (CString)message.c_str() + (CString)"\n";
 				CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
 
-/*					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initializing capture: " +
-					(CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps" +
-					L" (" + (CString)std::to_string(impact_frames_min).c_str() + L" frames min for impact)");*/
-				LogString( + (CString)message.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
-/*					output_log << getDateTime().str().c_str() << "Initializing capture:  " << nframe << " frames @ " << fps_int
-					<< " fps (" << impact_frames_min << " frames min for impact)\n";*/
-				//Gets ROI, check if ROI is not big enough and exit then
+				/*					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Initializing capture: " +
+									(CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps" +
+									L" (" + (CString)std::to_string(impact_frames_min).c_str() + L" frames min for impact)");*/
+				LogString(+(CString)message.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
+				/*					output_log << getDateTime().str().c_str() << "Initializing capture:  " << nframe << " frames @ " << fps_int
+									<< " fps (" << impact_frames_min << " frames min for impact)\n";*/
+									//Gets ROI, check if ROI is not big enough and exit then
 				if (popts->wROI && popts->hROI) {
 					croi = cv::Rect(0, 0, popts->wROI, popts->hROI);
 				}
@@ -1010,7 +1019,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 					dtcReinitCaptureRead2(&pCapture, popts->filename);
 					if ((croi.width <= popts->ROI_min_size) || (croi.height <= popts->ROI_min_size)) {
 						message = "-------------- " + short_filename + " end --------------";
-						LogString( + (CString)message.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
+						LogString(+(CString)message.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 
 						LogString(L"WARNING: ROI " +
 							(CString)std::to_string(croi.width).c_str() + L"x" + (CString)std::to_string(croi.height).c_str() + L" to small (" +
@@ -1035,10 +1044,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 				if (popts->viewHis) cv::namedWindow("Histogram");
 
 				nframe = 0;
-//Process dark file if existing, but not for Winjupos derotated files and PIPP files as a regular dark file would not be suitable if the images have been modified
+				//Process dark file if existing, but not for Winjupos derotated files and PIPP files as a regular dark file would not be suitable if the images have been modified
 				if ((popts->darkfilename) && (InStr(popts->filename, WJ_DEROT_STRING) < 0) && (InStr(popts->filename, PIPP_STRING) < 0)) {
 					char darklongfilename[MAX_STRING];
-					strncpy(darklongfilename,popts->filename,InRstr(popts->filename,"\\")+1);
+					strncpy(darklongfilename, popts->filename, InRstr(popts->filename, "\\") + 1);
 					strcat(darklongfilename, popts->darkfilename);
 					if (!(pADUdarkMat = cv::imread(darklongfilename, CV_LOAD_IMAGE_GRAYSCALE)).data) {
 						/*CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + L"Warning: cannot read dark frame " +
@@ -1051,7 +1060,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 						CDeTeCtMFCDlg::getdark()->SetCheck(0);
 					}
 					else {
-						LogString( + L"Reading dark frame " + (CString)std::string(darklongfilename).c_str(), output_log_file.c_str(), &log_counter, GUI_display);
+						LogString(+L"Reading dark frame " + (CString)std::string(darklongfilename).c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 						darkfile_ok = 1;
 						CDeTeCtMFCDlg::getdark()->SetCheck(1);
 					}
@@ -1059,10 +1068,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 
 				/*********************************CAPTURE READING******************************************/
 				while ((pFrame = dtcQueryFrame2(pCapture, popts->ignore, &frame_error)).data) {
-if (popts->debug) {
-	//cv::imshow("Frame " + std::to_string(nframe), pFrame);
-	//cv::waitKey(1);
-}
+					if (popts->debug) {
+						//cv::imshow("Frame " + std::to_string(nframe), pFrame);
+						//cv::waitKey(1);
+					}
 					cv::medianBlur(pFrame, pFrame, 3);
 					video_duration += (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC);
 					nframe++;
@@ -1081,6 +1090,7 @@ if (popts->debug) {
 						cv::Rect roi;
 						DiffImage diffImage;
 						pGryMat = dtcGetGrayMat(&pFrame, pCapture);
+						if (opts.flat_preparation) pGryFullMat = dtcGetGrayMat(&pFrame, pCapture);
 						cv::medianBlur(pGryMat, pGryMat, 1);
 						//cv::imshow("Frame read 2", pGryMat);
 						//cv::waitKey(0);
@@ -1112,6 +1122,7 @@ if (popts->debug) {
 						if (nframe == 1) {
 							pGryMat.copyTo(pFirstFrameROIMat);
 							pGryMat.convertTo(pGryMat, CV_8U);
+							if (opts.flat_preparation) pGryFullMat.convertTo(pGryFullMat, CV_8U);
 							//cv::imshow("Frame read 3", pGryMat);
 							//cv::waitKey(0);
 
@@ -1162,6 +1173,8 @@ if (popts->debug) {
 							pADUavgMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
 							pADUavgDiffMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
 							pADUmaxMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
+
+							if (opts.flat_preparation) pFlatADUmaxMat = cv::Mat::zeros(pGryFullMat.size(), CV_32F);
 							if ((popts->ofilename) && (popts->allframes)) {
 								pADUdtcMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
 								pADUavgMatFrame = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
@@ -1190,6 +1203,7 @@ if (popts->debug) {
 //cv::imshow("All frames read 1", pGryMat);
 //cv::waitKey(0);
 						pGryMat.convertTo(pGryMat, CV_8U);
+						if (opts.flat_preparation) pGryFullMat.convertTo(pGryFullMat, CV_8U);
 						//cv::imshow("All frames read 2", pGryMat);
 						//cv::waitKey(0);
 
@@ -1267,6 +1281,7 @@ if (popts->debug) {
 
 								if (pGryMat.type() != CV_32F)
 									pGryMat.convertTo(pGryMat, CV_32F);
+								if ((opts.flat_preparation) & (pGryFullMat.type() != CV_32F)) pGryFullMat.convertTo(pGryFullMat, CV_32F);
 								if (pFirstFrameROIMat.type() != CV_32F)
 									pFirstFrameROIMat.convertTo(pFirstFrameROIMat, CV_32F);
 								if (pROIMat.type() != CV_32F)
@@ -1315,6 +1330,7 @@ if (popts->debug) {
 																	/* Normalise image */
 								pGryMat *= (firstFrameMean / cv::mean(pGryMat)[0]);
 								pGryMat.convertTo(pGryMat, CV_32F);
+								if (opts.flat_preparation) pGryFullMat.convertTo(pGryFullMat, CV_32F);
 								//cv::imshow("All frames read 7", pGryMat);
 								//cv::waitKey(0);
 								refFrameQueue.push(pGryMat);
@@ -1419,6 +1435,7 @@ if (popts->debug) {
 								cv::add(pADUavgMat, pGryMat, pADUavgMat);
 								cv::add(pADUavgDiffMat, pDifMat, pADUavgDiffMat);
 								cv::max(pADUmaxMat, pGryMat, pADUmaxMat);
+								if (opts.flat_preparation) cv::max(pFlatADUmaxMat, pGryFullMat, pFlatADUmaxMat);
 								if (popts->ofilename && popts->allframes) {
 									pADUavgMat.convertTo(pADUavgMatFrame, -1, 1.0 / (nframe - frame_errors), 0);
 									pADUavgDiffMat.convertTo(pADUavgDiffMat, -1, 1.0 / (nframe - frame_errors), 0);
@@ -1507,10 +1524,10 @@ if (popts->debug) {
 								frameNumbers.push_back(nframe);
 
 								if (popts->viewROI && pGryMat.data) {
-/*										double minLumroi, maxLumroi;
-									cv::Point minPointroi, maxPointroi;
-									cv::minMaxLoc(pGryMat, &minLumroi, &maxLumroi, &minPointroi, &maxPointroi);
-									pGryMat.convertTo(pGryImg, -1, 255.0 / maxLumroi, 0);*/
+									/*										double minLumroi, maxLumroi;
+																		cv::Point minPointroi, maxPointroi;
+																		cv::minMaxLoc(pGryMat, &minLumroi, &maxLumroi, &minPointroi, &maxPointroi);
+																		pGryMat.convertTo(pGryImg, -1, 255.0 / maxLumroi, 0);*/
 									pGryMat.convertTo(pGryImg, CV_8U);
 									cv::imshow("ROI", pGryImg);
 									cv::waitKey(1);
@@ -1554,12 +1571,12 @@ if (popts->debug) {
 						progress_all_status = MAX_RANGE_PROGRESS * ((acquisitions_processed + acquisition_index_children + ((float)nframe / frame_number)) / acquisitions_to_be_processed);
 						CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(progress_all_status));
 						CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
-							
+
 						DisplayProcessingTime(&computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
 					}
 					if ((popts->parent_instance) && (clock() > check_threshold_time)) {
 						BOOL ExistsProcessedFiles = FALSE;
-						if (strlen(popts->DeTeCtQueueFilename) > 0) {	// Gets other processed files by other instances
+						if ((popts->maxinstances>1) && (strlen(popts->DeTeCtQueueFilename) > 0)) {	// Gets other processed files by other instances
 							double duration_total_others = 0;
 							if (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename)) {
 								duration_total += duration_total_others;
@@ -1567,26 +1584,36 @@ if (popts->debug) {
 								ExistsProcessedFiles = TRUE;
 							}
 						}
-						if (file_exists(CString2string((CString)opts.DeTeCtQueueFilename))) popts->maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)popts->DeTeCtQueueFilename);
 						maxinstances_previous = popts->maxinstances;
-						if ((popts->maxinstances != maxinstances_previous) || (nb_instances < popts->maxinstances) || (ExistsProcessedFiles)) {
-if (popts->debug) LogString(_T("Forks") + (CString)std::to_string(popts->maxinstances).c_str() + _T(" ") + (CString)std::to_string(maxinstances_previous).c_str() + _T(" ") + (CString)std::to_string(nb_instances).c_str(), output_log_file.c_str(), &log_counter, TRUE);
-							if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))))	AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
+						if (file_exists(CString2string((CString)opts.DeTeCtQueueFilename))) popts->maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)popts->DeTeCtQueueFilename);
+						//maxinstances_previous = popts->maxinstances;
+						//if ((popts->maxinstances != maxinstances_previous) || (nb_instances < popts->maxinstances) || (ExistsProcessedFiles)) {
+						// Forks attempt if more instances possible, maximum # of instances not reached at last check or new files processed (hence child detect process exited)
+						if ((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances) || (ExistsProcessedFiles)) {
+							if (popts->debug) LogString(_T("Forks") + (CString)std::to_string(popts->maxinstances).c_str() + _T(" ") + (CString)std::to_string(maxinstances_previous).c_str() + _T(" ") + (CString)std::to_string(nb_instances).c_str(), output_log_file.c_str(), &log_counter, TRUE);
+							//if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))))	AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
+							//nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
+							//DisplayInstanceType(&nb_instances);
+							nb_new_instances = 0;
+							if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename)))) AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
 							nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
-							DisplayInstanceType(&nb_instances);
-//AfxMessageBox(_T("2:") + (CString)std::to_string((int)nframe).c_str() + _T(" ") + (CString)std::to_string((int)nb_new_instances).c_str() + _T(" ") + (CString)std::to_string((int)popts->maxinstances).c_str());
 							if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched"), output_log_file.c_str(), &log_counter, TRUE);
 							else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched"), output_log_file.c_str(), &log_counter, TRUE);
-						}
-//						else if (ExistsProcessedFiles) {
-/*							if (popts->parent_instance) {
+							else if (ExistsProcessedFiles) {
 								nb_instances = 0;
-								DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
-							}*/
+								DisplayInstanceType(&nb_instances);
+							}
+							//AfxMessageBox(_T("2:") + (CString)std::to_string((int)nframe).c_str() + _T(" ") + (CString)std::to_string((int)nb_new_instances).c_str() + _T(" ") + (CString)std::to_string((int)popts->maxinstances).c_str());
+						}
+						//						else if (ExistsProcessedFiles) {
+						/*							if (popts->parent_instance) {
+														nb_instances = 0;
+														DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
+													}*/
 						check_threshold_time = clock() + check_threshold_time_inc;
-if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, TRUE);
+						if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, TRUE);
 					}
-//if (popts->debug) cv::destroyWindow("Frame " + std::to_string(nframe-1));
+					//if (popts->debug) cv::destroyWindow("Frame " + std::to_string(nframe-1));
 				}
 
 				// ********************************* END OF CAPTURE READING******************************************
@@ -1607,12 +1634,12 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 				//CDeTeCtMFCDlg::getProgress_all()->StepIt();
 				CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisitions_processed + 1 + acquisition_index_children) / (acquisitions_to_be_processed)));
 				CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
-//					message_cstring = message_cstring + (CString)"\n" + (CString)"Impact detection";
-				//CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
+				//					message_cstring = message_cstring + (CString)"\n" + (CString)"Impact detection";
+								//CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
 				CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (" + TotalType() + "): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
 
 				// *********************************IMPACT PROCESSING******************************************
-					
+
 				double distance = 0;
 				ITEM* maxDtcImg = NULL; // Detection image
 				// img stats {min, average, max }
@@ -1645,6 +1672,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 					/********** Process all matrix **********/
 					pADUavgDiffMat.convertTo(pADUavgDiffMat, CV_32F);
 					pADUmaxMat.convertTo(pADUmaxMat, CV_32F);
+					if (opts.flat_preparation) pFlatADUmaxMat.convertTo(pFlatADUmaxMat, CV_32F);
 					pADUavgMat.convertTo(pADUavgMat, CV_32F);
 					pADUavgMat.convertTo(pADUavgMat, -1, 1.0 / (nframe - frame_errors), 0);
 					//pGryMat.convertTo(pGryMat, CV_32FC1);
@@ -1706,6 +1734,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 
 					pADUdtcMat.convertTo(impactFrame, CV_8U);
 
+
 					/*Max-mean non normalized image*/
 					if (maxLum > 255)
 						pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / (255.0*255.0), 0);
@@ -1728,6 +1757,21 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 					max_mean2_stat[1] = mean(pADUdtcImg2)[0];
 					cv::minMaxLoc(pADUdtcImg2, &max_mean2_stat[0], &max_mean2_stat[2], NULL, NULL);
 					/* temporary end of ADUdtc algorithm******************************************/
+
+					/*Flat image*/
+					if (opts.flat_preparation) {
+						cv::minMaxLoc(pFlatADUmaxMat, &minLum, &maxLum, &minPoint, &maxPoint);
+						if (maxLum > 255)
+							pFlatADUmaxMat.convertTo(pFlatADUmaxMat, -1, maxLum / (255.0*255.0), 0);
+						else
+							pFlatADUmaxMat.convertTo(pFlatADUmaxMat, -1, maxLum / 255.0, 0);
+						//if (pFlatADUmaxMat.type() != CV_32F) pFlatADUmaxMat.convertTo(pFlatADUmaxMat, CV_32F);
+						pFlatADUmaxMat.convertTo(pFlatADUmaxMat, CV_8U);
+						pFlatADUmaxMat.convertTo(pFlatADUmaxImg, CV_8UC3);
+						cv::cvtColor(pFlatADUmaxImg, pFlatADUmaxImg, CV_GRAY2BGR);
+						cv::imshow("pFlatADUmaxImg", pFlatADUmaxMat);
+						cv::waitKey(1000);
+					}
 				}
 
 				refFrameQueue = std::queue<cv::Mat>();
@@ -1840,12 +1884,16 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 						cv::imwrite(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), pADUdtcImg2, img_save_params);
 					}
 
+					/* flat image */
+					if (opts.flat_preparation) cv::imwrite(dtc_full_filename(popts->ofilename, DTC_FLAT_PREP_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), pFlatADUmaxImg, img_save_params);
+
 					// **************************************** final end of ADUdtc algorithm (confidence, probability, ...) ******************************************
 					logmessage = "";
 					short_logmessage = "";
 					rating = Error;
 					logmessage2 = "";
 					logmessage3 = "";
+					strcpy(rating_filename_suffix, "");
 					if (!is_image_correct) {
 						nb_error_impact++;
 						logmessage = logmessage + "ERROR: No planet detected in acquisition images...";
@@ -1853,6 +1901,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 						LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 						logmessage = logmessage + "\n";
 						sprintf(rating_classification, "Error        ");
+						sprintf(rating_filename_suffix, "error");
 						rating = Error;
 						confidence = -1;
 						nb_impact = -1;
@@ -1876,6 +1925,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 								LogString((CString)logmessage3.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 								logmessage = logmessage + "\n" + logmessage2 + "\n" + logmessage3;
 								sprintf(rating_classification, "HIGH (@%5d)", outdtc.MaxFrame);
+								sprintf(rating_filename_suffix, "high@%d", outdtc.MaxFrame);
 								rating = High;
 							}
 							else {
@@ -1886,7 +1936,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 								LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 								logmessage = logmessage + "\n";
 								sprintf(rating_classification, "Low          ");
-								rating = Low;
+								sprintf(rating_filename_suffix, "low");
 							}
 						}
 						else if (distance <= popts->impact_distance_max) {
@@ -1897,6 +1947,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 							LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 							logmessage = logmessage + "\n";
 							sprintf(rating_classification, "Null         ");
+							sprintf(rating_filename_suffix, "null");
 							rating = Null;
 						}
 						else {
@@ -1924,6 +1975,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 									LogString((CString)logmessage3.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 									logmessage = logmessage + logmessage2 + "\n" + logmessage3;
 									sprintf(rating_classification, "Low  (@%5d)", outdtc.MaxFrame);
+									sprintf(rating_filename_suffix, "low@%d", outdtc.MaxFrame);
 									rating = Low;
 								}
 								else {
@@ -1933,6 +1985,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 									LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 									logmessage = logmessage + "\n";
 									sprintf(rating_classification, "Low          ");
+									sprintf(rating_filename_suffix, "low");
 									rating = Low;
 								}
 							}
@@ -1944,6 +1997,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 								LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 								logmessage = logmessage + "\n";
 								sprintf(rating_classification, "Null         ");
+								sprintf(rating_filename_suffix, "null");
 								rating = Null;
 							}
 						}
@@ -1958,6 +2012,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 							LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 							logmessage = logmessage + "\n";
 							sprintf(rating_classification, "Null         ");
+							sprintf(rating_filename_suffix, "null");
 							rating = Null;
 						}
 						else {
@@ -1968,6 +2023,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 							LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 							logmessage = logmessage + "\n";
 							sprintf(rating_classification, "Low          ");
+							sprintf(rating_filename_suffix, "low");
 							rating = Low;
 						}
 					} else { // distance < 9999
@@ -1977,7 +2033,21 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 						LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 						logmessage = logmessage + "\n";
 						sprintf(rating_classification, "Null         ");
+						sprintf(rating_filename_suffix, "null");
 						rating = Null;
+					}
+
+					if (strlen(rating_filename_suffix)>0) {
+						sprintf(tmpstring, "_%s", rating_filename_suffix);
+						strcpy(rating_filename_suffix, tmpstring);
+						if (popts->detail) {
+							rename(dtc_full_filename(popts->ofilename, DTC_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
+							rename(dtc_full_filename(popts->ofilename, DTC_DIFF2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_DIFF2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
+							rename(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
+							rename(dtc_full_filename(popts->ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
+						}
+						rename(dtc_full_filename(popts->ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2));
+						rename(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2));
 					}
 					message_cstring = message_cstring + (CString)"\n" + (CString)logmessage.c_str();
 					if (logmessage2.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage2.c_str();
@@ -2019,6 +2089,8 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 					pADUavgMat = NULL;
 					pADUmaxMat.release();
 					pADUmaxMat = NULL;
+					pFlatADUmaxMat.release();
+					pFlatADUmaxMat = NULL;
 					pADUdtcMat.release();
 					pADUdtcMat = NULL;
 					pADUdtcImg.release();
@@ -2103,6 +2175,7 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 						LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 						logmessage = logmessage + "\n";
 						sprintf(rating_classification, "Error        ");
+						sprintf(rating_filename_suffix, "error");
 						rating = Null;
 				}
 				dtcReleaseCapture(pCapture);
@@ -2200,25 +2273,30 @@ if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, T
 		int total_sleep_duration	= queue_scan_delay + rand() % queue_scan_delay_random_max; 	// wait (in ms)
 		int sleep_duration			= 0;
 
-		if (popts->parent_instance) {
+		if (popts->parent_instance) { 
 			nb_instances = 0;
 			DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
 		}
 		// looks for new job for a child only if not too many children
 		int nbChildren = ParentChildrenProcessesNumber(MAX(popts->detect_PID, popts->autostakkert_PID));
+		maxinstances_previous = popts->maxinstances;
 		if (file_exists(CString2string((CString)opts.DeTeCtQueueFilename))) popts->maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)popts->DeTeCtQueueFilename);
 if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string(popts->parent_instance).c_str() + _T("\nmax=") + (CString)std::to_string(popts->maxinstances).c_str() + _T("\nnb children=") + (CString)std::to_string(nbChildren).c_str() + _T("\nDeTeCt PID=") + (CString)std::to_string(popts->detect_PID).c_str() + _T("\nAS PID=") + (CString)std::to_string(popts->autostakkert_PID).c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 		if ((!((!popts->parent_instance) && ((popts->maxinstances - nbChildren - 1) < 0))) && (local_acquisition_files_list.file_list.size() == 0)) do {
 			// ******************** Looks for other processed files*******************
 			if ((popts->parent_instance) && (strlen(popts->DeTeCtQueueFilename) > 0)) { // get other processed files by other instances
 				double duration_total_others = 0;
-				if (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename)) {
+				if ((popts->maxinstances > 1) && (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename))) {
 					duration_total += duration_total_others;
 					CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (total): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
 					if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))))  AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_ok"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
 					nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
 					if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched"), output_log_file.c_str(), &log_counter, TRUE);
 					else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched"), output_log_file.c_str(), &log_counter, TRUE);
+					else if (opts.parent_instance) { //&&((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances))) {
+						nb_instances = 0;
+						DisplayInstanceType(&nb_instances);
+					}
 				}
 			}
 			if (total_sleep_duration > computing_refresh_duration) {
@@ -2277,11 +2355,11 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 									local_acquisition_files_list.file_list.push_back(std::string(popts->filename));
 									file = file.substr(file.find_last_of("\\") + 1, file.length());
 									if (extension.compare(AUTOSTAKKERT_EXT) != 0) {
-										ss << "Adding " << file.c_str() << " for analysis\n";
+										ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
 										local_acquisition_files_list.acquisition_file_list.push_back(std::string(popts->filename));
 									}
 									else {
-										ss << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+										ss << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
 										local_acquisition_files_list.acquisition_file_list.push_back(std::string(filename_acquisition));
 									}
 									local_acquisition_files_list.nb_prealigned_frames.push_back(nframe);
@@ -2311,20 +2389,23 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 								std::string filename_acquisition;
 								int nframe = -1;
 
-								if ((Is_Capture_OK_from_File(filename_folder, &filename_acquisition, &nframe, &ss3))
+								if (
+									(Is_Capture_OK_from_File(filename_folder, &filename_acquisition, &nframe, &ss3))
 									// ********* Error if acquisition has not enough frames
 									&& (Is_Capture_Long_Enough(filename_folder, nframe, &ss3))
 									// ********* Ignores if less than minimum frames
 									&& (!Is_Capture_Special_Type(filename_folder, &ss3))
 									// ********* Ignores dark, pipp, winjupos derotated files
-									&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))) {
+									&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))
+									) {
 									// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
 
 												// ********* Finally adds file to the list !
-									std::string extension = filename_folder.substr(filename_folder.find_last_of(".") + 1, filename_folder.size() - filename_folder.find_last_of(".") - 1);
-									std::string file = filename_folder.substr(filename_folder.find_last_of("\\") + 1, filename_folder.length());
-									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " for analysis\n";
-									else ss3 << "Adding " << file.c_str() << " (" << filename_acquisition.c_str() << " acquisition file) for analysis\n";
+									std::string extension		= filename_folder.substr(filename_folder.find_last_of(".") + 1, filename_folder.size() - filename_folder.find_last_of(".") - 1);
+									std::string filename_path	= filename_folder.substr(0, filename_folder.find_last_of("\\"));
+									std::string file			= filename_folder.substr(filename_folder.find_last_of("\\") + 1, filename_folder.length());
+									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " (in " << filename_path.c_str() << ") for analysis\n";
+									else ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << filename_path.c_str() << ") for analysis\n";
 									index++;
 								}
 								else {
@@ -2338,7 +2419,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 
 					}
 				}
-
+				file_stream.close();
 			}
 			else QueueListEmpty = TRUE;
 		} while		((local_acquisition_files_list.file_list.size() == 0) &&													// Waiting mode  if no file in the list
@@ -2531,6 +2612,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 					message = "(Click) Check detection images and send email with log!\n";
 					CDeTeCtMFCDlg::getfileName()->SetWindowText((CString)message.c_str());
 				}
+				filetest.close();
 			}
 			CWnd *resultsbtn = dlg.GetDlgItem(IDC_BUTTON_CHECKRESULTS);
 			if (resultsbtn) {
@@ -2592,6 +2674,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 				if (popts->email) log_messages.push_back(" - an email to send the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder");
 				else log_messages.push_back("Please send an email with the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder");
 			}
+			filetest.close();
 			log_messages.push_back("");
 			log_messages.push_back("CHECK the DETECTION IMAGES for impacts and SEND the RESULTS, NO DETECTION also MATTERS!");
 			log_messages.push_back("delcroix.marc@free.fr");
@@ -2601,6 +2684,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 		if (!popts->exit) {
 			log_messages.push_back("");
 			log_messages.push_back("You can SAFELY CLOSE this window.");
+			log_messages.push_back("================================================================================");
 		}
 
 		for (std::string msg : log_messages) {
@@ -2617,6 +2701,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 			output_log_out << parameter_ini_in.rdbuf();
 			output_log_out.flush();
 			output_log_out.close();
+			parameter_ini_in.close();
 			// copies output log to central directory
 			std::wstring output_log_file2(log_directory.begin(), log_directory.end());
 			output_log_file2 = output_log_file2.append(L"\\").append(OUTPUT_FILENAME).append(DTC_LOG_SUFFIX);
@@ -2631,6 +2716,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 			output_log2.flush();
 			output_log2.close();
 			rename(OutOrgFilename2, OutNewFilename2);
+			output_log_in.close();
 		}
 //		SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
 //DBOUT("Interactive=" << popts->interactive << "\n");
@@ -2759,13 +2845,49 @@ char *dtc_full_filename(const char *acquisition_filename, const char *suffix, co
 	init_string(tmpstring);
 	init_string(filename);
 	snprintf(filename, strlen(acquisition_filename) - 4, "%s", acquisition_filename);
-	filename[std::strlen(filename)] = '\0';
 	strcat(filename, suffix);
+	filename[std::strlen(filename)] = '\0';
 	strcpy(full_filename, path_name);
 	std::strcat(full_filename, right(filename, strlen(filename) - InRstr(filename, "\\"), tmpstring));
+	full_filename[std::strlen(full_filename)] = '\0';
 
 	return full_filename;
 }
+
+/**********************************************************************************************//**
+* @fn	char *dtc_full_filename_2suffix(const char *acquisition_filename, const char *suffix, const char *suffix2, const char *path_name, char *full_filename)
+*
+* @brief	Returns constructed filename path_name\\(short)acquisition_filename(-extension)suffix
+*
+* @author	Marc
+* @date		2020
+*
+* @param	acquisition_filename	acquisition filename char
+* @param	suffix					suffix char to add
+* @param	suffix2					second suffix char to add
+* @param	path_name				suffix char to add
+* @param	full_filename			constructed filename returned char to add
+*
+* @return	full_filename with constructed pathname
+**************************************************************************************************/
+
+char *dtc_full_filename_2suffix(const char *acquisition_filename, const char *suffix, const char *suffix2, const char *path_name, char *full_filename) {
+	char tmpstring[MAX_STRING];
+	char filename[MAX_STRING];
+
+	init_string(tmpstring);
+	init_string(filename);
+	snprintf(filename, strlen(acquisition_filename) - 4, "%s", acquisition_filename);
+	strcat(filename, suffix);
+	strcat(filename, suffix2);
+	filename[std::strlen(filename)] = '\0';
+	strcpy(full_filename, path_name);
+	std::strcat(full_filename, right(filename, strlen(filename) - InRstr(filename, "\\"), tmpstring));
+	full_filename[std::strlen(full_filename)] = '\0';
+
+	return full_filename;
+}
+
 
 /******************************************************************************************************
 *                                                                                                     *
@@ -3002,26 +3124,31 @@ BOOL GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index
 int	ForksInstances(const int maxinstances, const int detect_PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances)
 {
 	int nb_forked_instances = 0;
+	int files_to_be_processed = 0;
 	// Forks other DeTeCt instances if work in queue
 
-	if (opts.parent_instance) {
-		(*pnbinstances) = ChildrenProcessesNumber() + 1;
-		int nb_instances_to_be_forked = MIN(NbItemFromQueue(L"file", DeTeCtQueueFilename, TRUE), maxinstances - (*pnbinstances));	// NBItemQueue files to be processed
-		// Forks DeTeCt.exe -auto
-		nb_forked_instances = 0;
-		while (nb_forked_instances < nb_instances_to_be_forked) { // no variable there: we do not know at which speed DeTeCt child instances will be launched
-			if (nb_forked_instances > 0) Sleep(scan_time + rand() % scan_time_random_max); // in ms
-			if (detect_PID > 0) { // Should not happen, as stores parent DeTeCt PID
-				HINSTANCE status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto - dtcpid ") + (CString)std::to_string(detect_PID).c_str() + (CString) " - maxinst " + (CString)std::to_string(maxinstances).c_str(), NULL, SW_HIDE);
-				if ((int)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((int)status).c_str());
+	if ((opts.parent_instance) && (maxinstances > 1)) {
+		files_to_be_processed = NbItemFromQueue(L"file", DeTeCtQueueFilename, TRUE);
+		if (files_to_be_processed > 0) {
+			(*pnbinstances) = ChildrenProcessesNumber() + 1;
+			int nb_instances_to_be_forked = MIN(files_to_be_processed, maxinstances - (*pnbinstances));	// NBItemQueue files to be processed
+			// Forks DeTeCt.exe -auto
+			nb_forked_instances = 0;
+			while (nb_forked_instances < nb_instances_to_be_forked) { // no variable there: we do not know at which speed DeTeCt child instances will be launched
+				if (nb_forked_instances > 0) Sleep(scan_time + rand() % scan_time_random_max); // in ms
+				if (detect_PID > 0) { // Should not happen, as stores parent DeTeCt PID
+					HINSTANCE status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto - dtcpid ") + (CString)std::to_string(detect_PID).c_str() + (CString) " - maxinst " + (CString)std::to_string(maxinstances).c_str(), NULL, SW_HIDE);
+					if ((int)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((int)status).c_str());
+				}
+				else {
+					HINSTANCE status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto  -maxinst ") + (CString)std::to_string(maxinstances).c_str(), NULL, SW_HIDE);
+					if ((int)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((int)status).c_str());
+				}
+				nb_forked_instances++;
 			}
-			else {
-				HINSTANCE status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto  -maxinst ") + (CString)std::to_string(maxinstances).c_str(), NULL, SW_HIDE);
-				if ((int)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((int)status).c_str());
-			}
-			nb_forked_instances++;
+			(*pnbinstances) += nb_forked_instances;
+			DisplayInstanceType(pnbinstances);
 		}
-		DisplayInstanceType(pnbinstances);
 	}
 	return nb_forked_instances;
 }
@@ -3085,15 +3212,15 @@ Instance_type DisplayInstanceType(int *nbinstances) {
 	CString			max_nbinstances_cstr;
 	Instance_type	instance_type;
 	CString			instance_type_cstring;
-	(*nbinstances) = 0;
+//	(*nbinstances) = 0;
 
 	instance_type = InstanceType(&instance_type_cstring);
 	switch (instance_type) {
 		case autostakkert_parent:
 		case parent:
-		case autostakkert_child:
-		case child:
-			if ((*nbinstances) == 0) (*nbinstances) = ChildrenProcessesNumber() + 1;	// heavy computing, does not compute and uses value if not nul
+			if ((*nbinstances) == 0) {
+				(*nbinstances) = ChildrenProcessesNumber() + 1;	// heavy computing, does not compute and uses value if not nul
+			}
 //			if (nbinstances > 1) {
 				if (opts.autostakkert) instance_cstring = _T("Executed from AS!, ") +  instance_cstring;
 				nbinstances_cstr.Format(L"%d", (*nbinstances));
@@ -3108,6 +3235,9 @@ Instance_type DisplayInstanceType(int *nbinstances) {
 				}*/
 	//		}
 			break;
+// No display in child mode, so no calculation of nbinstances
+		case autostakkert_child:
+		case child:
 		case autostakkert_single:
 		case single:
 			break;

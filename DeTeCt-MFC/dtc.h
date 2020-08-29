@@ -6,8 +6,8 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.2.3"
-#define VERSION_DATE	"(Apr.10,2019)"
+#define VERSION_NB		"3.3.0"
+#define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
 
@@ -33,6 +33,7 @@
 #define DTC_MEAN2_SUFFIX		"_dtc_mean2.jpg"
 #define DTC_DIFF_SUFFIX			"_dtc_diff.jpg"
 #define DTC_DIFF2_SUFFIX		"_dtc_diff2.jpg"
+#define DTC_FLAT_PREP_SUFFIX	"_flat_prep.jpg"
 #define VIDEOTEST_SUFFIX		"_videotest.jpg"
 #define DTC_MAX_SUFFIX			"_dtc_max.jpg"
 #define MEAN_SUFFIX				"_mean.jpg"

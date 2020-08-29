@@ -250,6 +250,7 @@
     <None Include="Documents\detect_guide\DeTeCt_quick_guide.htm">
       <Filter>documentation\detect_guide</Filter>
     </None>
+    <None Include="..\x64\Release\DeTeCt.ini" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DeTeCt-MFC.ico">

@@ -491,6 +491,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 			if (!ignore) {
 				fprintf(stderr, "ERROR in fileQueryFrame reading frame %d\n", fc->frame);
 				old_image.release();
+				if (fclose(fc->fh) != 0) fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 				exit(EXIT_FAILURE);
 			}
 			else {
@@ -498,6 +499,10 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 				(*perror) = 1;
 				fc->image = old_image;
+				/*if (fclose(fc->fh) != 0) {
+					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
+					exit(EXIT_FAILURE);
+				}*/
 				return fc->image;
 			}
 		}

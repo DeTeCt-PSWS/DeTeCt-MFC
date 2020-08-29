@@ -83,6 +83,7 @@ struct options {
 	BOOL			interactive;						// Normal interactive mode or automatic mode
 	BOOL			exit;								// Automatic exit when processing done
 	BOOL			shutdown;							// Automatic PC shutdownn when auto exit
+	BOOL			flat_preparation;						// Flag to create flat
 
 // Status
 	BOOL			interactive_bak;					// Backup of interactive status
@@ -110,7 +111,7 @@ struct BrightnessOrder {
 struct AcquisitionFilesList {
 	std::vector<std::string> file_list				= {};
 	std::vector<std::string> acquisition_file_list	= {};
-	std::vector<int> nb_prealigned_frames			= {};
+	std::vector<int>		 nb_prealigned_frames	= {};
 };
 
 void			read_files(std::string folder, AcquisitionFilesList *acquisition_files);
@@ -123,7 +124,8 @@ int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *
 
 int				detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path);
 
-char			*dtc_full_filename(const char *acquisition_filename, const char *suffix, const char *path_name, char *full_filename);
+char			*dtc_full_filename			(const char *acquisition_filename, const char *suffix,						const char *path_name, char *full_filename);
+char			*dtc_full_filename_2suffix	(const char *acquisition_filename, const char *suffix, const char *suffix2,	const char *path_name, char *full_filename);
 
 void			zip(char *zipfilename, char *item_to_be_zipped);
 

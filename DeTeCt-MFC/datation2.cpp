@@ -301,8 +301,9 @@ void dtcWriteLogHeader(std::string location) {
 		output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
 		output_file << "confidence Rating    ;     Start                 ;     End                   ;     Mid                   ; Duration; fps (fr/s) ; File;                        DeTeCt version and comment; os_version; mean min;avg;max; mean2 min;avg;max; max-mean mean;avg;max; max-mean2 min;avg;max; diff min;avg;max; diff2 min;avg max; distance\n";
 		//              0.0000	Null         ; 2011/07/01 15:56,595000 LT; 2011/07/01 15:56,650000 LT; 2011/07/01 15:56,622500 LT; 3.3000 s; 30.000 fr/s; G:\work\Impact\tests\...
+		output_file.close();
 	}
-	else filetest._close();
+	else filetest.close();
 }
 
 /*
@@ -404,7 +405,7 @@ void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *l
 		output_file << std::setfill(' ') << std::setw(8) << std::setprecision(3) << video_info.distance;
 	} else output_file << ";;;;;;;;;;;;;;;;;";
 	output_file << "\n";
-
+	output_file.close();
 
 	if ((video_info.confidence < 0) && (video_info.nb_impact < 0)) {
 		(*logline) << "Error	";

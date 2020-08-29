@@ -195,6 +195,7 @@ public:
 	AcquisitionFilesList acquisition_files;
 	afx_msg void OnFileOpenfile();
 	afx_msg void OnFileResetFileList();
+	afx_msg void OnFileClearExecutionLog();
 	std::string scan_folder_path = {};
 	std::wstring max_mean_folder_path = {};
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);

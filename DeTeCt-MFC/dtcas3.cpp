@@ -159,6 +159,7 @@ void read_winjupos_file(const std::string winjupos_derotation_filename, std::str
 		}
 		(*filename) = std::string(filename_char);
 		if ((filename->length() > 2) && (filename->find_first_of(":") == std::string::npos)) (*filename) = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_first_of(":") + 1) + (*filename);
+		input.close();
 	}
 	else if (extension == WJ_DEROT_EXT) {
 		// <SourceVideoFile>G:\work\Impact\tests\winjupos\Jup_L_03_06_2010_203058b.avi< / SourceVideoFile>
@@ -171,6 +172,7 @@ void read_winjupos_file(const std::string winjupos_derotation_filename, std::str
 				(*filename) = line.substr(line.find(sourcevideo_tag) + sourcevideo_tag.length(), line.find(sourcevideo_tag_end)-(line.find(sourcevideo_tag) + sourcevideo_tag.length()));
 			}
 		}
+		input.close();
 	}
 }
 
