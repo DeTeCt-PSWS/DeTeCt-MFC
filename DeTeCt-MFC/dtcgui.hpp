@@ -20,78 +20,79 @@ extern std::string app_title;
 
 struct options {
 // variables
-	char			*filename;
-	char			*ofilename;
-	char			darkfilename[MAX_STRING];
+	char			*filename = nullptr;
+	char			*ofilename = nullptr;
+	char			darkfilename[MAX_STRING] = {};
 	std::string		message[100];
-	char			*ovfname;
-	char			*sfname;
-	char			*dirname;
-	char			impactdirname[MAX_STRING];
-	char			zipname[MAX_STRING];
-	int				nsaveframe;							// Frame number to <ofilename>
-	int				ostype;								// Source video type to extract frame
-	int				ovtype;								// Output video type to create
+	char			*ovfname = nullptr;
+	//char			*sfname;
+	char			*dirname = nullptr;
+	char			impactdirname[MAX_STRING] = {};
+	char			zipname[MAX_STRING] = {};
+	int				nsaveframe = 0;							// Frame number to <ofilename>
+	int				ostype = 0;								// Source video type to extract frame
+	int				ovtype = 0;								// Output video type to create
 
 // options?
-	double			timeImpact;							// seconds
-	double			incrLumImpact;						// mean value factor
-	int				incrFrameImpact;					// Minimum number of frames for impact
-	double			impact_duration_min;				// Min duration for impact
-	double			radius;								// Impact radio (pixels)
-	unsigned long	nframesROI;							// Number of frames for ROI calculation
-	unsigned long	nframesRef;							// Number of frames for ROI calculation
-	unsigned long	wROI; 								// ROI width  (CM centered)
-	unsigned long	hROI;								// ROI height (CM centered)
-	int				bayer;								//debayering code
-	double			medSize;							// Median buffer size
-	double			facSize; 							// Size factor (ROI)
-	double			secSize; 							// Security factor (ROI)
-	int				ROI_min_px_val; 					// Minimum value of pixel to take into account pixels for ROI calculation
-	int				ROI_min_size; 						// Minimum valid pixel size for a ROI 
-	double			threshold;
-	double			learningRate;						// "Alpha Blending" learning rate
-	double			histScale;							// Histogram scale
-	int				wait;								// milliseconds
-	int				thrWithMask;						// Use Mask (!=0) or not (0) for frame reference
-	BOOL			viewROI; 							// View ROI
-	BOOL			viewTrk; 							// View planet tracking
-	BOOL			viewDif; 							// View differential frame
-	BOOL			viewRef; 							// View reference frame
-	BOOL			viewMsk; 							// View mask
-	BOOL			viewThr; 							// View threshold
-	BOOL			viewSmo;							// View frame after filter application
-	BOOL			viewHis;							// View differential frame histogram
-	BOOL			viewRes;							// View final frame
-	BOOL			verbose;
-	BOOL			debug;								// debug mode with more information
-	BOOL			videotest;							// Test input video file
-	BOOL			ADUdtconly;							// Use ADUdtc algorithm only
-	BOOL			detail;								// Use ADUdtc algorithm only with 2 more images as output
-	BOOL			zip;								// Creates zip of impact_detection folder at the end of processing
-	BOOL			email;								// Send email at the end of processing
-	BOOL			allframes;							// Save all intermediate mac frames from ADUdtc algorithm
-	double			impact_distance_max;				// Maximum value for distance between old algorithm and max in detection image for being a possible impact
-	double			impact_max_avg_min;					// Minimum value for max - mean value of dtc_max-mean image for being a possible impact
-	double			impact_confidence_min;				// Minimum value for confidence for being a possible impact
-	int				minframes;							// Minimum # of frames to start processing
-	struct Filter	filter;
-	BOOL			dateonly;							// Display date information and stops processing
-	BOOL			ignore;								// Ignore incorrect frames
-	int				maxinstances;						// Maximum number of DeTeCt instances running in parallel
-	BOOL			reprocessing;						// Reprocessing files already in DeTeCt.log
-	BOOL			interactive;						// Normal interactive mode or automatic mode
-	BOOL			exit;								// Automatic exit when processing done
-	BOOL			shutdown;							// Automatic PC shutdownn when auto exit
-	BOOL			flat_preparation;						// Flag to create flat
+	double			timeImpact = 0;							// seconds
+	double			incrLumImpact = 0;						// mean value factor
+	int				incrFrameImpact = 0;					// Minimum number of frames for impact
+	double			impact_duration_min = 0;				// Min duration for impact
+	double			radius = 0;								// Impact radio (pixels)
+	unsigned long	nframesROI = 0;							// Number of frames for ROI calculation
+	unsigned long	nframesRef = 0;							// Number of frames for ROI calculation
+	unsigned long	wROI = 0; 								// ROI width  (CM centered)
+	unsigned long	hROI = 0;								// ROI height (CM centered)
+	int				bayer = 0;								//debayering code
+	double			medSize = 0;							// Median buffer size
+	double			facSize = 0; 							// Size factor (ROI)
+	double			secSize = 0; 							// Security factor (ROI)
+	int				ROI_min_px_val = 0; 					// Minimum value of pixel to take into account pixels for ROI calculation
+	int				ROI_min_size = 0; 						// Minimum valid pixel size for a ROI 
+	double			threshold = 0;
+	double			learningRate = 0;						// "Alpha Blending" learning rate
+	double			histScale = 0;							// Histogram scale
+	int				wait = 0;								// milliseconds
+	int				thrWithMask = 0;						// Use Mask (!=0) or not (0) for frame reference
+	BOOL			viewROI = FALSE; 						// View ROI
+	BOOL			viewTrk = FALSE; 						// View planet tracking
+	BOOL			viewDif = FALSE; 						// View differential frame
+	BOOL			viewRef = FALSE; 						// View reference frame
+	BOOL			viewMsk = FALSE; 						// View mask
+	BOOL			viewThr = FALSE; 						// View threshold
+	BOOL			viewSmo = FALSE;						// View frame after filter application
+	BOOL			viewHis = FALSE;						// View differential frame histogram
+	BOOL			viewRes = FALSE;						// View final frame
+	BOOL			verbose = FALSE;
+	BOOL			debug = FALSE;							// debug mode with more information
+	BOOL			videotest = FALSE;						// Test input video file
+	BOOL			ADUdtconly = FALSE;						// Use ADUdtc algorithm only
+	BOOL			detail = FALSE;							// Use ADUdtc algorithm only with 2 more images as output
+	BOOL			zip = TRUE;								// Creates zip of impact_detection folder at the end of processing
+	BOOL			email = TRUE;							// Send email at the end of processing
+	BOOL			allframes = FALSE;						// Save all intermediate mac frames from ADUdtc algorithm
+	double			impact_distance_max = 0;				// Maximum value for distance between old algorithm and max in detection image for being a possible impact
+	double			impact_max_avg_min = 0;					// Minimum value for max - mean value of dtc_max-mean image for being a possible impact
+	double			impact_confidence_min = 0;				// Minimum value for confidence for being a possible impact
+	int				minframes = 0;							// Minimum # of frames to start processing
+	struct Filter	filter = { 0, {0,0,0,0} };
+	BOOL			dateonly = FALSE;						// Display date information and stops processing
+	BOOL			ignore = FALSE;							// Ignore incorrect frames
+	int				maxinstances= 1;						// Maximum number of DeTeCt instances running in parallel
+	BOOL			reprocessing = FALSE;					// Reprocessing files already in DeTeCt.log
+	BOOL			interactive = FALSE;					// Normal interactive mode or automatic mode
+	BOOL			exit = FALSE;							// Automatic exit when processing done
+	BOOL			shutdown = FALSE;						// Automatic PC shutdownn when auto exit
+	BOOL			flat_preparation = FALSE;				// Flag to create flat
 
 // Status
-	BOOL			interactive_bak;					// Backup of interactive status
-	BOOL			autostakkert;						// Launched from autostakkert
-	DWORD			autostakkert_PID;					// Parent autostakkert PID
-	DWORD			detect_PID;							// Parent detect PID
-	char			DeTeCtQueueFilename[MAX_STRING];
-	BOOL			parent_instance;
+	BOOL			interactive_bak = FALSE;				// Backup of interactive status
+	BOOL			autostakkert = FALSE;					// Launched from autostakkert
+	DWORD			autostakkert_PID = 0;					// Parent autostakkert PID
+	DWORD			detect_PID = 0;							// Parent detect PID
+	char			DeTeCtQueueFilename[MAX_STRING] = {};
+	char			LogConsolidatedDirname[MAX_STRING] = {};
+	BOOL			parent_instance = FALSE;
 };
 typedef struct options OPTS;
 extern OPTS opts;

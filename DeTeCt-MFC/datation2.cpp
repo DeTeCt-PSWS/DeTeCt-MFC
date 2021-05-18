@@ -299,7 +299,8 @@ void dtcWriteLogHeader(std::string location) {
 
 		output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 		output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
-		output_file << "confidence Rating    ;     Start                 ;     End                   ;     Mid                   ; Duration; fps (fr/s) ; File;                        DeTeCt version and comment; os_version; mean min;avg;max; mean2 min;avg;max; max-mean mean;avg;max; max-mean2 min;avg;max; diff min;avg;max; diff2 min;avg max; distance\n";
+		output_file << "confidence Rating    ;     Start                 ;     End                   ;     Mid                   ; Duration; fps (fr/s) ; File;                        DeTeCt version and comment; os_version; mean min;avg;max; mean2 min;avg;max; max-mean mean;avg;max; max-mean2 min;avg;max; diff min;avg;max; diff2 min;avg max; distance; Observer ; Location ; Scope ; Camera ; Filter ; Profile ; Diameter (arcsec) ; Magnitude ; Central Meridian (°) ;  Focal length (mm) ; Resolution (arcsec) ; Binning ; Bit depth ; Debayer ; Shutter (ms) ; Gain ; Gamma ; Auto exposure ; Software gain ; Auto histogram ; Brightness ; Auto gain ; Histogram min ; Histogram max ; Histogram (%) ; Noise ; Prefilter ; Sensor temperature (°C) ; Target \n";
+
 		//              0.0000	Null         ; 2011/07/01 15:56,595000 LT; 2011/07/01 15:56,650000 LT; 2011/07/01 15:56,622500 LT; 3.3000 s; 30.000 fr/s; G:\work\Impact\tests\...
 		output_file.close();
 	}
@@ -328,8 +329,9 @@ void dtcCloseLog(std::string location) {
 *
 * @param	location   	The location of the folder where dtc.log will be stored.
 * @param	videos_info	List of the information describing the algorithm output.
-																								**************************************************************************************************/
-void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *logline) {
+**************************************************************************************************/
+
+void dtcWriteLog2(const std::string location, const LogInfo video_info, const DtcCaptureInfo CaptureInfo, std::stringstream *logline) {
 	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString (location.c_str()), DTC_LOG_SUFFIX)); 
 	std::ofstream output_file(DeTeCtLogFilename, std::ios_base::app);
 
@@ -402,8 +404,61 @@ void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *l
 		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.diff2_stat[0] << ";";
 		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.diff2_stat[1] << ";";
 		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.diff2_stat[2] << "; ";
-		output_file << std::setfill(' ') << std::setw(8) << std::setprecision(3) << video_info.distance;
+		output_file << std::setfill(' ') << std::setw(8) << std::setprecision(3) << video_info.distance << "; ";
 	} else output_file << ";;;;;;;;;;;;;;;;;";
+	output_file << CaptureInfo.observer << "; ";
+	output_file << CaptureInfo.location << "; ";
+	output_file << CaptureInfo.scope << "; ";
+	output_file << CaptureInfo.camera << "; ";
+	output_file << CaptureInfo.filter << "; ";
+	output_file << CaptureInfo.profile << "; ";
+	if (CaptureInfo.diameter_arcsec >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(2) << CaptureInfo.diameter_arcsec;
+	output_file << "; ";
+	if (CaptureInfo.magnitude >= -10000) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(2) << CaptureInfo.magnitude;
+	output_file << "; ";
+	output_file << CaptureInfo.centralmeridian << "; ";
+	if (CaptureInfo.focallength_mm >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(0) << CaptureInfo.focallength_mm;
+	output_file << "; ";
+	if (CaptureInfo.resolution >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(2) << CaptureInfo.resolution;
+	output_file << "; ";
+	if (CaptureInfo.binning == False) output_file << "off";
+	else if (CaptureInfo.binning == True) output_file << " on";
+	output_file << "; ";
+	if (CaptureInfo.bitdepth >= 0) 	output_file << std::setfill(' ') << std::setw(2) << std::setprecision(0) << CaptureInfo.bitdepth;
+	output_file << "; ";
+	if (CaptureInfo.debayer == False) output_file << "off";
+	else if (CaptureInfo.debayer == True) output_file << " on";
+	output_file << "; ";
+	if (CaptureInfo.shutter_ms >= 0) 	output_file << std::setfill(' ') << std::setw(9) << std::setprecision(3) << CaptureInfo.shutter_ms;
+	output_file << "; ";
+	if (CaptureInfo.gain >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.gain;
+	output_file << "; ";
+	if (CaptureInfo.gamma >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.gamma;
+	output_file << "; ";
+	if (CaptureInfo.autoexposure == False) output_file << "off";
+	else if (CaptureInfo.autoexposure == True) output_file << " on";
+	output_file << "; ";
+	if (CaptureInfo.softwaregain >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.softwaregain;
+	output_file << "; ";
+	if (CaptureInfo.autohisto >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.autohisto;
+	output_file << "; ";
+	if (CaptureInfo.brightness >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.brightness;
+	output_file << "; ";
+	if (CaptureInfo.autogain == False) output_file << "off";
+	else if (CaptureInfo.autogain == True) output_file << " on";
+	output_file << "; ";
+	if (CaptureInfo.histmin >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(0) << CaptureInfo.histmin;
+	output_file << "; ";
+	if (CaptureInfo.histmax >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(0) << CaptureInfo.histmax;
+	output_file << "; ";
+	if (CaptureInfo.histavg_pc >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.histavg_pc;
+	output_file << "; ";
+	if (CaptureInfo.noise >= 0) 	output_file << std::setfill(' ') << std::setw(8) << std::setprecision(2) << CaptureInfo.noise;
+	output_file << "; ";
+	output_file << CaptureInfo.prefilter << "; ";
+	if (CaptureInfo.temp_C >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(1) << CaptureInfo.temp_C;
+	output_file << "; ";
+	output_file << CaptureInfo.target << "; ";
 	output_file << "\n";
 	output_file.close();
 

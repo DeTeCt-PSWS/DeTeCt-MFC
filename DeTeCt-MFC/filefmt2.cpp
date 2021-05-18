@@ -66,7 +66,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	get_fileextension(fname, fc->filename_ext, EXT_MAX);
 	get_folder(fname, fc->filename_folder);
 	right(fname, strlen(fname) - strlen(fc->filename_folder) - 1, filename_root);
-	if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: Folder %s file %s\n", fc->filename_folder, fname); }
+	if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: Folder %s file %s\n", fc->filename_folder, fname); }
 	fc->FirstFileIdx = -1;
 	fc->LastFileIdx = -1;
 	fc->LeadingZeros = 0;
@@ -182,7 +182,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	fc->FrameCount = fc->LastFileIdx - fc->FirstFileIdx + 1;
 	fc->ValidFrameCount = fc->FrameCount;
 	(*pframecount) = fc->FrameCount;
-	if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: First frame index %d, Last Frame index %d\n", fc->FirstFileIdx, fc->LastFileIdx); }
+	if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: First frame index %d, Last Frame index %d\n", fc->FirstFileIdx, fc->LastFileIdx); }
 	if (fc->FrameCount <= 0) {
 		fprintf(stderr, "ERROR in FileCaptureFromFile: no frame number detected to process for file %s\n", fname);
 		fclose(fc->fh);
@@ -211,7 +211,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			fileGet_info(fc, fname, &fc->StartTime_JD);
 			if (stat(fname, &teststat_start) >= 0) {
 				fc->StartTime_JD = JD_from_time_t(teststat_start.st_mtime);
-				if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: StartTime_JD=%f\n", fc->StartTime_JD); }
+				if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: StartTime_JD=%f\n", fc->StartTime_JD); }
 			}
 			break;
 		}
@@ -220,7 +220,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
 			exit(EXIT_FAILURE);
 		}
-		if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
+		if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
 		if (fc->FrameCount>1) {
 			// Reads information from last file 
 			fileGet_filename(filename_tmp, fc, fc->LastFileIdx);
@@ -228,7 +228,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				fprintf(stderr, "ERROR in FileCaptureFromFile opening %s file...\n", filename_tmp);
 				exit(EXIT_FAILURE);
 			}
-			if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: opening %s file\n", filename_tmp); }
+			if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: opening %s file\n", filename_tmp); }
 			switch (fc->FileType) {
 			case CAPTURE_FITS:
 				fileGet_info(fc, filename_tmp, &fc->EndTimeUTC_JD);
@@ -242,7 +242,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				//				fileGet_info(fc, filename_tmp, &fc->EndTime_JD); 
 				if (stat(filename_tmp, &teststat_end) >= 0) {
 					fc->EndTime_JD = JD_from_time_t(teststat_end.st_mtime);
-					if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
+					if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
 				}
 				break;
 			}

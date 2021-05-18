@@ -16,6 +16,8 @@
 
 #include "dtcgui.hpp"
 
+//#include <opencv2/imgproc.hpp> //TEST opencv3
+
 static void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);
 int doublecmp(const void *a, const void *b);
 void printtbuf(double *uc, size_t s);
@@ -111,7 +113,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	int width = img.cols;
 	int height = img.rows;
 
-	if ((tbuf = (double*)calloc(medsize, sizeof(double))) == NULL ||
+	if ((tbuf = (double*)calloc((size_t) (ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
 		perror("ERROR in dtcGetGrayImageROI allocating memory");
 		exit(EXIT_FAILURE);
@@ -130,7 +132,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += 1) {
 			tbuf[i] = tsrc[0];
 		}
-		qsort(tbuf, medsize, sizeof(double), doublecmp);
+		qsort(tbuf, (size_t) (ceil(medsize)), sizeof(double), doublecmp);
 		mbuf[x] = tbuf[posmed];
 		if (mbuf[x] < mbuf[xmin]) xmin = x;
 		if (mbuf[x] > mbuf[xmax]) xmax = x;
@@ -148,7 +150,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += img.step) {
 			tbuf[i] = tsrc[0];
 		}
-		qsort(tbuf, medsize, sizeof(double), doublecmp);
+		qsort(tbuf, (size_t)(ceil(medsize)), sizeof(double), doublecmp);
 		mbuf[y] = tbuf[posmed];
 		if (mbuf[y] < mbuf[ymin]) ymin = y;
 		if (mbuf[y] > mbuf[ymax]) ymax = y;
@@ -263,7 +265,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 	int width = frame.cols;
 	int height = frame.rows;
 
-	if ((tbuf = (double*)calloc(medsize, sizeof(double))) == NULL ||
+	if ((tbuf = (double*)calloc((size_t)(ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
 		perror("ERROR in dtcGetGrayImageROI allocating memory");
 		exit(EXIT_FAILURE);
@@ -283,7 +285,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += 1) {
 			tbuf[i] = tsrc[0];
 		}
-		qsort(tbuf, medsize, sizeof(double), doublecmp);
+		qsort(tbuf, (size_t)(ceil(medsize)), sizeof(double), doublecmp);
 		mbuf[x] = tbuf[posmed];
 		if (mbuf[x] < mbuf[xmin]) xmin = x;
 		if (mbuf[x] > mbuf[xmax]) xmax = x;
@@ -300,7 +302,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += frame.step) {
 			tbuf[i] = tsrc[0];
 		}
-		qsort(tbuf, medsize, sizeof(double), doublecmp);
+		qsort(tbuf, (size_t)(ceil(medsize)), sizeof(double), doublecmp);
 		mbuf[y] = tbuf[posmed];
 		if (mbuf[y] < mbuf[ymin]) ymin = y;
 		if (mbuf[y] > mbuf[ymax]) ymax = y;
@@ -351,8 +353,7 @@ cv::Mat dtcApplyMask(cv::Mat img) {
 	sx = image.cols;
 	sy = image.rows;
 	cv::minMaxLoc(image, &min_brightness, &max_brightness, NULL, NULL);
-	int avgBackground = (cv::mean(image.col(0))[0] + cv::mean(image.col(image.cols - 1))[0] + cv::mean(image.row(0))[0] +
-		cv::mean(image.row(image.rows - 1))[0]) / 4;
+	int avgBackground = (int) round((cv::mean(image.col(0))[0] + cv::mean(image.col(image.cols - 1))[0] + cv::mean(image.row(0))[0] + cv::mean(image.row(image.rows - 1))[0]) / 4.0);
 	img -= avgBackground;
 	int medianSize = 3;
 	int smoothSize = 30;
@@ -439,8 +440,8 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 	sx = img.cols;
 	sy = img.rows;
 	cv::minMaxLoc(img, &min_brightness, &max_brightness, NULL, NULL);
-	int avgBackground = cv::mean(img.col(0))[0] + cv::mean(img.col(img.cols - 1))[0] + cv::mean(img.row(0))[0] + cv::mean(img.row(img.rows - 1))[0];
-	img -= avgBackground / 4;
+	int avgBackground = (int)round((cv::mean(img.col(0))[0] + cv::mean(img.col(img.cols - 1))[0] + cv::mean(img.row(0))[0] + cv::mean(img.row(img.rows - 1))[0]) / 4.0);
+	img -= avgBackground;
 	int medianSize = 15;
 	int smoothSize = 30;
 	img.convertTo(img, CV_8U);
@@ -459,7 +460,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 	int width = img.cols;
 	int height = img.rows;
 
-	if ((tbuf = (double*)calloc(medsize, sizeof(double))) == NULL ||
+	if ((tbuf = (double*)calloc((size_t)(ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
 		perror("ERROR in dtcGetGrayImageROI allocating memory");
 		exit(EXIT_FAILURE);
@@ -479,7 +480,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += 1) {
 			tbuf[i] = tsrc[0];
 		}
-		qsort(tbuf, medsize, sizeof(double), doublecmp);
+		qsort(tbuf, (size_t)(ceil(medsize)), sizeof(double), doublecmp);
 		mbuf[x] = tbuf[posmed];
 		if (mbuf[x] < mbuf[xmin]) xmin = x;
 		if (mbuf[x] > mbuf[xmax]) xmax = x;
@@ -496,7 +497,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += img.step) {
 			tbuf[i] = tsrc[0];
 		}
-		qsort(tbuf, medsize, sizeof(double), doublecmp);
+		qsort(tbuf, (size_t)(ceil(medsize)), sizeof(double), doublecmp);
 		mbuf[y] = tbuf[posmed];
 		if (mbuf[y] < mbuf[ymin]) ymin = y;
 		if (mbuf[y] > mbuf[ymax]) ymax = y;
@@ -750,14 +751,14 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 //AS3
 			cm = dtcGetGrayMatCM(gray); // gets Center of Mass
 			if (cm.x <= 0 || cm.y < 0) throw std::logic_error("Negative or zero centre of mass, can't obtain Region of Interest");
-			win = dtcGetGrayImageROIcCM(gray, cm, opts.medSize, opts.facSize, opts.secSize); // gets ROI
+			win = dtcGetGrayImageROIcCM(gray, cm, (float) opts.medSize, opts.facSize, opts.secSize); // gets ROI
 			roi = dtcMaxRect(win, roi);
 			gray.release();
 			gray = NULL;
 			frame.release();
 			frame = NULL;
 			if (opts.debug) { 
-				DBOUT("dtcGetFileROIcCM: frame " << nframe << "\n")
+				DBOUT("!Debug info: dtcGetFileROIcCM: frame " << nframe << "\n")
 			}
 		}
 	}
@@ -836,7 +837,7 @@ cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
 	int channels[] = { 0 , 1 };
 
 	cv::calcHist(cv::makePtr<cv::Mat>(src), 1, 0, cv::Mat(), pHis, 1, phsize, ranges, true, false);
-	pHisImg = cv::Mat::zeros(vsize*scale, hsize*scale, CV_8UC1);
+	pHisImg = cv::Mat::zeros( (int)(ceil(vsize * scale)), (int)(ceil(hsize * scale)), CV_8UC1);
 	if (thr) {
 		pHis.at<float>(0) = 0;
 	}
@@ -845,8 +846,8 @@ cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
 	if (max_val > 0) {
 		for (i = 0; i < hsize; i++){
 			bval = pHis.at<float>(i);
-			cv::rectangle(pHisImg, cv::Point(i*scale, (vsize - cvRound(bval*hsize / max_val))*scale), 
-				cv::Point((i + 1)*scale - 1, vsize*scale), CV_RGB(0, 0, 0), CV_FILLED, 8, 0);
+			cv::rectangle(pHisImg, cv::Point(cvRound(i*scale), cvRound((vsize - bval*hsize / max_val)*scale)), 
+				cv::Point(cvRound((i + 1)*scale - 1), cvRound(vsize*scale)), CV_RGB(0, 0, 0), CV_FILLED, 8, 0);
 		}
 	}
 	pHis.release();

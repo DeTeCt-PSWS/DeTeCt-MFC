@@ -36,6 +36,7 @@ struct _LogInfo {
 	double diff_stat[3];
 	double diff2_stat[3];
 	char *rating_classification;
+	//double noise;
 
 	_LogInfo(const char *fn, const double st, const double et, const double d,
 		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double dist, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3], const char *classification) {
@@ -58,6 +59,7 @@ struct _LogInfo {
 			diff2_stat[i] = diff2_m[i];
 		}
 		rating_classification = (char*)classification;
+		//noise = CaptureInfo.noise;
 	}
 };
 
@@ -69,7 +71,7 @@ void dtcWriteLogHeader(std::string location);
 
 //void dtcCloseLog(std::string location);
 
-void dtcWriteLog2(std::string location, LogInfo video_info, std::stringstream *logline);
+void dtcWriteLog2(const std::string location, const LogInfo video_info, const DtcCaptureInfo CaptureInfo, std::stringstream *logline);
 
 //void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info);
 

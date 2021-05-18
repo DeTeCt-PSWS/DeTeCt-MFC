@@ -251,7 +251,8 @@ SerCapture *serCaptureFromFile(const char *fname)
 			sc->FrameCount = sc->header.FrameCount = frames_size / (sc->ImageBytes + 8);
 		sc->big_endian_proc = (*(uint16_t *)"\0\xff" < 0x100);
 		// little_endian: 0 for little endian, 1 for big endian
-		sc->data_proc_same_endianness = sc->big_endian_proc == sc->header.LittleEndian;
+		//sc->data_proc_same_endianness = sc->big_endian_proc == sc->header.LittleEndian;
+		sc->data_proc_same_endianness = (unsigned int)(sc->big_endian_proc) == sc->header.LittleEndian;
 		/*if (fclose(sc->fh) != 0) {
 			fprintf(stderr, "ERROR in serCaptureFromFile closing capture file\n");
 			exit(EXIT_FAILURE);
@@ -562,25 +563,25 @@ size_t serFrameRead(SerCapture* sc) {
 			
 		}
 
-		for (int32_t y = sc->header.ImageHeight - 1; y >= 0; --y) {
+		for (int32_t y = (int32_t)(sc->header.ImageHeight) - 1; y >= 0; --y) {
 
-			read_ptr = &temp_buffer16[y * sc->header.ImageWidth * 3];
-			read_ptr8 = &temp_buffer8[y * sc->header.ImageWidth * 3];
-			read_ptr_mono = &temp_buffer16[y * sc->header.ImageWidth];
-			read_ptr8_mono = &temp_buffer8[y * sc->header.ImageWidth];
+			read_ptr = &temp_buffer16[y * (int32_t)(sc->header.ImageWidth) * 3];
+			read_ptr8 = &temp_buffer8[y * (uint32_t)(sc->header.ImageWidth) * 3];
+			read_ptr_mono = &temp_buffer16[y * (uint32_t)(sc->header.ImageWidth)];
+			read_ptr8_mono = &temp_buffer8[y * (uint32_t)(sc->header.ImageWidth)];
 
-			uint32_t shift_left = 16 - sc->header.PixelDepth;
-			uint32_t shift_right = sc->header.PixelDepth - shift_left;
+			uint32_t shift_left  = 16 - (uint32_t)(sc->header.PixelDepth);
+			uint32_t shift_right = (uint32_t)(sc->header.PixelDepth) - shift_left;
 
 			for (int32_t x = 0; x < sc->header.ImageWidth; ++x) {
 
 				uint16_t r, g, b;
 				int32_t b_idx, g_idx, r_idx, grey_idx;
 
-				b_idx = 3 * y * sc->header.ImageWidth + 3 * x;
-				g_idx = 3 * y * sc->header.ImageWidth + 3 * x + 1;
-				r_idx = 3 * y * sc->header.ImageWidth + 3 * x + 2;
-				grey_idx = y * sc->header.ImageWidth + x;
+				b_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x;
+				g_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x + 1;
+				r_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x + 2;
+				grey_idx =  y * (int32_t)(sc->header.ImageWidth) + x;
 
 				if (sc->byte_depth == 2) {
 					if (sc->header.ColorID == SER_RGB) {

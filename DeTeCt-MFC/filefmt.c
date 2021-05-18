@@ -18,6 +18,8 @@
 #include "datation.h"
 #include "fitsfmt.h"
 
+//#include <opencv2/imgcodecs/imgcodecs_c.h>  //TEST opencv3
+
 
 FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type)
 {
@@ -103,7 +105,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			strcat(fc->filename_head, "\0");
 		}
 		if (strcmp(fc->filename_folder,".")!=0) {
-			fc->NumberPos=fc->NumberPos-strlen(fc->filename_folder)-1;
+			fc->NumberPos=fc->NumberPos-(int) strlen(fc->filename_folder)-1;
 		}
 		fileGet_filename(filename_tmp, fc, fc->FirstFileIdx+1);
 		if (strlen(filename_tmp)>0) {
@@ -141,7 +143,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		}
 		mid(filename_root,strlen(fc->filename_head)+fc->LeadingZeros+1,strlen(filename_root)-1-strlen(fc->filename_ext)-fc->LeadingZeros-1-strlen(fc->filename_head),fc->filename_trail);
 		if (strcmp(fc->filename_folder,".")!=0) {
-			fc->NumberPos=fc->NumberPos-strlen(fc->filename_folder)-1;
+			fc->NumberPos=fc->NumberPos-(int) strlen(fc->filename_folder)-1;
 		}
 	}
 

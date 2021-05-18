@@ -832,8 +832,13 @@ int ProcessRunningInstancesNumber(const char *ProcessFilename)
 
 BOOL IsProcessRunning(const DWORD pid)
 {
+	HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
+	DWORD ret = WaitForSingleObject(process, 0);
+	CloseHandle(process);
+	return ret == WAIT_TIMEOUT;
+
 	/*** Check current running processes ***/
-	HANDLE hndl = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE, 0);
+/*	HANDLE hndl = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE, 0);
 	if (hndl)
 	{
 		PROCESSENTRY32  process = { sizeof(PROCESSENTRY32) };
@@ -847,7 +852,7 @@ BOOL IsProcessRunning(const DWORD pid)
 		} while (Process32Next(hndl, &process));
 		CloseHandle(hndl);
 	}
-	return FALSE;;
+	return FALSE;*/
 }
 
 int KillsChildrenProcesses()

@@ -4,11 +4,10 @@
 Suspended:
 ----------
 Bugfix:			correct darkfile comment in log (not reproductable)
-GUI:			implement new parameters (some advanced parameters not suitable for user own definition)
 
 Low priority:
 -------------
-GUI:			checkboxes for selecting files/folders to be processed (M.Lewis)
+GUI:			checkboxes for selecting files/folders to be processed (M.Lewis, Isaac Lozano)
 GUI:			Drag & drop functionality
 Firecapture:	code for live detection
 General:		video card offload library usage (OpenCL) (A.Wesley)
@@ -18,6 +17,7 @@ Dev:			cleans includes in headers vs sources
 
 Medium priority:
 ----------------
+				French GUI version
 				TBD: generate limited zip files
 GUI:			uses symbols instead of grey checkboxes
 Instances:		logs fps and # of frames in file_processed
@@ -29,30 +29,70 @@ Files:			avi support to be fixed
 
 High priority:
 --------------
-				TBD: do not process both .as3 and video with all the same acquisition file
-				TBD: Use as3 ROI
-				TBD: Prioritize as3 over file even if as3 is read after
-				TBD: do not exit when auto processing and nothing to do
-				TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
-				TBD: Creation of log name with all instances data
+
+GUI:			Add generate preflat option
 				TBD: slowness in files acquisition addition (fileget_name to be optimized with readdir)
-				TBD: InstanceType to modify with GetIntParam?
+				**Extra tool to analyze images
+Multiinstance:	Children list to optimize exit
 				TBD: optimize children count process
-				TBD: log additional info from capture(camera, filters, aso.)
-				TBD: log additional info from analysis (sampling, noise, aso.)
-				TBD: Detection of bad frames (broken, bars)
-Detection:		detect and ignore artifacts images (sliding brightness average?)
-Detection:		ignore off planet impact detection (check level of background?)
+				TBD: InstanceType to modify with GetIntParam?
+Development:	Debug parameter window (not saved in ini file)
+				Code Analysis check
+				Dev. subrevision automatic version update for subscribers
+				Dev. parameters (debug, autostakkert simulation mode)
+				Add clean directory checkbox in dev. parameters
 GUI:			Pause/Resume button (M.Lewis)
 GUI:			End after next video (M.Lewis)
-General:		Automatic version update
+Logs:			**TBD: log additional info from analysis (sampling, noise, aso.)
+ROI:			Scan of 90° from cog to edge (for Saturn)
+				Histogram usage (Emil)
+				TBD: Use as3 ROI
+				*TBD: build histogram of image to determine the bg (like AS does)
+Alignement:		*TBD: Detection of bad frames (broken, bars)
+				*TBD: build histogram of image to determine the bg (like AS does)
+				*TBD: Prioritize as3 over file even if as3 is read after
+FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
+Detection:		*detect and ignore artifacts images (sliding brightness average?)
+Detection:		*ignore off planet impact detection (check level of background?)
 Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
-Logs:			include impact rating in filename or folder
-dateonly:		do not zip / send email if dateonly mode
+Detection:		**stretch black level in detection max-mean/mean images
 
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+--------------------------------------------------------------------------------------
+v3.4.0
+Functions:
+General:		*Autoupdate function (not effective in autostakkert/child mode)
+General:		Clean impact files/directories function
+General:		*No reprocessing option/parameter to skip processing files already in DeTeCt log
+General:		*Unique and consolidated log in root directory in multicore mode
+General:		Executable file properties updated
+Logs:			Both central log and session log (with detailed filename) stored in root directory
+Logs:			*include impact rating in filename or folder (Salma)
+Logs:			Creation of log name with all instances data
+Logs:			*Log additional info from FireCapture log (camera, filters, aso.)
+Logs:			*Use profile field from FireCapture to determine planet type
+dateonly:		do not zip / send email if dateonly mode
+
+Bugfixes:
+Datation:		*Correction of bug for avi files
+General:		Closure when no file selected and auto processing on
+Autostakkert:	Noreprocessing check of .as3 when video already processed (:tolower)
+Autostakkert:	No reprocessing by default
+Autostakkert:	Children windows not exited when file not to be processed (bugfix)
+Autostakkert:	Total file counter in parent window (bugfix)
+Autostakkert:	Hide children window
+Autostakkert:	No auto exit when autostakkert single instance (bugfix)
+Autostakkert:	No auto exit when autostakkert mode (bugfix)
+Autostakkert:	Unique zip from Autostakkert in DeTeCt directory (bugfix)
+Autostakkert:	Optimization of IsProcessRunning test
+
+Dev:
+General:		Migration to Visual Studio 19
+General:		Code warnings cleaning and small corrections (e.g. types/casts)
+General:		Check of latest staticlib version of opencv used
+Bugfix:			correction of m_hIcon bug visible in debug version
 --------------------------------------------------------------------------------------
 v3.3.0
 Detection:		Probability+frame in detection images filename for easier analysis (S.Sylla)
@@ -62,11 +102,9 @@ v3.2.4
 Options:		Details not by default, moved to processing section in GUI
 Command:		Option for flat preparation image (max of not aligned trames)
 Bugfix:			Code to close all opened streams, files and captures (C.Foster)
-// TO MODIFY before RELEASE: MFC opts autostakkert not interactive and noreprocessing
 --------------------------------------------------------------------------------------
 
 v3.2.3
-// TO MODIFY before RELEASE: MFC opts autostakkert not interactive and noreprocessing
 -----------------------------
 General:		Allows to select another folder/file for new detection when previous detection done
 General:		Options to process, to exit, to shutdown PC automatically

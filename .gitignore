@@ -23,3 +23,9 @@
 /DeTeCt-MFC/x64/Release/DeTeCt.pch.codeanalysis
 *.codeanalysisast
 *.lastcodeanalysissucceeded
+/x64/Release/DeTeCt.versions_old
+*.txt
+*.enc
+*.recipe
+/DeTeCt-MFC/x64/Release/DeTeCt.pchast
+/x64/Release/dlls

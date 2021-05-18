@@ -22,6 +22,8 @@ extern "C" {
 
 #include "common2.h"
 
+//#include <opencv2/imgproc.hpp> //TEST opencv3
+
 /**********************************************************************************************//**
 * @fn	DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 *
@@ -50,7 +52,11 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 		assert(capt != NULL);
 	}
 	else {
-		if (opts.debug) { fprintf(stderr, "dtcCaptureFromFile: capt @ %p\n", capt); }
+		capt->pCaptureInfo = (DtcCaptureInfo*)malloc(sizeof(DtcCaptureInfo));
+		if (capt->pCaptureInfo == NULL) {
+			assert(capt->pCaptureInfo != NULL);
+		}
+		if (opts.debug) { fprintf(stderr, "!Debug info: dtcCaptureFromFile: capt @ %p\n", capt); }
 		if (!strcmp(ext, "ser")) {
 			capt->type = CAPTURE_SER;
 			if (!(capt->u.sercapture = serCaptureFromFile(fname)))
@@ -102,6 +108,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 			capt->framecount = (int)(dtcGetCaptureProperty(capt, CV_CAP_PROP_FRAME_COUNT));
 		}
 		(*pframecount) = capt->framecount;
+		initDtcCaptureInfo(capt->pCaptureInfo);
 	}
 	return capt;
 }
@@ -252,6 +259,7 @@ void dtcReleaseCapture(DtcCapture *capture)
 		//capture->u.videocapture->release();
 		cvReleaseCapture(&capture->u.capture);
 	}
+	free(capture->pCaptureInfo);
 }
 
 /**********************************************************************************************//**
@@ -391,18 +399,26 @@ BOOL Is_Capture_Special_Type(const std::string file, std::wstringstream *pmessag
 * @date	2020-04-13
 *
 * @param [in]		filename_acquisition		string of capture filename
+* @param [in]		log_filename				string of log filename to be checked
 * @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
 *
 * @return			True if file has to be processed, False otherwise
 **************************************************************************************************/
 
-BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std::wstringstream *pmessage) {
+BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, const std::string log_filename, std::wstringstream *pmessage) {
 
-// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
-	if (!opts.reprocessing) {
-		std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
-		CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
-		std::ifstream input_file(DeTeCtLogFilename, std::ios_base::in);
+// ***** if option noreprocessing on (or autostakkert mode), check in detect log file if file already processed or processed with in datation only mode
+	if ((!opts.reprocessing) || (opts.autostakkert)) {
+
+		/*std::string input_file_name;
+		if (log_filename == "") {
+			std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
+			CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
+			input_file_name = DeTeCtLogFilename;
+		} else {
+			input_file_name = log_filename;
+		}*/
+		std::ifstream input_file(log_filename, std::ios_base::in);
 		if (input_file) {
 			std::string line;
 			//0.0000		 0       ; 2015/01/17 04:42,059300 UT; 2015/01/17 04:44,058567 UT; 2015/01/17 04:43,058933 UT; 119.9560 s; 43.000 fr/s; G:\Work\Impact\tests\data_set\bugs\ACo\J_2015Jan17_044203_RGB.avi; DeTeCt v3.1.8.20190512_x64 (Firecapture 2.4beta); Win8(or_above)_64b
@@ -411,8 +427,8 @@ BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std:
 					BOOL line_rated;
 					if (starts_with(line, "N/A")) line_rated = FALSE;
 					else line_rated = TRUE;
-					int nb_separators = 0;
-					int pos_separator;
+					size_t nb_separators = 0;
+					size_t pos_separator;
 					do {
 						pos_separator = (int)line.find_first_of(";");
 						if (pos_separator != std::string::npos) {
@@ -422,9 +438,16 @@ BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std:
 					} while ((pos_separator != std::string::npos) && (nb_separators < 6));
 					while (starts_with(line, " ")) line = line.substr(1, line.size() - 1);
 					while (starts_with(line, "\t")) line = line.substr(1, line.size() - 1);
+					std::for_each(line.begin(), line.end(), [](char& c) {
+						c = (char) ::tolower(c);
+						});
+					std::string filename_acquisition_local = filename_acquisition;
+					std::for_each(filename_acquisition_local.begin(), filename_acquisition_local.end(), [](char& c) {
+						c = (char) ::tolower(c);
+						});
 					if ((nb_separators == 6)
 						&& (line.find_first_of(";") != std::string::npos)
-						&& (starts_with(line, filename_acquisition))
+						&& (starts_with(line, filename_acquisition_local))
 						&& (!opts.dateonly)
 						&& (line_rated)) {
 							std::string shortfile = filename_acquisition.substr(filename_acquisition.find_last_of("\\") + 1, filename_acquisition.length());

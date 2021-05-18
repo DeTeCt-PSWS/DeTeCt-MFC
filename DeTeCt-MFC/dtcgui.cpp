@@ -30,26 +30,27 @@
 
 #include <direct.h>
 
-void	LogString(CString log_cstring, CString output_filename, int *log_counter, BOOL GUI_display);
-BOOL	GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename);
-int		ForksInstances(const int maxinstances, const int detect_PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances);
-void	DisplayProcessingTime(clock_t *pcomputing_threshold_time, clock_t *plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time);
+//#include <opencv2/imgproc.hpp>  //TEST opencv3
+
+void			LogString(CString log_cstring, CString output_filename, int *log_counter, BOOL GUI_display);
+int				GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename);
+int				ForksInstances(const int maxinstances, const int PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances);
+int				ASorDeTeCtPID(const int AutoStakkert_ID, const int DeTeCt_PID);
+void			DisplayProcessingTime(clock_t *pcomputing_threshold_time, clock_t *plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time);
 CString			TotalType();
 Instance_type	InstanceType(CString *pinstance_text);
 void			AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int *acquisitions_to_be_processed);
-
-
 
 /** @brief	Options for the algorithm */
 
 #define MAX_RANGE_PROGRESS SHRT_MAX
 
 OPTS opts;
-char impact_detection_dirname[MAX_STRING];
+char impact_detection_dirname[MAX_STRING] = {};
 //char zip_detection_dirname[MAX_STRING];
-char zip_detection_location[MAX_STRING];
-char zipfile[MAX_STRING] = "";
-char log_detection_dirname[MAX_STRING] = "";
+char zip_detection_location[MAX_STRING] = {};
+char zipfile[MAX_STRING] = {};
+char log_detection_dirname[MAX_STRING] = {};
 
 extern CDeTeCtMFCDlg dlg;
 //extern CDeTeCtMFCDlg::CButton AS;
@@ -111,14 +112,18 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 	}
 	do {
 		if (entry->d_type == DT_DIR) {
-			if (!strcmp(entry->d_name, ".") == 0 && !strcmp(entry->d_name, "..") == 0) {
+			if (!(strcmp(entry->d_name, ".") == 0) && !(strcmp(entry->d_name, "..") == 0)) {
 				read_files(folder + "\\" + entry->d_name, acquisition_files);
 			}
 		}
 		else {
 			std::string file(entry->d_name);
 			std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
-			std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower); //warning C4244
+			//std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower); //warning C4244
+			std::for_each(extension.begin(), extension.end(), [](char& c) {
+				c = (char) ::tolower(c);
+				});
+
 			acquisition_file = "";
 			if (std::find(supported_videoext.begin(), supported_videoext.end(), extension) != supported_videoext.end()) {
 				acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
@@ -175,9 +180,9 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 	} while (entry = readdir(directory));
 	closedir(directory);
 //Remove duplicates from as3 (keeping as3)
-	acquisition_files->file_list.begin();
-	acquisition_files->acquisition_file_list.begin();
-	acquisition_files->nb_prealigned_frames.begin();
+	std::vector<cv::String>::iterator acquisition_files_vector_string =	acquisition_files->file_list.begin();
+	acquisition_files_vector_string =									acquisition_files->acquisition_file_list.begin();
+	std::vector<int>::iterator acquisition_files_vector_int =			acquisition_files->nb_prealigned_frames.begin();
 	for (int i = 0; i < acquisition_files->file_list.size(); i++) {
 		std::string file = acquisition_files->file_list.at(i);
 		std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
@@ -374,7 +379,8 @@ int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 	dtcout->MaxFrame = dtc->MaxFrame;
 	dtcout->nMinFrame = dtc->nMinFrame;
 	dtcout->nMaxFrame = dtc->nMaxFrame;
-	if (lastivalFrame >= impact_frames_min) {
+	//if (lastivalFrame >= impact_frames_min) {
+	if ((lastivalFrame >= impact_frames_min) && (impactBrightest)) {
 		StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("Max lum %d at frame %ld, point (%ld, %ld).\n"),
 			(int)impactBrightest->point->val, (int)impactBrightest->point->frame, (int)impactBrightest->point->x, 
 			(int)impactBrightest->point->y);
@@ -511,11 +517,11 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 
 	//											maxinst !as parent																												as
 	// string	log_directory:					"G:\\work\\Impact\\tests\\autostakkert3.2_detect"																				"G:\\Work\\Impact\\DeTeCt-PSWS\\DeTeCt-MFC\\x64\\Release"
-	// string	log_consolidated =				log_directory
+	// string	log_consolidated_directory =				log_directory
 	// string	log								"G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-24_07-28-20"	(from queue file or calculated)
 	// wstring	detection_folder_fullpathname	"G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-24_07-28-20"
 	// wstring	detection_folder_name			"Impact_detection_run@2020-05-24_07-28-20"
-	// char		popts->impactdirname				detection_folder_fullpathname
+	// char		popts->impactdirname			detection_folder_fullpathname
 	// char		impact_detection_dirname		detection_folder_fullpathname
 	// wstring	details_folder_fullpathname		"G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-24_07-28-20\\details"
 	// wstring	output_log_file					"G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-24_07-28-20\\output.log"
@@ -526,19 +532,22 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 		//log directory when autostakkert mode or multi instance mode
 		log_directory = CString2string(DeTeCt_exe_folder());;
 	}
-	std::string log_consolidated(log_directory);	// Location where log will be written
-	std::string log(log_directory);					// Location where consolidated log will be written
+	std::string log_consolidated_directory(log_directory);		// Location where consolidatedlog will be written
+	std::string log(log_directory);						// Location where log will be written
+	//std::string log_consolidated_directory_global(log_directory);	// Location where consolidated log for all instances will be written
 
 	if (GetItemFromQueue(&log_cstring, _T("output_dir"), (CString)popts->DeTeCtQueueFilename)) {
 /*		 && (!popts->parent_instance)) {	// if detect queue exists and has already an outputdir, then child instance.
 */		log = CString2string(log_cstring);
-	} else {																		// otherwise parent instance (autostakkert mode, multiple instances mode or single instance mode)
+//		log_consolidated_directory_global = CString2string(log_cstring.Left(log_cstring.ReverseFind(_T('\\'))));
+		log_consolidated_directory = CString2string(log_cstring.Left(log_cstring.ReverseFind(_T('\\'))));
+	} else {								// otherwise parent instance (autostakkert mode, multiple instances mode or single instance mode)
 		log.append("\\Impact_detection_run@").append(start_runtime);
 		CString log_string(log.c_str());
 		PushItemToQueue(log_string, _T("output_dir"), (CString)popts->DeTeCtQueueFilename, TRUE);
 		popts->parent_instance = TRUE;
-/*		}*/
 	}
+	strcpy(popts->LogConsolidatedDirname, log_consolidated_directory.c_str());
 	std::string detection_folder_name_string = log.substr(log.find_last_of("\\") + 1, log.length());
 	detection_folder_name = std::wstring(detection_folder_name_string.begin(), detection_folder_name_string.end());
 
@@ -546,7 +555,8 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 //	detection_folder_fullpathname =	std::wstring(log_directory.begin(), log_directory.end());
 //	detection_folder_fullpathname =	detection_folder_fullpathname.append(L"\\Impact_detection_run@").append(wstart_time);
 	detection_folder_fullpathname =	std::wstring(log.begin(), log.end());
-	std::string detection_folder_fullpathname_string(detection_folder_fullpathname.begin(), detection_folder_fullpathname.end());
+	//std::string detection_folder_fullpathname_string(detection_folder_fullpathname.begin(), detection_folder_fullpathname.end());
+	std::string detection_folder_fullpathname_string = wstring2string(detection_folder_fullpathname);
 	//detection_folder_name =			detection_folder_name.append(L"Impact_detection_run@").append(wstart_time); //bug
 	//std::string detection_folder_name_string(detection_folder_name.begin(), detection_folder_name.end());
 	strcpy(popts->impactdirname, detection_folder_fullpathname_string.c_str());
@@ -555,13 +565,21 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	// usage of mkdir only solution found to handle directory names with special characters (eg. é, à, ...)
 		//if (GetFileAttributes(detection_folder_fullpathname.c_str()) == INVALID_FILE_ATTRIBUTES)
 		//CreateDirectory(detection_folder_fullpathname.c_str(), 0);
-	if (!(dir_tmp = opendir(detection_folder_fullpathname_string.c_str()))) mkdir(detection_folder_fullpathname_string.c_str());
+	if (!(dir_tmp = opendir(detection_folder_fullpathname_string.c_str())))
+		if (mkdir(detection_folder_fullpathname_string.c_str()) != 0) {
+			fprintf(stderr, "ERROR: Impossible to create directory %s\n", detection_folder_fullpathname_string.c_str());
+			exit(EXIT_FAILURE);
+		}
 	else closedir(dir_tmp);
 	if (popts->detail || popts->allframes) {
 		details_folder_fullpathname = std::wstring(detection_folder_fullpathname.begin(), detection_folder_fullpathname.end());
 		details_folder_fullpathname = details_folder_fullpathname.append(L"\\details");
-		std::string details_folder_fullpathname_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
-		if (!(dir_tmp = opendir(details_folder_fullpathname_string.c_str()))) mkdir(details_folder_fullpathname_string.c_str());
+		//std::string details_folder_fullpathname_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
+		std::string details_folder_fullpathname_string = wstring2string(details_folder_fullpathname);
+		if (!(dir_tmp = opendir(details_folder_fullpathname_string.c_str()))) 
+			if (mkdir(details_folder_fullpathname_string.c_str()) != 0) {
+				fprintf(stderr, "WARNING: Impossible to create directory %s\n", details_folder_fullpathname_string.c_str());
+			}
 		else closedir(dir_tmp);
 	}
 
@@ -576,7 +594,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	//output_log_file = output_log_file.append(L"\\Impact_detection_run@").append(wstart_time).append(L"\\").append(OUTPUT_FILENAME).append(DTC_LOG_SUFFIX); //bug
 	output_log_file = output_log_file.append(L"\\").append(detection_folder_name).append(L"\\").append(OUTPUT_FILENAME).append(DTC_LOG_SUFFIX);
 	
-	dtcWriteLogHeader(log_consolidated);
+	dtcWriteLogHeader(log_consolidated_directory);
 	dtcWriteLogHeader(log);
 
 	message_init = _T("\n");
@@ -707,7 +725,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	do
 	{
 		if ((popts->parent_instance) && (strlen(popts->DeTeCtQueueFilename) > 0)) acquisitions_to_be_processed = NbFilesFromQueue((CString)popts->DeTeCtQueueFilename);
-		else acquisitions_to_be_processed += local_acquisition_files_list.file_list.size();
+		else acquisitions_to_be_processed += (int) local_acquisition_files_list.file_list.size();
 
 		//for (std::string filename : local_acquisition_files_list.acquisition_file_list) {
 		while (acquisition_index < local_acquisition_files_list.file_list.size()) {
@@ -724,7 +742,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 			if (file_exists(CString2string((CString)opts.DeTeCtQueueFilename))) popts->maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)popts->DeTeCtQueueFilename);
 			maxinstances_previous = popts->maxinstances;
 			if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename)))) AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
-			nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
+			nb_new_instances = ForksInstances(popts->maxinstances, ASorDeTeCtPID(popts->autostakkert_PID, popts->detect_PID), (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
 			if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched"), output_log_file.c_str(), &log_counter, TRUE);
 			else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched"), output_log_file.c_str(), &log_counter, TRUE);
 
@@ -802,16 +820,16 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 				
 			init_string(tmpstring);
 			init_string(tmpstring2);
-			std::string detail_folder_path_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
-
+			//std::string detail_folder_path_string(details_folder_fullpathname.begin(), details_folder_fullpathname.end());
+			std::string detail_folder_path_string = wstring2string(details_folder_fullpathname);
 
 			int fps_int = 0;
 			double fps_real = 0;
 			int impact_frames_min;
 			DtcCapture *pCapture;
-			LIST ptlist = { 0,0,NULL,NULL };
+			LIST ptlist =		{ 0,0,NULL,NULL };
 			DTCIMPACT dtc;
-			DTCIMPACT outdtc;
+			DTCIMPACT outdtc =	{ 0,0,0 };
 
 			LIST candidates = { 0, 0, NULL, NULL };
 			LIST impact = { 0, 0, NULL, NULL };
@@ -896,6 +914,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 			char comment[MAX_STRING] = "";
 			char rating_classification[MAX_STRING] = "";
 			char rating_filename_suffix[MAX_STRING] = "";
+			char tmpchar[MAX_STRING] = "";
 			double duration = 0;
 
 			double start_time;
@@ -918,18 +937,18 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 			std::vector<cv::Mat> frameList;
 			std::vector<cv::Point> cmShifts;
 			std::vector<DiffImage> diffImages;
-			std::vector<uint16_t> maxPtX;
-			std::vector<uint16_t> maxPtY;
-			std::vector<uint8_t> maxPtB;
-			std::vector<uint16_t> frameErrors;
-			std::vector<uint16_t> frameNumbers;
+			std::vector<unsigned int> maxPtX; //std::vector<uint16_t> maxPtX;
+			std::vector<unsigned int> maxPtY; //std::vector<uint16_t> maxPtY;
+			std::vector<double> maxPtB; //std::vector<uint8_t> maxPtB;
+			std::vector<unsigned long> frameErrors; //std::vector<uint16_t> frameErrors;
+			std::vector<unsigned long> frameNumbers;//std::vector<uint16_t> frameNumbers;
 			cv::Mat xMat;
 			cv::Mat yMat;
 			cv::Mat bMat;
 			cv::Mat impactFrame;
 			cv::Mat pOrigGryMat;
 
-			double firstFrameMean;
+			double firstFrameMean = 0;
 			double currentFrameMean;
 
 			int tempCols = 0;
@@ -968,6 +987,8 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 
 				if (planet == Jupiter) planet_jupiter++;
 				else if (planet == Saturn) planet_saturn++;
+				else if (InStr(lcase(pCapture->pCaptureInfo->profile, tmpchar),"jupiter")>=0)  planet_jupiter++;
+				else if (InStr(lcase(pCapture->pCaptureInfo->profile, tmpchar), "saturn") >= 0)  planet_saturn++;
 
 				if (start_time > JD_min) { 	/* for renaming logfile in impact_detection directory */
 					if (start_time < start_time_min) start_time_min = start_time;
@@ -990,9 +1011,11 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 					LogInfo info(popts->filename, start_time, end_time, duration, fps_real, timetype, comment, 0, 0, 0, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, rating_classification);
 
 					std::stringstream logline;
-					dtcWriteLog2(log_consolidated, info, &logline);
+					dtcWriteLog2(log_consolidated_directory, info, (*pCapture->pCaptureInfo), &logline);
+					// if child instance, also writes log line to global log
+					//if (log_consolidated_directory_global.compare(log_consolidated_directory) != 0) dtcWriteLog2(log_consolidated_directory_global, info, &logline);
 					log_messages.push_back(logline.str() + "\n");
-					dtcWriteLog2(log, info, &logline_tmp);
+					dtcWriteLog2(log, info, (*pCapture->pCaptureInfo), &logline_tmp);
 					dtcReleaseCapture(pCapture);
 					pCapture = NULL;
 					continue;
@@ -1578,7 +1601,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 						BOOL ExistsProcessedFiles = FALSE;
 						if ((popts->maxinstances>1) && (strlen(popts->DeTeCtQueueFilename) > 0)) {	// Gets other processed files by other instances
 							double duration_total_others = 0;
-							if (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename)) {
+							if (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename)>0) {
 								duration_total += duration_total_others;
 								CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (" + TotalType() + "): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
 								ExistsProcessedFiles = TRUE;
@@ -1590,13 +1613,13 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 						//if ((popts->maxinstances != maxinstances_previous) || (nb_instances < popts->maxinstances) || (ExistsProcessedFiles)) {
 						// Forks attempt if more instances possible, maximum # of instances not reached at last check or new files processed (hence child detect process exited)
 						if ((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances) || (ExistsProcessedFiles)) {
-							if (popts->debug) LogString(_T("Forks") + (CString)std::to_string(popts->maxinstances).c_str() + _T(" ") + (CString)std::to_string(maxinstances_previous).c_str() + _T(" ") + (CString)std::to_string(nb_instances).c_str(), output_log_file.c_str(), &log_counter, TRUE);
+							if (popts->debug) LogString(_T("!Debug info: Forks") + (CString)std::to_string(popts->maxinstances).c_str() + _T(" ") + (CString)std::to_string(maxinstances_previous).c_str() + _T(" ") + (CString)std::to_string(nb_instances).c_str(), output_log_file.c_str(), &log_counter, TRUE);
 							//if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))))	AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
 							//nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
 							//DisplayInstanceType(&nb_instances);
 							nb_new_instances = 0;
 							if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename)))) AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
-							nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
+							nb_new_instances = ForksInstances(popts->maxinstances, ASorDeTeCtPID(popts->autostakkert_PID, popts->detect_PID), (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
 							if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched"), output_log_file.c_str(), &log_counter, TRUE);
 							else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched"), output_log_file.c_str(), &log_counter, TRUE);
 							else if (ExistsProcessedFiles) {
@@ -1611,9 +1634,9 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 														DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
 													}*/
 						check_threshold_time = clock() + check_threshold_time_inc;
-						if (popts->debug) LogString(_T("Ends"), output_log_file.c_str(), &log_counter, TRUE);
+if (popts->debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE);
 					}
-					//if (popts->debug) cv::destroyWindow("Frame " + std::to_string(nframe-1));
+					//if (popts->debug) cv::destroyWindow("!Debug info: Frame " + std::to_string(nframe-1));
 				}
 
 				// ********************************* END OF CAPTURE READING******************************************
@@ -1786,7 +1809,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 					}
 				}
 
-				int radius = std::min(std::min(20.0, pGryMat.rows / 10.0), pGryMat.cols / 10.0);
+				double radius = std::min(std::min(20.0, pGryMat.rows / 10.0), pGryMat.cols / 10.0);
 				radius = radius > 5 ? radius : 5; //std::max gives error
 
 				ITEM* maxDtcImp = create_item(create_point(0, 0, 0, 0)); // Algorithm
@@ -1804,7 +1827,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 				//CreateDirectory(wdir_csv_name.c_str(), 0);
 				std::string dir_csv_name = detection_folder_fullpathname_string;
 				dir_csv_name = dir_csv_name.append("\\csv");
-				if (!(dir_tmp = opendir(dir_csv_name.c_str()))) mkdir(dir_csv_name.c_str());
+				if (!(dir_tmp = opendir(dir_csv_name.c_str()))) 
+					if (mkdir(dir_csv_name.c_str()) != 0) {
+						fprintf(stderr, "WARNING: Impossible to create directory %s\n", dir_csv_name.c_str());
+					}
 				else closedir(dir_tmp);
 
 				std::ofstream output_csv(dir_csv_name.append("\\").append(filePath).append(".csv"));
@@ -1918,7 +1944,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 									std::to_string(outdtc.nMinFrame) + "-" + std::to_string(outdtc.nMaxFrame) + ", max @" +
 									std::to_string(outdtc.MaxFrame) + ").";
 								short_logmessage = logmessage;
-								logmessage2 = "Confidence: " + std::_Floating_to_string("%2.2f", confidence);
+								std::stringstream confidence_stream;
+								confidence_stream << std::fixed << std::setprecision(2) << confidence;
+								std::string confidence_string = confidence_stream.str();
+								logmessage2 = "Confidence: " + confidence_string;
 								logmessage3 = "CHECK DETECTION IMAGES!\n";
 								LogString((CString)logmessage.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
 								LogString((CString)logmessage2.c_str(), output_log_file.c_str(), &log_counter, GUI_display);
@@ -1962,7 +1991,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 										std::to_string(outdtc.nMinFrame) + "-" + std::to_string(outdtc.nMaxFrame) + ", max @" +
 										std::to_string(outdtc.MaxFrame) + "). ";
 									short_logmessage = logmessage;
-									logmessage2 = "Confidence: " + std::_Floating_to_string("%2.2f", confidence);
+									std::stringstream confidence_stream;
+									confidence_stream << std::fixed << std::setprecision(2) << confidence;
+									std::string confidence_string = confidence_stream.str();
+									logmessage2 = "Confidence: " + confidence_string;
 									//if ((distance <= popts->impact_distance_max) && (confidence > popts->impact_confidence_min) && ((max_mean_stat[2] - max_mean_stat[1]) > popts->impact_max_avg_min))
 									if (!((confidence > popts->impact_confidence_min) && ((max_mean_stat[2] - max_mean_stat[1]) > popts->impact_max_avg_min)))
 										logmessage2 = logmessage2 + ", too faint";
@@ -2041,13 +2073,13 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 						sprintf(tmpstring, "_%s", rating_filename_suffix);
 						strcpy(rating_filename_suffix, tmpstring);
 						if (popts->detail) {
-							rename(dtc_full_filename(popts->ofilename, DTC_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
-							rename(dtc_full_filename(popts->ofilename, DTC_DIFF2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_DIFF2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
-							rename(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
-							rename(dtc_full_filename(popts->ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2));
+							if (rename(dtc_full_filename(popts->ofilename, DTC_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2))!= 0) fprintf(stderr, "WARNING: impossible to rename file in detais folder\n");
+							if (rename(dtc_full_filename(popts->ofilename, DTC_DIFF2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_DIFF2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2))!= 0) fprintf(stderr, "WARNING: impossible to rename file in detais folder\n");
+							if (rename(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MAX_MEAN2_SUFFIX, detail_folder_path_string.c_str(), tmpstring2))!= 0) fprintf(stderr, "WARNING: impossible to rename file in detais folder\n");
+							if (rename(dtc_full_filename(popts->ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2))!= 0) fprintf(stderr, "WARNING: impossible to rename file in detais folder\n");
 						}
-						rename(dtc_full_filename(popts->ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2));
-						rename(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2));
+						if (rename(dtc_full_filename(popts->ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2))!= 0) fprintf(stderr, "WARNING: impossible to rename file in detection folder\n");
+						if (rename(dtc_full_filename(popts->ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(popts->ofilename, rating_filename_suffix, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2))!= 0) fprintf(stderr, "WARNING: impossible to rename file in detection folder\n");
 					}
 					message_cstring = message_cstring + (CString)"\n" + (CString)logmessage.c_str();
 					if (logmessage2.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage2.c_str();
@@ -2107,8 +2139,10 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 //						if (!is_image_correct) {
 
 					LogInfo info(popts->filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence, distance, mean_stat, mean2_stat, max_mean_stat, max_mean2_stat, diff_stat, diff2_stat, rating_classification);
-					dtcWriteLog2(log_consolidated, info, &logline_tmp);
-					dtcWriteLog2(log, info, &logline_tmp);
+					dtcWriteLog2(log_consolidated_directory, info, (*pCapture->pCaptureInfo), &logline_tmp);
+					// if child instance, also writes log line to global log
+					//if (log_consolidated_directory_global.compare(log_consolidated_directory) !=0) dtcWriteLog2(log_consolidated_directory_global, info, &logline_tmp);
+					dtcWriteLog2(log, info, (*pCapture->pCaptureInfo), &logline_tmp);
 
 					/*FINAL CLEANING**************************************/
 					if (popts->viewDif) cv::destroyWindow("Initial differential photometry");
@@ -2258,7 +2292,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 			std::string waiting_message = "";
 			if (NbItemFromQueue(_T("file"), (CString)popts->DeTeCtQueueFilename, TRUE) == 0) {
 				if ((popts->parent_instance) && (popts->autostakkert) && (IsParentAutostakkertRunning(popts->autostakkert_PID))) {
-					waiting_message = "checking for pending or new files to be processed from AutoStakkert...\n(close Autostakkert if done with your processing!)\n";
+					waiting_message = "Checking for pending or new files to be processed, \nclose Autostakkert when done with your processing!\n";
 					if (logmessage3.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage3.c_str(); // ???
 				}
 				if ((popts->parent_instance) && (ChildrenProcessesNumber() > 0))
@@ -2281,21 +2315,40 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 		int nbChildren = ParentChildrenProcessesNumber(MAX(popts->detect_PID, popts->autostakkert_PID));
 		maxinstances_previous = popts->maxinstances;
 		if (file_exists(CString2string((CString)opts.DeTeCtQueueFilename))) popts->maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)popts->DeTeCtQueueFilename);
-if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string(popts->parent_instance).c_str() + _T("\nmax=") + (CString)std::to_string(popts->maxinstances).c_str() + _T("\nnb children=") + (CString)std::to_string(nbChildren).c_str() + _T("\nDeTeCt PID=") + (CString)std::to_string(popts->detect_PID).c_str() + _T("\nAS PID=") + (CString)std::to_string(popts->autostakkert_PID).c_str(), output_log_file.c_str(), &log_counter, GUI_display);
-		if ((!((!popts->parent_instance) && ((popts->maxinstances - nbChildren - 1) < 0))) && (local_acquisition_files_list.file_list.size() == 0)) do {
-			// ******************** Looks for other processed files*******************
+if (popts->debug) LogString(_T("!Debug info: Check queue: parent=") + (CString)std::to_string(popts->parent_instance).c_str() + _T(" \nmax=") + (CString)std::to_string(popts->maxinstances).c_str() + _T(" \nnb children=") + (CString)std::to_string(nbChildren).c_str() + _T(" \nDeTeCt PID=") + (CString)std::to_string(popts->detect_PID).c_str() + _T(" \nAS PID=") + (CString)std::to_string(popts->autostakkert).c_str() + " " + (CString)std::to_string(popts->autostakkert_PID).c_str(), output_log_file.c_str(), &log_counter, GUI_display);
+
+
+// ****** MAIN WAITING LOOP *** //
+// **************************** //
+		if ((!((!popts->parent_instance) && ((popts->maxinstances - nbChildren - 1) < 0))) && (local_acquisition_files_list.file_list.size() == 0)) do { 
 			if ((popts->parent_instance) && (strlen(popts->DeTeCtQueueFilename) > 0)) { // get other processed files by other instances
+
+			// ******************** Looks for other processed files*****************//
+			// *********************************************************************//
 				double duration_total_others = 0;
-				if ((popts->maxinstances > 1) && (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename))) {
-					duration_total += duration_total_others;
-					CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (total): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
-					if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))))  AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_ok"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
-					nb_new_instances = ForksInstances(popts->maxinstances, popts->detect_PID, (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
-					if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched"), output_log_file.c_str(), &log_counter, TRUE);
-					else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched"), output_log_file.c_str(), &log_counter, TRUE);
-					else if (opts.parent_instance) { //&&((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances))) {
-						nb_instances = 0;
-						DisplayInstanceType(&nb_instances);
+				if (popts->maxinstances > 1) {
+					int nb_processed_files = (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, popts->DeTeCtQueueFilename));
+					if (nb_processed_files > 0) {
+						duration_total += duration_total_others;
+						CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (total): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
+						if ((popts->maxinstances > 1) && (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))))  AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_ok"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
+						nb_new_instances = ForksInstances(popts->maxinstances, ASorDeTeCtPID(popts->autostakkert_PID, popts->detect_PID), (CString)popts->DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
+						if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched"), output_log_file.c_str(), &log_counter, TRUE);
+						else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched"), output_log_file.c_str(), &log_counter, TRUE);
+						else if (opts.parent_instance) { //&&((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances))) {
+							nb_instances = 0;
+							DisplayInstanceType(&nb_instances);
+						}
+						if ((popts->parent_instance) && (popts->autostakkert) && (IsParentAutostakkertRunning(popts->autostakkert_PID))) {
+							acquisitions_to_be_processed += nb_processed_files;
+							//totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(MAX(NbFilesFromQueue((CString)popts->DeTeCtQueueFilename), acquisitions_processed + acquisition_index_children)) + L")";
+							progress_all_status = MAX_RANGE_PROGRESS * ((float) (acquisitions_processed + acquisition_index_children) / (float) acquisitions_to_be_processed);
+							CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(progress_all_status));
+							CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+
+							std::string waiting_message = "Checking for pending or new files to be processed, \nclose Autostakkert when done with your processing!\n";
+							LogString((CString)"PLEASE WAIT, " + (CString)waiting_message.c_str(), output_log_file.c_str(), &log_counter, TRUE);
+						}
 					}
 				}
 			}
@@ -2324,6 +2377,9 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 			CString objectname;
 			QueueListEmpty = FALSE;
 			if (!popts->parent_instance && !file_exists(CString2string((CString)popts->DeTeCtQueueFilename))) dlg.OnFileExit(); 	// exits DeTeCt if Queuefile does not exists (removed at parent exit) for a child instance. Added because of difficulty to terminate children processes when exiting parent instance
+			
+			// ******************** Looks for new file to process*******************//
+			// *********************************************************************//
 			if (GetFileFromQueue(&objectname, (CString) popts->DeTeCtQueueFilename)) {
 				LogString(_T("Fetched file : ") + objectname, output_log_file.c_str(), &log_counter, TRUE);
 				std::ifstream file_stream(objectname);
@@ -2346,8 +2402,8 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 						(Is_Capture_Long_Enough(file, nframe, &ss)) &&
 							// ********* Ignores dark, pipp, winjupos derotated files
 							(!Is_Capture_Special_Type(file, &ss)) &&
-								(Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss))) {
-									// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+								// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
+								(Is_CaptureFile_To_Be_Processed(filename_acquisition, log_consolidated_directory, &ss))) {
 
 									// ********* Finally adds file to the list !
 									// Set-up global variable
@@ -2393,13 +2449,11 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 									(Is_Capture_OK_from_File(filename_folder, &filename_acquisition, &nframe, &ss3))
 									// ********* Error if acquisition has not enough frames
 									&& (Is_Capture_Long_Enough(filename_folder, nframe, &ss3))
-									// ********* Ignores if less than minimum frames
-									&& (!Is_Capture_Special_Type(filename_folder, &ss3))
 									// ********* Ignores dark, pipp, winjupos derotated files
-									&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, &ss3))
-									) {
+									&& (!Is_Capture_Special_Type(filename_folder, &ss3))
 									// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
-
+									&& (Is_CaptureFile_To_Be_Processed(filename_acquisition, log_consolidated_directory, &ss3))
+									) {
 												// ********* Finally adds file to the list !
 									std::string extension		= filename_folder.substr(filename_folder.find_last_of(".") + 1, filename_folder.size() - filename_folder.find_last_of(".") - 1);
 									std::string filename_path	= filename_folder.substr(0, filename_folder.find_last_of("\\"));
@@ -2422,10 +2476,22 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 				file_stream.close();
 			}
 			else QueueListEmpty = TRUE;
-		} while		((local_acquisition_files_list.file_list.size() == 0) &&													// Waiting mode  if no file in the list
-						((!QueueListEmpty) ||																								// but queue still not empty
-							((popts->parent_instance) && (((popts->autostakkert) && (IsParentAutostakkertRunning(popts->autostakkert_PID)))			// or parent instance and AutoStakkert! parent still running
-														|| (ChildrenProcessesNumber() > 0))															// or parent instance with other instances of DeTeCt running
+if (popts->debug) LogString(
+				_T("File list size=") + (CString)std::to_string(local_acquisition_files_list.file_list.size()).c_str() +
+				_T(", QueueListEmpty=") + (CString)std::to_string(QueueListEmpty).c_str() + 
+				_T(", parent=") + (CString)std::to_string(popts->parent_instance).c_str() +
+				_T(", AS_PID=") + (CString)std::to_string(popts->autostakkert_PID).c_str() +
+				_T(", AS=") + (CString)std::to_string(popts->autostakkert).c_str() +
+				_T(", Is AS Running=") + (CString)std::to_string(IsParentAutostakkertRunning(popts->autostakkert_PID)).c_str() +
+				_T(", # of Children=") + (CString)std::to_string(ChildrenProcessesNumber()).c_str() +
+				_T(", exit=") + (CString)std::to_string(popts->exit).c_str(),
+				output_log_file.c_str(), &log_counter, TRUE);
+		} while		((local_acquisition_files_list.file_list.size() == 0) &&																		// Waiting mode if no file in the list
+						((!QueueListEmpty) ||																										//		and queue still not empty
+							((!((!popts->parent_instance) && (popts->autostakkert) && (popts->autostakkert_PID > 0))) &&							//		or not AutoStakkert child 
+								((popts->parent_instance)	&& (((popts->autostakkert) && (IsParentAutostakkertRunning(popts->autostakkert_PID)))	//			and parent instance and AutoStakkert parent still running
+															|| ((!popts->autostakkert) && (ChildrenProcessesNumber() > 0)))							//				or normal parent instance with other instances of DeTeCt running
+								)
 							)
 						)
 					);
@@ -2458,7 +2524,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 	cv::destroyWindow("Detection image");
 
 	// ******************* end of processing configuration
-	if ((popts->parent_instance) && (!IsParentAutostakkertRunning(popts->autostakkert_PID))) {
+	if ((popts->parent_instance) && (popts->autostakkert) && (!IsParentAutostakkertRunning(popts->autostakkert_PID))) {
 		popts->autostakkert = FALSE;
 		popts->autostakkert_PID = 0;
 		dlg.execAS.SetCheck(0);
@@ -2482,6 +2548,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 		int month_min, month_max;
 		int year_min, year_max;
 		char suffix_char[MAX_STRING];
+		char consolidated_suffix_char[MAX_STRING];
 		char planet_char[MAX_STRING] = "";
 
 		if (planet_jupiter > 0) strcat(planet_char, "_jupiter");;
@@ -2492,6 +2559,8 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 		sprintf(suffix_char, "%s_%04d%02d%02d_%02d%02d", planet_char, year_min, month_min, day_min, hour_min, minute_min);
 		if ((day_min != day_max) || (month_min != month_max) || (year_min != year_max)) sprintf(suffix_char, "%s-%04d%02d%02d_%02d%02d", suffix_char, year_max, month_max, day_max, hour_max, minute_max);
 		else if ((hour_min != hour_max) || (minute_min != minute_max) || (second_min != second_max)) sprintf(suffix_char, "%s-%02d%02d", suffix_char, hour_max, minute_max);
+		//CT2A detection_folder_name_char(CString(detection_folder_name_string.c_str()));
+		sprintf(consolidated_suffix_char, "%s_%s.log", suffix_char, detection_folder_name_string.c_str());
 		sprintf(suffix_char, "%s.log", suffix_char);
 
 		std::string message = "Total duration analyzed ";
@@ -2525,7 +2594,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 
 		char tmpchar[MAX_STRING];
 		LogString((CString)message.c_str(), output_log_file.c_str(), &log_counter, TRUE);
-		//LogString(L"In " + (CString)(log_consolidated.c_str()) + L", please find:", output_log_file.c_str());
+		//LogString(L"In " + (CString)(log_consolidated_directory.c_str()) + L", please find:", output_log_file.c_str());
 		//LogString(L" * log file " + (CString)(left(DeTeCtFileName(tmpchar), InRstr(DeTeCtFileName(tmpchar), "."), tmpchar)) + DTC_LOG_SUFFIX, output_log_file.c_str());
 		//LogString(L" * folder " + (CString)(right(detection_folder_fullpathname_string.c_str(), strlen(detection_folder_fullpathname_string.c_str()) - InRstr(detection_folder_fullpathname_string.c_str(), "\\") - 1, tmpchar)) + L" for checking images", output_log_file.c_str());
 
@@ -2533,6 +2602,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 
 		CT2A LogOrgFilename(DeTeCt_additional_filename_from_folder(CString(log.c_str()), DTC_LOG_SUFFIX));
 		CT2A LogNewFilename(DeTeCt_additional_filename_from_folder(CString(log.c_str()), (CString)suffix_char));
+		CT2A LogConsolidatedNewFilename(DeTeCt_additional_filename_from_folder(CString(log_consolidated_directory.c_str()), (CString)consolidated_suffix_char));
 
 		CT2A tmp_log_detection_dirname(DeTeCt_additional_filename_from_folder(_T(""), (CString)suffix_char));
 		strcpy(log_detection_dirname, tmp_log_detection_dirname);
@@ -2543,9 +2613,16 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 		// renames logs and shows links, creates zip if parent instance
 		char item_to_be_zipped_shortname[MAX_STRING] = "";
 		if (popts->parent_instance) {
-			rename(LogOrgFilename, LogNewFilename);
+			if (rename(LogOrgFilename, LogNewFilename)!= 0) {
+				fprintf(stderr, "WARNING: cannot rename log file\n");
+			}
+			CString LogNewFilename_cstring;
+			CString LogConsolidatedNewFilename_cstring;
+			char2CString(LogNewFilename, &LogNewFilename_cstring);
+			char2CString(LogConsolidatedNewFilename, &LogConsolidatedNewFilename_cstring);
+			duplicate_txtfile(LogNewFilename_cstring, LogConsolidatedNewFilename_cstring);
 
-//			CDeTeCtMFCDlg::getdetectLoglink()->SetURL((CString)log_consolidated.c_str() + _T("\\") + DeTeCt_additional_filename_from_folder(_T(""), DTC_LOG_SUFFIX));
+//			CDeTeCtMFCDlg::getdetectLoglink()->SetURL((CString)log_consolidated_directory.c_str() + _T("\\") + DeTeCt_additional_filename_from_folder(_T(""), DTC_LOG_SUFFIX));
 			CDeTeCtMFCDlg::getdetectLoglink()->SetURL((CString)LogNewFilename);
 			dlg.EnableLogLink(TRUE);
 			dlg.GetDlgItem(IDC_MFCLINK_DETECTLOG)->SetWindowTextW(_T("Detection log"));
@@ -2556,9 +2633,9 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 
 			// *************** creates zip file ***********/
 			strcpy(zipfile, "\0");
-			strcpy(zip_detection_location, zipfile);
-			strcpy(popts->zipname, zipfile);
-			if (popts->zip) {
+			if ((popts->zip) && (!opts.dateonly)) {
+				strcpy(zip_detection_location, zipfile);
+				strcpy(popts->zipname, zipfile);
 				CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Creating zip file, please wait ...");
 				LogString(L"Creating zip file, please wait ...", output_log_file.c_str(), &log_counter, TRUE);
 
@@ -2574,7 +2651,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 				strcat(item_to_be_zipped_shortname, "\0");
 				strcpy(popts->zipname, item_to_be_zipped_shortname);
 
-//				strcat(item_to_be_zipped_location, log_consolidated.c_str());					// eg 0x000000b79c3fdf90 "G:\\work\\Impact\\DeTeCt-PSWS\\DeTeCt-MFC\\x64\\Release"
+//				strcat(item_to_be_zipped_location, log_consolidated_directory.c_str());					// eg 0x000000b79c3fdf90 "G:\\work\\Impact\\DeTeCt-PSWS\\DeTeCt-MFC\\x64\\Release"
 //				strcat(item_to_be_zipped_location, "\0");
 
 				strcat(zipfile, detection_folder_fullpathname_string.c_str());					// eg "G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-08_00-39-34"
@@ -2582,7 +2659,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 				strcat(zipfile, "\0");															// eg "G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-08_00-39-34.zip"
 
 //				strcpy(zip_detection_dirname, zipfile);											// eg "G:\\work\\Impact\\tests\\autostakkert3.2_detect\\Impact_detection_run@2020-05-08_00-39-34"
-				strcpy(zip_detection_location, log_consolidated.c_str());						// eg "G:\\work\\Impact\\tests\\autostakkert3.2_detect"
+				strcpy(zip_detection_location, log_consolidated_directory.c_str());						// eg "G:\\work\\Impact\\tests\\autostakkert3.2_detect"
 
 				// Deactivated and replaced by new version below
 				zip(zipfile, item_to_be_zipped);
@@ -2606,7 +2683,7 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 					message = "(Click) check detection images and send email with zip file!\n";
 					CDeTeCtMFCDlg::getfileName()->SetWindowText((CString) message.c_str());
 				}
-				else {
+				else if (!popts->dateonly) {
 					dlg.EnableZipLink(FALSE);
 					LogString(L"ERROR: zip file " + (CString)(right(zipfile, strlen(zipfile) - InRstr(zipfile, "\\") - 1, tmpchar)) + L" not created!", output_log_file.c_str(), &log_counter, TRUE);
 					message = "(Click) Check detection images and send email with log!\n";
@@ -2659,20 +2736,21 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 
 		if (popts->parent_instance) {
 			log_messages.push_back("");
-			log_messages.push_back("Click \"Check detection images...\" button to open in \"" + log_consolidated + "\" :");
+			log_messages.push_back("Click \"Check detection images...\" button to open in \"" + log_consolidated_directory + "\" :");
 			log_messages.push_back(" - an explorer in \"" + detection_folder_name_string + "\" to check the detection images");
 			std::ifstream filetest(zipfile);
 			if (filetest) {
 				std::string stritem_to_be_zipped_shortname(item_to_be_zipped_shortname);
 				log_messages.push_back(" - an explorer where \"" + stritem_to_be_zipped_shortname + "\" to be sent by email is  (along with " + left(DeTeCtFileName(tmpchar), InRstr(DeTeCtFileName(tmpchar), "."), tmpchar) + " log)");
-				if (popts->email)
-					log_messages.push_back(" - an email to send the results by attaching \"" + stritem_to_be_zipped_shortname + "\" file");
-				else log_messages.push_back("Please send an email with the results by attaching \"" + stritem_to_be_zipped_shortname + "\" file");
+				if (!popts->dateonly)  
+					if (popts->email) log_messages.push_back(" - an email to send the results by attaching \"" + stritem_to_be_zipped_shortname + "\" file");
+					else log_messages.push_back("Please send an email with the results by attaching \"" + stritem_to_be_zipped_shortname + "\" file");
 			}
 			else {
 				std::string strlog_detection_dirname(log_detection_dirname);
-				if (popts->email) log_messages.push_back(" - an email to send the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder");
-				else log_messages.push_back("Please send an email with the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder");
+				if (!popts->dateonly)
+					if (popts->email) log_messages.push_back(" - an email to send the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder");
+					else log_messages.push_back("Please send an email with the results by attaching the detection images and \"" + strlog_detection_dirname + "\" from the \"" + detection_folder_name_string + "\" folder");
 			}
 			filetest.close();
 			log_messages.push_back("");
@@ -2715,7 +2793,9 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 			output_log2 << "======================================================================================================\n\n";
 			output_log2.flush();
 			output_log2.close();
-			rename(OutOrgFilename2, OutNewFilename2);
+			if (rename(OutOrgFilename2, OutNewFilename2)!= 0) {
+				fprintf(stderr, "WARNING: cannot rename outputfile\n");
+			}
 			output_log_in.close();
 		}
 //		SendEmailDlg* email = new SendEmailDlg(NULL, log_messages);
@@ -2737,17 +2817,18 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 		
 		// TODO: Delete log if empty
 	}
-	if (popts->exit) {
-		if (popts->shutdown) ShellExecute(NULL, L"open", _T("cmd"), _T("/c shutdown /s /t 30 /d u:0:0"), NULL, SW_NORMAL);
+	//if (!popts->debug) {
+		if (popts->exit) {
+			if (popts->shutdown) ShellExecute(NULL, L"open", _T("cmd"), _T("/c shutdown /s /t 30 /d u:0:0"), NULL, SW_NORMAL);
+			dlg.OnFileExit();
+		}
+	//}
+
+		if (((popts->autostakkert_PID > 0) && (!popts->parent_instance)) ||  ((!popts->interactive) && (!popts->parent_instance) && (!popts->autostakkert))) // Automatically exit for child instances in autostakkert mode or automatic mode
 		dlg.OnFileExit();
-	}
 
-	/*if (((popts->autostakkert) && (!popts->parent_instance)) || ((!popts->interactive) && (!popts->parent_instance))) // Automatically exit for child instances in autostakkert mode or automatic mode
-		dlg.OnFileExit();
-
-	if (!popts->interactive)	dlg.OnFileExit();  // Automatically exit of parent instance in automatic mode
-	*/
-
+	if ((!popts->interactive) && (!popts->parent_instance))	dlg.OnFileExit();  // Automatically exit of parent non autostakkert instance in automatic mode
+	
 	// Reactivate file/folder management
 	CWnd *openfolderbtn = dlg.GetDlgItem(IDOK3);
 	if (openfolderbtn) {
@@ -2845,7 +2926,7 @@ char *dtc_full_filename(const char *acquisition_filename, const char *suffix, co
 	init_string(tmpstring);
 	init_string(filename);
 	snprintf(filename, strlen(acquisition_filename) - 4, "%s", acquisition_filename);
-	strcat(filename, suffix);
+	strcat_s(filename, suffix);
 	filename[std::strlen(filename)] = '\0';
 	strcpy(full_filename, path_name);
 	std::strcat(full_filename, right(filename, strlen(filename) - InRstr(filename, "\\"), tmpstring));
@@ -2878,8 +2959,8 @@ char *dtc_full_filename_2suffix(const char *acquisition_filename, const char *su
 	init_string(tmpstring);
 	init_string(filename);
 	snprintf(filename, strlen(acquisition_filename) - 4, "%s", acquisition_filename);
-	strcat(filename, suffix);
-	strcat(filename, suffix2);
+	strcat_s(filename, suffix);
+	strcat_s(filename, suffix2);
 	filename[std::strlen(filename)] = '\0';
 	strcpy(full_filename, path_name);
 	std::strcat(full_filename, right(filename, strlen(filename) - InRstr(filename, "\\"), tmpstring));
@@ -2914,7 +2995,10 @@ void zip(char *zipfilename, char *item_to_be_zipped)
 	VARIANT vDir, vFile, vOpt;
 	BSTR strptr1, strptr2;
 
-	CoInitialize(NULL);
+	if (CoInitialize(NULL) != S_OK) {
+		fprintf(stderr, "ERROR: Impossible to initialize COM library\n");
+		exit(EXIT_FAILURE);
+	}
 	hResult = CoCreateInstance(CLSID_Shell, NULL, CLSCTX_INPROC_SERVER, IID_IShellDispatch, (void **)&pISD);
 
 	if (SUCCEEDED(hResult) && pISD != NULL)
@@ -3062,7 +3146,7 @@ void LogString(CString log_cstring,  CString output_filename, int *log_counter, 
 	(*log_counter) = (*log_counter) + 1;
 }
 
-BOOL GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename) {
+int GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename) {
 	CString processed_filename;
 	CString processed_filename_acquisition;
 	CString processed_message;
@@ -3075,6 +3159,10 @@ BOOL GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index
 
 	double duration = 0;
 	while (GetProcessedFileFromQueue(&processed_filename, &processed_filename_acquisition, &processed_message, &processed_rating, &duration, &nframe_child, &fps_int_child, _T("file_processed "), (CString)DeTeCtQueueFilename)) {
+totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children)+1)) + L")";
+CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
+CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children)+1)));
+CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
 		switch (processed_rating) {
 		case Error:
 			(*pnb_error_impact)++;
@@ -3092,14 +3180,10 @@ BOOL GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index
 			CDeTeCtMFCDlg::getimpactHigh()->SetWindowText(std::to_wstring((*pnb_high_impact)).c_str());
 			break;
 		}
+
 		(*pacquisition_index_children)++;
 //(*pacquisitions_to_be_processed) = NbFilesFromQueue(char2CString(DeTeCtQueueFilename, &tmp));
 		(*pduration_total) += duration;
-		totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(*pacquisitions_to_be_processed) + L")";
-		CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
-		CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / (*pacquisitions_to_be_processed)));
-		CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
-
 		std::string processed_filename_acquisition_string = CString2string(processed_filename_acquisition);
 		std::string processed_short_filename = processed_filename_acquisition_string.substr(processed_filename_acquisition_string.find_last_of("\\") + 1, processed_filename_acquisition_string.length());
 		plog_messages->push_back(processed_short_filename + ":" + "    " + CString2string(processed_message));
@@ -3114,14 +3198,20 @@ BOOL GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index
 
 		duration = 0;
 		nb_otherprocessedfiles++;
+
+		totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))) + L")";
+		CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
+		CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))));
+		CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
 	}
-	if (nb_otherprocessedfiles == 0) return FALSE;
+	/*if (nb_otherprocessedfiles == 0) return FALSE;
 	else {
 		return TRUE;
-	}
+	}*/
+	return nb_otherprocessedfiles;
 }
 
-int	ForksInstances(const int maxinstances, const int detect_PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances)
+int	ForksInstances(const int maxinstances, const int PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances)
 {
 	int nb_forked_instances = 0;
 	int files_to_be_processed = 0;
@@ -3136,14 +3226,17 @@ int	ForksInstances(const int maxinstances, const int detect_PID, const CString D
 			nb_forked_instances = 0;
 			while (nb_forked_instances < nb_instances_to_be_forked) { // no variable there: we do not know at which speed DeTeCt child instances will be launched
 				if (nb_forked_instances > 0) Sleep(scan_time + rand() % scan_time_random_max); // in ms
-				if (detect_PID > 0) { // Should not happen, as stores parent DeTeCt PID
-					HINSTANCE status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto - dtcpid ") + (CString)std::to_string(detect_PID).c_str() + (CString) " - maxinst " + (CString)std::to_string(maxinstances).c_str(), NULL, SW_HIDE);
-					if ((int)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((int)status).c_str());
+				HINSTANCE status;
+				int child_window_state = SW_HIDE;
+if (opts.debug) child_window_state = SW_NORMAL;
+				if (PID > 0) { // Should not happen, as stores parent DeTeCt PID
+					if (!opts.autostakkert) status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto -dtcpid ") + (CString)std::to_string(PID).c_str() + (CString)" -maxinst " + (CString)std::to_string(maxinstances).c_str(), NULL, child_window_state);
+					else  status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto -aspid ") + (CString)std::to_string(PID).c_str() + (CString)" -maxinst " + (CString)std::to_string(maxinstances).c_str(), NULL, child_window_state);
 				}
 				else {
-					HINSTANCE status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto  -maxinst ") + (CString)std::to_string(maxinstances).c_str(), NULL, SW_HIDE);
-					if ((int)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((int)status).c_str());
+					status = ShellExecute(NULL, L"open", DeTeCt_additional_filename_exe_fullpath(_T(".exe")), _T(" -auto  -maxinst ") + (CString)std::to_string(maxinstances).c_str(), NULL, child_window_state);
 				}
+				if ((uintptr_t)status <= 32) AfxMessageBox(_T("Error ShellExecute, code ") + (CString)std::to_string((uintptr_t)(status)).c_str());
 				nb_forked_instances++;
 			}
 			(*pnbinstances) += nb_forked_instances;
@@ -3152,6 +3245,12 @@ int	ForksInstances(const int maxinstances, const int detect_PID, const CString D
 	}
 	return nb_forked_instances;
 }
+
+int		ASorDeTeCtPID(const int AutoStakkert_ID, const int DeTeCt_ID) {
+	if (AutoStakkert_ID > 0) return AutoStakkert_ID;
+	else return DeTeCt_ID;
+}
+
 
 void DisplayProcessingTime(clock_t *pcomputing_threshold_time, clock_t *plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time) {
 	CString processing_time_str;
@@ -3263,7 +3362,7 @@ void WriteIni() {
 	::WritePrivateProfileString(L"impact", L"impact_duration_min", str, DeTeCtIniFilename);
 	str.Format(L"%.2f", opts.radius);
 	::WritePrivateProfileString(L"impact", L"radius", str, DeTeCtIniFilename);
-	str.Format(L"%d", opts.threshold);
+	str.Format(L"%.0f", opts.threshold);
 	::WritePrivateProfileString(L"impact", L"thresh", str, DeTeCtIniFilename);
 	str.Format(L"%.2f", opts.facSize);
 	::WritePrivateProfileString(L"roi", L"sizfac", str, DeTeCtIniFilename);
@@ -3336,6 +3435,8 @@ void WriteIni() {
 	::WritePrivateProfileString(L"processing", L"autoshutdown", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.maxinstances);
 	::WritePrivateProfileString(L"processing", L"maxinstances", str, DeTeCtIniFilename);
+	str.Format(L"%d", opts.reprocessing);
+	::WritePrivateProfileString(L"processing", L"reprocessing", str, DeTeCtIniFilename);
 }
 
 void FileListToQueue(std::vector<std::string> file_list, CString QueueFilename) {
@@ -3370,7 +3471,7 @@ void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const 
 		std::string filename;
 		int index = 0;
 		//int initial_file_list_size = pacquisition_files->file_list.size();
-		(*acquisitions_to_be_processed) = pacquisition_files->file_list.size();
+		(*acquisitions_to_be_processed) = (int) pacquisition_files->file_list.size();
 		while (index < pacquisition_files->file_list.size()) {
 			filename = pacquisition_files->file_list.at(index);
 			if (index < index_current)			PushItemToQueue(char2CString(filename.c_str(), &tmp), _T("file_ok"), char2CString(opts.DeTeCtQueueFilename, &tmp2), TRUE);

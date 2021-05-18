@@ -43,8 +43,8 @@ extern "C" {
 	//Not used as of now
 	struct _DiffImage {
 		cv::Mat frame;
-		int x_shift;
-		int y_shift;
+		int x_shift = 0;
+		int y_shift = 0;
 	};
 
 	typedef struct _Image Image;

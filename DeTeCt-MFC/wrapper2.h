@@ -45,6 +45,6 @@ typedef struct _DtcCapture2 DtcCapture2;*/
 	BOOL		Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acquisition, int *pnframe, std::wstringstream *pmessage);
 	BOOL		Is_Capture_Long_Enough(const std::string file, const int nframe, std::wstringstream *pmessage);
 	BOOL		Is_Capture_Special_Type(const std::string file, std::wstringstream *pmessage);
-	BOOL		Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, std::wstringstream *pmessage);
+	BOOL		Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, const std::string log_filename, std::wstringstream *pmessage);
 
 #endif /* __WRAPPER_H__ */

@@ -136,6 +136,9 @@
     <ClInclude Include="common2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="AutoUpdate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DeTeCt-MFC.cpp">
@@ -219,6 +222,9 @@
     <ClCompile Include="common2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="AutoUpdate.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="DeTeCt-MFC.rc">
@@ -251,6 +257,7 @@
       <Filter>documentation\detect_guide</Filter>
     </None>
     <None Include="..\x64\Release\DeTeCt.ini" />
+    <None Include="..\x64\Release\DeTeCt.versions" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\DeTeCt-MFC.ico">
@@ -408,6 +415,15 @@
     </Image>
     <Image Include="Documents\detect_guide\negative\dust\movies_FITS_2_000000_20120808_064633_296_dtc_max-mean.jpg">
       <Filter>documentation\detect_guide</Filter>
+    </Image>
+    <Image Include="Image.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\parameters.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon1.ico">
+      <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>

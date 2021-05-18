@@ -57,6 +57,7 @@ protected:
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
 	virtual BOOL EndDialog();
+	virtual BOOL OnCheckUpdate();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -196,6 +197,7 @@ public:
 	afx_msg void OnFileOpenfile();
 	afx_msg void OnFileResetFileList();
 	afx_msg void OnFileClearExecutionLog();
+	afx_msg void OnFileClearImpactFiles();
 	std::string scan_folder_path = {};
 	std::wstring max_mean_folder_path = {};
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);
@@ -265,6 +267,7 @@ public:
 	CButton Zip;
 	CButton Explorer;
 	CButton Email;
+	CButton Noreprocessing;
 	CButton detailedADUdtc;
 	CButton saveIntFramesADUdtc;
 	CButton showROI;
@@ -302,7 +305,8 @@ public:
 
 	afx_msg void OnCbnSelchangeCombo2();
 	//afx_msg void OnBnClickedCheck11();
- };
+	afx_msg void OnBnClickedCheck13();
+};
 #pragma once
 
 
