@@ -13,17 +13,7 @@
 #include <iostream>
 using namespace std;
 #include <fstream>
-#include "processes_queue.h"
-
-#ifndef _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
-#endif
-
-#include <experimental/filesystem>
-namespace filesys = std::experimental::filesystem;
-
-/*#include <filesystem>
-namespace filesys = std::filesystem;*/
+#include "processes_queue.hpp"
 
 #include "direct.h"
 
@@ -103,7 +93,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 
 	// Sets default values for options then reads options from ini file (before it could be changed by command line)
 	//opts.interactive = TRUE; // -interactive / -noautomatic
-CDeTeCtMFCDlg::CDeTeCtMFCDlg(NULL);
+	CDeTeCtMFCDlg::CDeTeCtMFCDlg(NULL);
 	opts.flat_preparation = FALSE;
 	opts.interactive_bak = opts.interactive;
 
@@ -352,13 +342,13 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(NULL);
 								}
 								else target_file = object;
 
-								opts.filename = new char[target_file.size() + 1];
+								//opts.filename = new char[target_file.size() + 1]; // exception read access
 								std::copy(target_file.begin(), target_file.end(), opts.filename);
 								opts.filename[target_file.size()] = '\0';
 								DBOUT("file = " << opts.filename << "\n");
 								std::string tmp_string(opts.filename);
 								opts.message[index_message++] = "Using file " + tmp_string;
-
+								opts.message[index_message] = "\0";
 							}
 							else {
 								opts.message[index_message++] = "WARNING: Extension : " + extension + " not supported";
@@ -383,12 +373,13 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(NULL);
 								}
 								else target_folder = object;
 
-								opts.dirname = new char[target_folder.size() + 1];
+								//opts.dirname = new char[target_folder.size() + 1]; // exception read access
 								std::copy(target_folder.begin(), target_folder.end(), opts.dirname);
 								opts.dirname[target_folder.size()] = '\0';
 								DBOUT("folder = " << target_folder.c_str() << "\n");
 								std::string tmp_string(opts.dirname);
 								opts.message[index_message++] = "Using directory " + tmp_string;
+								opts.message[index_message] = "\0";
 							}
 							else {
 								DBOUT("WARNING: Object : " << object.c_str() << " not found\n");
@@ -433,7 +424,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(NULL);
 	if ((DeTeCt_processes_nb > opts.maxinstances) || ((opts.autostakkert) && (!opts.parent_instance))) {
 		//if ((DeTeCt_processes_nb > opts.maxinstances) && (!opts.interactive)) {
 		//log processes to be done and exits
-		if (opts.filename) {
+		if (strlen(opts.filename) > 0) {
 if (opts.debug) {
 	opts.message[index_message++] = "!Debug info: Queuing filename " + std::string (opts.filename);
 	opts.message[index_message] = "\0";
@@ -468,7 +459,7 @@ if (opts.debug) {
 			}
 			else DBOUT("file already queued\n");
 		}
-		else if (opts.dirname) {
+		else if (strlen(opts.dirname) > 0) {
 if (opts.debug) {
 	opts.message[index_message++] = "!Debug info: Queuing directory " + std::string(opts.dirname);
 	opts.message[index_message] = "\0";
@@ -483,33 +474,54 @@ if (opts.debug) {
 
 	// if new instance and no objects given, looks for work in queue in auto mode
 	//if ((!opts.interactive) && (!opts.filename) && (!opts.dirname)) {
-	if ((!opts.filename) && (!opts.dirname) && (strlen(opts.DeTeCtQueueFilename) > 1)) {
+	if ((strlen(opts.filename) == 0) && (strlen(opts.dirname) == 0) && (strlen(opts.DeTeCtQueueFilename) > 1)) {
 		CString objectname;
 		CString tmp;
+if (opts.debug) {
+	opts.message[index_message++] = "Getting file from queue";
+	opts.message[index_message] = "\0";
+}
 		if (GetFileFromQueue(&objectname, (CString)opts.DeTeCtQueueFilename)) {
+if (opts.debug) {
+	CT2A char_objectname(objectname);
+	opts.message[index_message++] = "Fetched file from queue" + std::string(char_objectname);
+	opts.message[index_message] = "\0";
+}
 			std::ifstream file(objectname);
 			CT2A tmpo(objectname);
 			if (file) {
-				opts.filename = new char[strlen(tmpo)+1];
+				//opts.filename = new char[strlen(tmpo)+1];  // exception read access
 				strcpy(opts.filename, tmpo);
 				opts.filename[strlen(tmpo)] = '\0';
+				opts.message[index_message++] = "Using file " + std::string(tmpo);
+				opts.message[index_message] = "\0";
 			}
 			else {
 				DIR *folder_object;
 				if (folder_object = opendir(tmpo)) {
-					opts.dirname = new char[strlen(tmpo) + 1];
+					//opts.dirname = new char[strlen(tmpo) + 1];  // exception read access
 					strcpy(opts.dirname, tmpo);
 					opts.dirname[strlen(tmpo)] = '\0';
 					closedir(folder_object);
+					opts.message[index_message++] = "Using directory " + std::string(tmpo);
+					opts.message[index_message] = "\0";
 				}
 				else DBOUT("parameter = " << objectname << " not found\n");
 			}
 			file.close();
 		}
 		else if (opts.autostakkert_PID > 0) return FALSE; // No file for autostakkert child
+		else { // No file for child
+			if (opts.debug) {
+				opts.message[index_message++] = "!Degug info : Can't fetch file ...";
+				opts.message[index_message] = "\0";
+				//if (!opts.parent_instance) return FALSE;
+			}
+			if (!opts.parent_instance) return FALSE;
+		}
 	}
-	if (opts.filename) DBOUT("file = " << opts.filename << "\n");
-	if (opts.dirname) DBOUT("folder = " << opts.dirname << "\n");
+	if (strlen(opts.filename) > 0) DBOUT("file = " << opts.filename << "\n");
+	if (strlen(opts.dirname) > 0) DBOUT("folder = " << opts.dirname << "\n");
 
 	//clock_t start = clock(); clock_t end = clock();
 	if (opts.debug) {
@@ -592,7 +604,7 @@ void CreateQueueFileName() {
 		CString pid_cstring;
 		pid_cstring.Format(L"%d", opts.autostakkert_PID);
 		CString2char(DeTeCt_additional_filename_exe_fullpath(CString(_T(DTC_QUEUE_PREFIX)) + _T("_as") + pid_cstring + _T(DTC_QUEUE_EXT)), opts.DeTeCtQueueFilename);
-		if (!file_exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
+		if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
 			opts.parent_instance = TRUE;
 		}
 		else {

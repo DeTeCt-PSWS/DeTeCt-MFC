@@ -1,4 +1,4 @@
-#pragma warning(disable: 4100 4189 4840 4458 4239)
+#pragma warning(disable: 4100 4189 4840 4458 4239 26812 28182 28183)
 /*
 DISCLAIMER
 
@@ -2610,3 +2610,4 @@ int CWndResizer::CFlowLayoutPanel::GetItemSpacingY()
 {
 	return m_nItemSpacingY;
 }
+#pragma warning(default: 4100 4189 4840 4458 4239 26812 28182 28183)

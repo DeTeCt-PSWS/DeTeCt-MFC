@@ -1,4 +1,4 @@
-#pragma warning(disable : 4244)
+#pragma warning(disable : 4244 6053 6387)
 
 /*** File libwcs/fitsfile.c
  *** September 15, 2011

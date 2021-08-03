@@ -20,13 +20,17 @@ extern std::string app_title;
 
 struct options {
 // variables
-	char			*filename = nullptr;
+	/*char			*filename = nullptr;
 	char			*ofilename = nullptr;
+	char			*ovfname = nullptr;
+	char			*sfname;
+	char			*dirname = nullptr;*/
+	char			filename[MAX_STRING] = {};
+	char			ofilename[MAX_STRING] = {};
 	char			darkfilename[MAX_STRING] = {};
 	std::string		message[100];
-	char			*ovfname = nullptr;
-	//char			*sfname;
-	char			*dirname = nullptr;
+	char			ovfname[MAX_STRING] = {};
+	char			dirname[MAX_STRING] = {};
 	char			impactdirname[MAX_STRING] = {};
 	char			zipname[MAX_STRING] = {};
 	int				nsaveframe = 0;							// Frame number to <ofilename>
@@ -115,6 +119,9 @@ struct AcquisitionFilesList {
 	std::vector<int>		 nb_prealigned_frames	= {};
 };
 
+enum class _Instance_type { autostakkert_parent, parent, autostakkert_single, single, autostakkert_child, child };
+typedef enum _Instance_type Instance_type;
+
 void			read_files(std::string folder, AcquisitionFilesList *acquisition_files);
 
 int				itemcmp(const void *a, const void *b);
@@ -123,7 +130,8 @@ int				framecmp(const void *a, const void *b);
 int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, double radius, double incrLum, int impact_frames_min);
 
 
-int				detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path);
+//int				detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path);
+int				detect(std::vector<std::string> current_file_list, std::string scan_folder_path);
 
 char			*dtc_full_filename			(const char *acquisition_filename, const char *suffix,						const char *path_name, char *full_filename);
 char			*dtc_full_filename_2suffix	(const char *acquisition_filename, const char *suffix, const char *suffix2,	const char *path_name, char *full_filename);
@@ -133,5 +141,3 @@ void			zip(char *zipfilename, char *item_to_be_zipped);
 Instance_type	DisplayInstanceType(int *nbinstances);
 
 void			WriteIni();
-
-//void	LogString(CString log_cstring);

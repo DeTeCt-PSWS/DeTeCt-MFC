@@ -22,5 +22,6 @@ struct _ImpactDetectParams {
 typedef struct _ImpactDetectParams ImpactDetectParams;
 
 UINT __cdecl impactDetection(LPVOID pParam);
+//UINT __cdecl impactDetection(ImpactDetectParams* pParam);
 
 #endif

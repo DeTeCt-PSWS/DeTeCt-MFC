@@ -1,4 +1,4 @@
-#pragma warning(disable : 4244 4131)
+#pragma warning(disable : 4244 4131 6053 26451)
 
 /*** File libwcs/hput.c
  *** September 9, 2011
@@ -1319,3 +1319,4 @@ int	ndec;		/* Number of decimal places in degree string */
  *
  * Sep  9 2011	Always initialize q2 and lroot
  */
+#pragma warning(default : 4244 4131 6053 26451)

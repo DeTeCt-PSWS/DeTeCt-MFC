@@ -11,8 +11,6 @@ GUI:			checkboxes for selecting files/folders to be processed (M.Lewis, Isaac Lo
 GUI:			Drag & drop functionality
 Firecapture:	code for live detection
 General:		video card offload library usage (OpenCL) (A.Wesley)
-Dev:			updates opencv and MSVC version
-Dev:			checks code analysis results
 Dev:			cleans includes in headers vs sources
 
 Medium priority:
@@ -29,21 +27,22 @@ Files:			avi support to be fixed
 
 High priority:
 --------------
-
+Autostakkert:	Info logs AS3 (median quality)
+				Use as3 file even if in different folder than video (check video file)
 GUI:			Add generate preflat option
 				TBD: slowness in files acquisition addition (fileget_name to be optimized with readdir)
 				**Extra tool to analyze images
-Multiinstance:	Children list to optimize exit
+Instances:		Children list to optimize exit
 				TBD: optimize children count process
 				TBD: InstanceType to modify with GetIntParam?
 Development:	Debug parameter window (not saved in ini file)
-				Code Analysis check
 				Dev. subrevision automatic version update for subscribers
 				Dev. parameters (debug, autostakkert simulation mode)
 				Add clean directory checkbox in dev. parameters
+				malloc/free new/delete checks
+				expose only needed functions
 GUI:			Pause/Resume button (M.Lewis)
 GUI:			End after next video (M.Lewis)
-Logs:			**TBD: log additional info from analysis (sampling, noise, aso.)
 ROI:			Scan of 90° from cog to edge (for Saturn)
 				Histogram usage (Emil)
 				TBD: Use as3 ROI
@@ -60,6 +59,23 @@ Detection:		**stretch black level in detection max-mean/mean images
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+--------------------------------------------------------------------------------------
+v3.4.1.0
+Email:			Add detect version in email
+Detection:		*Do not save detection original images not stretched (max-mean2, mean2, diff2) - saves 50% storage
+Logs:			*SharpCap 3.2 (=future date/frame fields) support
+Logs:			*ASICap 1.5 support
+Logs:			log additional info from analysis (sampling, noise, aso.)
+GUI:			About: Gemini price
+GUI:			About: supported acquisition softwares
+Bugfix:			*Logs: Multi-instances files missed (total rewrite of queuefile management)
+Bugfix:			Logs: Simultaneous instances writing in output.log / detect.log
+Bugfix:			Instances: Freeze of processing time in multi-instance mode (refresh of display when getting processed files)
+Bugfix:			*Logs: No capture info for avi acquisitions
+Bugfix:			Logs: Bad Binning and sensor temperature capture info
+Bugfix:			Autoupdate: Incorrect messages when new DeTeCt version not found on server
+Bugfix:			Read access error opt variable
+Development:	Code Analysis check
 --------------------------------------------------------------------------------------
 v3.4.0
 Functions:

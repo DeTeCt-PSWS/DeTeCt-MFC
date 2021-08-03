@@ -6,16 +6,16 @@
 /*                                                                              */
 /********************************************************************************/
 
-#include <xkeycheck.h>
+//#include <xkeycheck.h>
 
-#include "common.h"
+//#include "common.h"
 #include <time.h>
-#include <stdio.h>
-#include <sys/stat.h>
+//#include <stdio.h>
+//#include <sys/stat.h>
 
 #include "serfmt.h"
 #include "datation.h"
-#include "dtc.h"
+//#include "dtc.h"
 #include "wrapper3.h"
 
 const double FPS_MIN		=	0.01;
@@ -332,7 +332,7 @@ void dtcGetDatation(DtcCapture *capture, char *filename, int nbframes, double *p
 				fps_fits=0;
 				end_time_fits=JD_init;
 			} else {
-				fps_fits=(capture->u.filecapture->LastFileIdx-capture->u.filecapture->FirstFileIdx+1)/duration_fits;
+				fps_fits=((double)capture->u.filecapture->LastFileIdx - (double)capture->u.filecapture->FirstFileIdx+1)/duration_fits;
 				duration_fits=duration_fits+1/fps_fits;
 				end_time_fits=capture->u.filecapture->EndTimeUTC_JD+1/fps_fits/ONE_DAY_SEC;
 			}	
@@ -392,7 +392,7 @@ if ((timezone<-12) && (*ptimetype)==UT) {
 }
 /********** Date from log file **********/	
 											if (debug_mode) { fprintf(stderr,"dtcGetDatation: Reading information from log file\n"); }
-	dtcGetInfoDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2, planet, software, capture->pCaptureInfo);
+	dtcGetInfoDatationFromLogFile(filename, &start_time_log, &end_time_log, &duration_log, &fps_log, &nbframes_log, &timetype_log, comment2, planet, software, &capture->CaptureInfo);
 	if (*planet == Notdefined) *planet = planet_fromfilename;
 
 	if ((duration_log<DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC>DURATION_MIN) && ((end_time_log-start_time_log)*ONE_DAY_SEC<DURATION_MAX)) {
@@ -823,7 +823,7 @@ BOOL dtcGetDatationFromFilename(const char *longfilename, double *pstart_time, d
 /***************Gets datation from acquisition software log files*************************/
 /*****************************************************************************************/
 
-int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment, Planet_type *planet, char *software, DtcCaptureInfo *CaptureInfo)
+int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_loginfo, double *jd_end_time_loginfo, double *pDuration, double *pfps, long *pnbframes, TIME_TYPE *plogtimezone, char *comment, Planet_type *planet, char *software, DtcCaptureInfo *pCaptureInfo)
 {
 	struct stat logfile_info;
 	time_t		log_time_t;
@@ -990,7 +990,8 @@ int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_lo
 				timezone=0;
 			}
 											if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
-/* Genika log */	
+/* Genika log */
+/* ASICap log */
 			} else {
 				strcpy(logfilename, filename);
 				strncat(logfilename, ".txt", strlen(".txt"));
@@ -1120,6 +1121,7 @@ int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_lo
 			strcpy(line,replace_str(line,"...."," : "));
 			strcpy(line,replace_str(line,"..."," : "));
 			strcpy(line,replace_str(line,".."," : "));
+			strcpy(line, replace_str(line, " = ", " : "));
 			strcpy(line,replace_str(line,"="," : "));
 
 			strcpy(line,replace_str(line,"mS:","mS : "));
@@ -1171,8 +1173,11 @@ int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_lo
 					strcpy(software,"Genika");
 				} else if (strcmp(fieldname,"***********************  GENIKA ASTRO CAPTURE LOG FILE ************************************")==0) {
 					strcpy(software,"Genika");
-				} else if (strcmp(fieldname,"***********************  GENIKA TRIGGER CAPTURE LOG FILE ************************************")==0) {
-					strcpy(software,"Genika");
+				}
+				else if (strcmp(fieldname, "***********************  GENIKA TRIGGER CAPTURE LOG FILE ************************************") == 0) {
+					strcpy(software, "Genika");
+				} else if (strncmp(fieldname, "[ZWO", 4) == 0) {
+					strcpy(software, "ASICap");
 				} else if (strcmp(fieldname,"Date")==0) {
 					if (strlen(value)<=10) {
 						strcpy(software,"Avi Felopaul");
@@ -1720,107 +1725,113 @@ MM.dd.yyyy
 				else if (strcmp(left(fieldname, 5,tmpline), "Frame ") == 0) {				//  Frame 1:	UT 160627 210709.643
 				}
 				else if (strcmp(left(fieldname, 8, tmpline), "Observer") == 0) {			//	Observer=Marc Delcroix
-					strcpy((CaptureInfo->observer), value);
+					strcpy((pCaptureInfo->observer), value);
 				}
 				else if (strcmp(left(fieldname, 8, tmpline), "Location") == 0) {			//	Location=Tournefeuille
-					strcpy((CaptureInfo->location), value);
+					strcpy((pCaptureInfo->location), value);
 				}
 				else if (strcmp(left(fieldname, 5, tmpline), "Scope") == 0) {				//	Scope=Newton 320mm
-					strcpy((CaptureInfo->scope), value);
+					strcpy((pCaptureInfo->scope), value);
 				}
 				else if (strcmp(left(fieldname, 6, tmpline), "Camera") == 0) {				//	Camera = ZWO ASI290MM 
-					strcpy((CaptureInfo->camera), value);
+					strcpy((pCaptureInfo->camera), value);
 				}
 				else if (strcmp(left(fieldname, 6, tmpline), "Filter") == 0) {				//	Filter=IR685
-					strcpy((CaptureInfo->filter), value);
+					strcpy((pCaptureInfo->filter), value);
 				}
 				else if (strcmp(left(fieldname, 7, tmpline), "Profile") == 0) {				//	Filter=IR685
-					strcpy((CaptureInfo->profile), value);
+					strcpy((pCaptureInfo->profile), value);
 				}
 				else if (strcmp(left(fieldname, 8, tmpline), "Diameter") == 0) {			//	Diameter=15.98"
-					(CaptureInfo->diameter_arcsec) = strtod(replace_str(value, "\"", ""), NULL);
+					(pCaptureInfo->diameter_arcsec) = strtod(replace_str(value, "\"", ""), NULL);
 				}
 				else if (strcmp(left(fieldname, 9, tmpline), "Magnitude") == 0) {			//	Magnitude=-1.40
-					(CaptureInfo->magnitude) = strtod(value, NULL);
+					(pCaptureInfo->magnitude) = strtod(value, NULL);
 				}
 				else if (strcmp(left(fieldname, 2, tmpline), "CM") == 0) {					//	CM=156.9°  (during mid of capture)
-					strcpy((CaptureInfo->centralmeridian), replace_str(value, "  (during mid of capture)", ""));
+					strcpy((pCaptureInfo->centralmeridian), replace_str(value, "  (during mid of capture)", ""));
 				}
 				else if (strcmp(left(fieldname, 11, tmpline), "FocalLength") == 0) {		//	FocalLength=6300mm (F/19)
 					pos = InStr(value, "mm");
-					if (pos >0 ) (CaptureInfo->focallength_mm) = atoi(left(value, pos, tmpline));
-					else (CaptureInfo->focallength_mm) = atoi(value);
+					if (pos >0 ) (pCaptureInfo->focallength_mm) = atoi(left(value, pos, tmpline));
+					else (pCaptureInfo->focallength_mm) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 10, tmpline), "Resolution") == 0) {			//	Resolution=0.10"
-					(CaptureInfo->resolution) = strtod(replace_str(value, "\"", ""), NULL);
+					(pCaptureInfo->resolution) = strtod(replace_str(value, "\"", ""), NULL);
 				}
 				else if (strcmp(left(fieldname, 7, tmpline), "Binning") == 0) {				//	Binning=no
-					if (strcmp(value, "no") == 0)	(CaptureInfo->binning) = False;
-					else if (strcmp(value, "yes") == 0) (CaptureInfo->binning) = True;
-					else (CaptureInfo->binning) = NotSet;
+					strcpy((pCaptureInfo->binning), value);
 				}
 				else if (strcmp(left(fieldname, 10, tmpline), "Bit depth") == 0) {			//	Bit depth=8bit
-					(CaptureInfo->bitdepth) = atoi(replace_str(value, "bit", ""));
+					(pCaptureInfo->bitdepth) = atoi(replace_str(value, "bit", ""));
 				}
 				else if (strcmp(left(fieldname, 7, tmpline), "Debayer") == 0) {				//	Debayer=no
-					if (strcmp(value, "no") == 0)	(CaptureInfo->debayer) = False;
-					else if (strcmp(value, "yes") == 0) (CaptureInfo->debayer) = True;
-					else (CaptureInfo->debayer) = NotSet;
+					if (strcmp(value, "no") == 0)	(pCaptureInfo->debayer) = False;
+					else if (strcmp(value, "yes") == 0) (pCaptureInfo->debayer) = True;
+					else (pCaptureInfo->debayer) = NotSet;
 				}
 				else if (strcmp(left(fieldname, 10, tmpline), "Shutter") == 0) {			//	Shutter=4.100ms
-					(CaptureInfo->shutter_ms) = strtod(replace_str(value, "ms", ""), NULL);
+					(pCaptureInfo->exposure_ms) = strtod(replace_str(value, "ms", ""), NULL);
 				}
 				else if (strcmp(left(fieldname, 4, tmpline), "Gain") == 0) {				//	Gain=250 (41%)
 					pos = InStr(value, " (");
-					if (pos>0) (CaptureInfo->gain) = atoi(left(value, pos, tmpline));
-					else (CaptureInfo->gain) = atoi(value);
+					if (pos>0) (pCaptureInfo->gain) = atoi(left(value, pos, tmpline));
+					else (pCaptureInfo->gain) = atoi(value);
 				}
 					else if (strcmp(left(fieldname, 5, tmpline), "Gamma") == 0) {			//	Gamma=70 (off)
-					if (InStr(value, "(off)") > 0) (CaptureInfo->gamma) = -1;
-					else (CaptureInfo->gamma) = atoi(value);
+					if (InStr(value, "(off)") > 0) (pCaptureInfo->gamma) = -1;
+					else (pCaptureInfo->gamma) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 12, tmpline), "AutoExposure") == 0) {		//	AutoExposure=off
-					if (strcmp(value, "off") == 0)	(CaptureInfo->autoexposure) = False;
-					else if (strcmp(value, "on") == 0) (CaptureInfo->autoexposure) = True;
-					else (CaptureInfo->autoexposure) = NotSet;
+					if (strcmp(value, "off") == 0)	(pCaptureInfo->autoexposure) = False;
+					else if (strcmp(value, "on") == 0) (pCaptureInfo->autoexposure) = True;
+					else (pCaptureInfo->autoexposure) = NotSet;
 				}
 				else if (strcmp(left(fieldname, 12, tmpline), "SoftwareGain") == 0) {		//	SoftwareGain=10 (off)
-					if (InStr(value, "(off)") > 0) (CaptureInfo->softwaregain) = -1;
-					else (CaptureInfo->softwaregain) = atoi(value);
+					if (InStr(value, "(off)") > 0) (pCaptureInfo->softwaregain) = -1;
+					else (pCaptureInfo->softwaregain) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 9, tmpline), "AutoHisto") == 0) {			//	AutoHisto=75 (off)
-					if (InStr(value, "(off)") > 0) (CaptureInfo->autohisto) = -1;
-					else (CaptureInfo->autohisto) = atoi(value);
+					if (InStr(value, "(off)") > 0) (pCaptureInfo->autohisto) = -1;
+					else (pCaptureInfo->autohisto) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 10, tmpline), "Brightness") == 0) {			//	Brightness=43 (off)
-					if (InStr(value, "(off)") > 0) (CaptureInfo->brightness) = -1;
-					else (CaptureInfo->brightness) = atoi(value);
+					if (InStr(value, "(off)") > 0) (pCaptureInfo->brightness) = -1;
+					else (pCaptureInfo->brightness) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 12, tmpline), "AutoGain") == 0) {			//	AutoGain=off
-				if (strcmp(value, "off") == 0)	(CaptureInfo->autogain) = False;
-				else if (strcmp(value, "on") == 0) (CaptureInfo->autogain) = True;
-				else (CaptureInfo->autogain) = NotSet;
+				if (strcmp(value, "off") == 0)	(pCaptureInfo->autogain) = False;
+				else if (strcmp(value, "on") == 0) (pCaptureInfo->autogain) = True;
+				else (pCaptureInfo->autogain) = NotSet;
 				}
 				else if (strcmp(left(fieldname, 15, tmpline), "Histogramm(min)") == 0) {	//	Histogramm(min)=0
-					(CaptureInfo->histmin) = atoi(value);
+					(pCaptureInfo->histmin) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 15, tmpline), "Histogramm(max)") == 0) {	//	Histogramm(max)=167
-					(CaptureInfo->histmax) = atoi(value);
+					(pCaptureInfo->histmax) = atoi(value);
 				}
 				else if (strcmp(left(fieldname, 10, tmpline), "Histogramm") == 0) {			//	Histogramm=65%
-					(CaptureInfo->histavg_pc) = atoi(replace_str(value, "%", ""));
+					(pCaptureInfo->histavg_pc) = atoi(replace_str(value, "%", ""));
 				}
 				else if (strcmp(left(fieldname, 5, tmpline), "Noise") == 0) {				//	Noise(avg.deviation)=0.80
-					(CaptureInfo->noise) = strtod(left(value, strlen(value) - 1, tmpline), NULL);
+					(pCaptureInfo->noise) = strtod(left(value, strlen(value) - 1, tmpline), NULL);
 				}
 				else if (strcmp(left(fieldname, 7, tmpline), "PreFilter") == 0) {			//	PreFilter=none
-					strcpy((CaptureInfo->prefilter), value);
+					strcpy((pCaptureInfo->prefilter), value);
 				}
 				else if (strcmp(left(fieldname, 18, tmpline), "Sensor temperature") == 0) {	//	Sensor temperature=11.6°C
-					(CaptureInfo->temp_C) = strtod(replace_str(value, "°C", ""), NULL);
+					if (InStr(value, "F") > 0) {
+						(pCaptureInfo->temp_C) = (strtod(replace_str(value, "°F", ""), NULL) - 32.0) / 1.8;
+					}
+					else if (InStr(value, "C") > 0) {
+						(pCaptureInfo->temp_C) = strtod(replace_str(value, "°C", ""), NULL);
+					}
+					else {
+						(pCaptureInfo->temp_C) = -DBL_MAX;
+					}
 				}
 				else if (strcmp(left(fieldname, 6, tmpline), "Target") == 0) {				//	Target=Mars, Date: 201122, Time: 225626 UT, Mag: -1.40, Dia: 15.98, Res: 0.10, Az: 228.00, Alt: 42.14, Phase: 0.94, CM: CM=156.9°, Camera: ZWO ASI290MM, Scope: Newton 320mm, FL: 6300mm, F-ratio: 19, Observer: Marc Delcroix, Location: Tournefeuille, Comment: , Seeing: 
-					strcpy((CaptureInfo->target), replace_str(value, ";", ","));
+					strcpy((pCaptureInfo->target), replace_str(value, ";", ","));
 				}
 /**************************************************************************************************************/
 /* Genika Astro + Trigger	                                                                                  */
@@ -2068,7 +2079,7 @@ MM.dd.yyyy
 /**************************************************************************************************************/
 			} else if (strcmp(software,"PLxCapture")==0) {			
 				if        (strcmp(fieldname,"BeginRec")==0) {				/*   	1   5   9  2  5  8  1 */
-																/* Date :	2012-03-15T23:04:58.283 */
+																			/* Date :	2012-03-15T23:04:58.283 */
 					year=atoi(mid(value,0,4,tmpline));
 					month=atoi(mid(value,5,2,tmpline));
 					day=atoi(mid(value,8,2,tmpline));
@@ -2111,9 +2122,150 @@ MM.dd.yyyy
 					}
 				}
 /**************************************************************************************************************/
-/* SharpCap                                                                                                 */
+/* SharpCap                                                                                                   */
 /**************************************************************************************************************/
-			} else if (strcmp(software,"SharpCap")==0) {			
+			} else if (strcmp(software,"SharpCap")==0) {
+				if (strstr(line, "=") == NULL) {
+					strcpy(fieldname, line);
+				}
+				else {
+					strncpy(fieldname, line, InStr(line, "="));
+				}
+				while ((fieldname[strlen(fieldname) - 1] == ' ') && (strlen(fieldname) > 0)) {
+					strcpy(fieldname, left(fieldname, strlen(fieldname) - 1, tmpline));
+				}
+				strcat(fieldname, "\0");
+																																				//	0123456789012345678901234																				
+				if ((strcmp(left(fieldname, 9, tmpline), "TimeStamp") == 0) || (strcmp(fieldname, "StartCapture") == 0)) {	//	2021-07-30T17:52:23.1234Z
+					year = atoi(mid(value, 0, 4, tmpline));
+					month = atoi(mid(value, 5, 2, tmpline));
+					day = atoi(mid(value, 8, 2, tmpline));
+					hour = atoi(mid(value, 11, 2, tmpline));
+					min = atoi(mid(value, 14, 2, tmpline));
+					sec = strtod(mid(value, 17, strlen(value)-17+1, tmpline), NULL);
+					(*plogtimezone) = UT;
+					(*jd_start_time_loginfo) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+				}
+				else if (strcmp(fieldname, "EndCapture") == 0) {																//	2021-07-30T17:52:23.1234Z
+					year = atoi(mid(value, 0, 4, tmpline));
+					month = atoi(mid(value, 5, 2, tmpline));
+					day = atoi(mid(value, 8, 2, tmpline));
+					hour = atoi(mid(value, 11, 2, tmpline));
+					min = atoi(mid(value, 14, 2, tmpline));
+					sec = strtod(mid(value, 17, strlen(value)-17+1, tmpline), NULL);
+					(*plogtimezone) = UT;
+					(*jd_end_time_loginfo) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+				}
+				else if ((strcmp(fieldname, "FrameCount") == 0)) { 					// Frames captured=29248
+					(*pnbframes) = strtol(value, NULL, 10);
+				}
+				else if (strcmp(left(fieldname, 15, tmpline), "SharpCapVersion") == 0) {		// SharpCapVersion=3.2.6482.0
+					software_version = strtod(left(value, 3, tmpline), NULL);
+					if (debug_mode) { fprintf(stderr, "SharpCap v%1.1f\n", software_version); }
+				} else if ((strcmp(left(fieldname, 1, tmpline), "[") == 0) && (strcmp(right(fieldname, 1, tmpline), "]") == 0)) {	//	[ZWO ASI120MM-S]
+					strcpy((pCaptureInfo->camera), right(left(fieldname, strlen(fieldname) - 1, tmpline), strlen(fieldname) - 2, tmpline2));
+				}
+				else if (strcmp(left(fieldname, 7, tmpline), "Binning") == 0) {					//	Binning=1
+					if (strcmp(value,"1") ==0) strcpy((pCaptureInfo->binning), "1x1");
+					else if (strcmp(value, "2") == 0) strcpy((pCaptureInfo->binning), "2x2");
+					else strcpy((pCaptureInfo->binning), value);
+				}
+				else if ((strcmp(left(fieldname, 12, tmpline), "Colour Space") == 0) || (strcmp(left(fieldname, 11, tmpline), "ColourSpace") == 0)) {			//	Colour Space=MONO8, MONO16, RAW8, RAW16, RGB24
+					if (strcmp(right(fieldname, 2, tmpline), "16") == 0) (pCaptureInfo->bitdepth) = 16;
+					else if (strcmp(right(fieldname, 1, tmpline), "8") == 0) (pCaptureInfo->bitdepth) = 8;
+					else if (strcmp(fieldname, "RGB24") == 0) {
+						(pCaptureInfo->bitdepth) = 9;
+						(pCaptureInfo->debayer) = True;
+					}
+					if (strcmp(left(fieldname, 3, tmpline), "RAW") == 0) (pCaptureInfo->debayer) = False;
+				}
+				else if ((strcmp(left(fieldname, 18, tmpline), "Sensor Temp") == 0) || (strcmp(left(fieldname, 11, tmpline), "Temperature") == 0)) {			//	Sensor Temp=22,25
+					(pCaptureInfo->temp_C) = strtod(replace_str(value, ",", "."), NULL);
+				}
+				else if (strcmp(left(fieldname, 10, tmpline), "Brightness") == 0) {				//	Brightness=0
+					(pCaptureInfo->brightness) = atoi(value);
+				}
+				else if (strcmp(left(fieldname, 4, tmpline), "Gain") == 0) {					//	Gain=100
+					(pCaptureInfo->gain) = atoi(value);
+				}
+				else if (strcmp(left(fieldname, 5, tmpline), "Gamma") == 0) {					//	Gamma=70 (off)
+					(pCaptureInfo->gamma) = atoi(value);
+				}
+				else if (strcmp(left(fieldname, 8, tmpline), "Exposure") == 0) {			//	Shutter=4.100ms
+					(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "ms", ""), NULL) * 1000.0;
+				}
+			}
+/**************************************************************************************************************/
+/* ASICap                                                                                                   */
+/**************************************************************************************************************/
+
+			else if (strcmp(software, "ASICap") == 0) {
+			if (strstr(line, "=") == NULL) {
+					strcpy(fieldname, line);
+				}
+				else {
+					strncpy(fieldname, line, InStr(line, "="));
+				}
+				while ((fieldname[strlen(fieldname) - 1] == ' ') && (strlen(fieldname) > 0)) {
+					strcpy(fieldname, left(fieldname, strlen(fieldname) - 1, tmpline));
+				}
+				strcat(fieldname, "\0");
+
+				if ((strcmp((fieldname, 1, tmpline), "[") == 0) && (strcmp(right(fieldname, 1, tmpline), "]") == 0)) {	//	[ZWO ASI120MM-S]
+					strcpy((pCaptureInfo->camera), right(left(fieldname, strlen(fieldname) - 1, tmpline), strlen(fieldname) - 2, tmpline2));
+				}
+				else if ((strcmp(left(fieldname, 9, tmpline), "TimeStamp") == 0) || (strcmp(fieldname, "StartCapture") == 0)) {	//	2021-07-30T17:52:23.1234Z
+					year = atoi(mid(value, 0, 4, tmpline));
+					month = atoi(mid(value, 5, 2, tmpline));
+					day = atoi(mid(value, 8, 2, tmpline));
+					hour = atoi(mid(value, 11, 2, tmpline));
+					min = atoi(mid(value, 14, 2, tmpline));
+					sec = strtod(mid(value, 17, strlen(value) - 17 + 1, tmpline), NULL);
+					(*plogtimezone) = UT;
+					(*jd_start_time_loginfo) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+				}
+				else if (strcmp(fieldname, "EndCapture") == 0) {																//	2021-07-30T17:52:23.1234Z
+					year = atoi(mid(value, 0, 4, tmpline));
+					month = atoi(mid(value, 5, 2, tmpline));
+					day = atoi(mid(value, 8, 2, tmpline));
+					hour = atoi(mid(value, 11, 2, tmpline));
+					min = atoi(mid(value, 14, 2, tmpline));
+					sec = strtod(mid(value, 17, strlen(value) - 17 + 1, tmpline), NULL);
+					(*plogtimezone) = UT;
+					(*jd_end_time_loginfo) = gregorian_calendar_to_jd(year, month, day, hour, min, sec);
+				}
+				else if ((strcmp(fieldname, "FrameCount") == 0)) { 					// Frames captured=29248
+					(*pnbframes) = strtol(value, NULL, 10);
+				}
+				else if (strcmp(fieldname, "Bin") == 0) {					//	Binning=1
+					if (strcmp(value, "1") == 0) strcpy((pCaptureInfo->binning), "1x1");
+					else if (strcmp(value, "2") == 0) strcpy((pCaptureInfo->binning), "2x2");
+					else strcpy((pCaptureInfo->binning), value);
+				}
+				else if ((strcmp(fieldname, "Colour Format") == 0)) {			//	Colour Space=MONO8, MONO16, RAW8, RAW16, RGB24
+					if (strcmp(right(value, 2, tmpline), "16") == 0) (pCaptureInfo->bitdepth) = 16;
+					else if (strcmp(right(value, 1, tmpline), "8") == 0) (pCaptureInfo->bitdepth) = 8;
+					else if (strcmp(value, "RGB24") == 0) {
+						(pCaptureInfo->bitdepth) = 9;
+						(pCaptureInfo->debayer) = True;
+					}
+					if (strcmp(value, "Raw Format") == 0) if (strcmp(value, "ON") == 0) (pCaptureInfo->debayer) = False;
+				}
+				else if ((strcmp(fieldname, "Sensor Temp") == 0) || (strcmp(fieldname, "Temperature") == 0)) {			//	Sensor Temp=22,25
+					(pCaptureInfo->temp_C) = strtod(replace_str(replace_str(value, " ",""), ",", "."), NULL);
+				}
+				else if (strcmp(fieldname, "Brightness") == 0) {				//	Brightness=0
+					(pCaptureInfo->brightness) = atoi(value);
+				}
+				else if (strcmp(fieldname, "Gain") == 0) {					//	Gain=100
+					(pCaptureInfo->gain) = atoi(value);
+				}
+				else if (strcmp(fieldname, "Gamma") == 0) {					//	Gamma=70 (off)
+					(pCaptureInfo->gamma) = atoi(value);
+				}
+				else if (strcmp(fieldname, "Exposure") == 0) {			//	Shutter=4.100ms
+					(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "ms", ""), NULL);
+				}
 			}
 		}
 /**************************************************************************************************************/

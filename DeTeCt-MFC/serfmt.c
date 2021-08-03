@@ -458,12 +458,12 @@ void serPrintStr(char *p, int sz)
 		if (*p >= 32 && *p <= 126) {
 			//fprintf(stderr,"%2c ", *p++);
 			output = (char*)calloc(sizeof(char), 10);
-			sprintf_s(output, 10, "%c", *p++);
+			if (output != 0) sprintf_s(output, 10, "%c", *p++);  // warning C6387 disabling
 		}
 		else {
 			//fprintf(stderr,"%02X ", *p++);
 			output = (char*)calloc(sizeof(char), 10);
-			sprintf_s(output, 10, "%X", *p++);
+			if (output != 0) sprintf_s(output, 10, "%X", *p++); // warning C6387 disabling
 		}
 
 		OutputDebugStringA(output);
@@ -487,58 +487,56 @@ void serPrintByte(unsigned char *p, int sz)
 /*****************Prints SER header***************************/			
 void serPrintHeader(SerCapture *sc)
 {
-	char* buffer = (char*)malloc(1000);
-	sprintf_s(buffer, 1000, "FileID       : %s\n", sc->header.FileID);
+	char buffer[MAX_STRING];
+	sprintf_s(buffer, MAX_STRING, "FileID       : %s\n", sc->header.FileID);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "LuID         : %d\n", (int)sc->header.LuID);
+	sprintf_s(buffer, MAX_STRING, "LuID         : %d\n", (int)sc->header.LuID);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "ColorID      : %d\n", (int)sc->header.ColorID);
+	sprintf_s(buffer, MAX_STRING, "ColorID      : %d\n", (int)sc->header.ColorID);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "LittleEndian : %d\n", (int)sc->header.LittleEndian);
+	sprintf_s(buffer, MAX_STRING, "LittleEndian : %d\n", (int)sc->header.LittleEndian);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "ImageWidth   : %d\n", (int)sc->header.ImageWidth);
+	sprintf_s(buffer, MAX_STRING, "ImageWidth   : %d\n", (int)sc->header.ImageWidth);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "ImageHeight  : %d\n", (int)sc->header.ImageHeight);
+	sprintf_s(buffer, MAX_STRING, "ImageHeight  : %d\n", (int)sc->header.ImageHeight);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "PixelDepth   : %d\n", (int)sc->header.PixelDepth);
+	sprintf_s(buffer, MAX_STRING, "PixelDepth   : %d\n", (int)sc->header.PixelDepth);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "FrameCount   : %d\n", (int)sc->header.FrameCount);
+	sprintf_s(buffer, MAX_STRING, "FrameCount   : %d\n", (int)sc->header.FrameCount);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "Observer     : ");
+	sprintf_s(buffer, MAX_STRING, "Observer     : ");
 	OutputDebugStringA(buffer);
 	serPrintStr(sc->header.Observer, SER_OBSERVER_SIZE);
-	sprintf_s(buffer, 1000, "\n");
+	sprintf_s(buffer, MAX_STRING, "\n");
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "Instrument   : ");
+	sprintf_s(buffer, MAX_STRING, "Instrument   : ");
 	OutputDebugStringA(buffer);
 	serPrintStr(sc->header.Instrument, SER_INSTRUMENT_SIZE);
-	sprintf_s(buffer, 1000, "\n");
+	sprintf_s(buffer, MAX_STRING, "\n");
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "Telescope    : ");
+	sprintf_s(buffer, MAX_STRING, "Telescope    : ");
 	OutputDebugStringA(buffer);
 	serPrintStr(sc->header.Telescope, SER_TELESCOPE_SIZE);
-	sprintf_s(buffer, 1000, "\n");
+	sprintf_s(buffer, MAX_STRING, "\n");
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "DateTime     : ");
+	sprintf_s(buffer, MAX_STRING, "DateTime     : ");
 	OutputDebugStringA(buffer);
 	serPrintByte(sc->header.DateTime, SER_DATETIME_SIZE);
-	sprintf_s(buffer, 1000, "\n");
+	sprintf_s(buffer, MAX_STRING, "\n");
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "DateTimeUTC  : ");
+	sprintf_s(buffer, MAX_STRING, "DateTimeUTC  : ");
 	OutputDebugStringA(buffer);
 	serPrintByte(sc->header.DateTimeUTC, SER_DATETIMEUTC_SIZE);
-	sprintf_s(buffer, 1000, "\n");
+	sprintf_s(buffer, MAX_STRING, "\n");
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "StartTime    : %f\n", sc->StartTime_JD);
+	sprintf_s(buffer, MAX_STRING, "StartTime    : %f\n", sc->StartTime_JD);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "StartTimeUTC : %f\n", sc->StartTimeUTC_JD);
+	sprintf_s(buffer, MAX_STRING, "StartTimeUTC : %f\n", sc->StartTimeUTC_JD);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "EndTime      : %f\n", sc->EndTime_JD);
+	sprintf_s(buffer, MAX_STRING, "EndTime      : %f\n", sc->EndTime_JD);
 	OutputDebugStringA(buffer);
-	sprintf_s(buffer, 1000, "EndTimeUTC   : %f\n", sc->EndTime_JD);
+	sprintf_s(buffer, MAX_STRING, "EndTimeUTC   : %f\n", sc->EndTime_JD);
 	OutputDebugStringA(buffer);
-
-	free(buffer);
 }
 
 size_t serFrameRead(SerCapture* sc) {
@@ -547,184 +545,185 @@ size_t serFrameRead(SerCapture* sc) {
 
 	size_t im_size = sc->byte_depth == 2 ? sizeof(uint16_t) : sizeof(uint8_t);
 
-	void* temp_buffer = calloc(im_size, sc->ImageBytes);
+	_Post_ _Notnull_ void* temp_buffer = calloc(im_size, sc->ImageBytes);  // warning C6387
 
-	size_t read_values = fread(temp_buffer, 1, sc->ImageBytes, sc->fh);
+	if (temp_buffer != NULL) {
+		size_t read_values = fread(temp_buffer, 1, sc->ImageBytes, sc->fh);
 
-	uint16_t* temp_buffer16 = (uint16_t*)temp_buffer;
-	uint8_t* temp_buffer8 = (uint8_t*)temp_buffer;
+		uint16_t* temp_buffer16 = (uint16_t*)temp_buffer;
+		uint8_t* temp_buffer8 = (uint8_t*)temp_buffer;
 
-	uint8_t* read_ptr8, *read_ptr8_mono;
-	uint16_t* read_ptr, *read_ptr_mono;
+		uint8_t* read_ptr8, * read_ptr8_mono;
+		uint16_t* read_ptr, * read_ptr_mono;
 
-	if (read_values == sc->ImageBytes) {
+		if (read_values == sc->ImageBytes) {
 
-		if (sc->current_frame == 0 && sc->header.PixelDepth > 8) {
-			
-		}
+			if (sc->current_frame == 0 && sc->header.PixelDepth > 8) {
 
-		for (int32_t y = (int32_t)(sc->header.ImageHeight) - 1; y >= 0; --y) {
+			}
 
-			read_ptr = &temp_buffer16[y * (int32_t)(sc->header.ImageWidth) * 3];
-			read_ptr8 = &temp_buffer8[y * (uint32_t)(sc->header.ImageWidth) * 3];
-			read_ptr_mono = &temp_buffer16[y * (uint32_t)(sc->header.ImageWidth)];
-			read_ptr8_mono = &temp_buffer8[y * (uint32_t)(sc->header.ImageWidth)];
+			for (int32_t y = (int32_t)(sc->header.ImageHeight) - 1; y >= 0; --y) {
 
-			uint32_t shift_left  = 16 - (uint32_t)(sc->header.PixelDepth);
-			uint32_t shift_right = (uint32_t)(sc->header.PixelDepth) - shift_left;
+				read_ptr = &temp_buffer16[y * (int32_t)(sc->header.ImageWidth) * 3];
+				read_ptr8 = &temp_buffer8[y * (uint32_t)(sc->header.ImageWidth) * 3];
+				read_ptr_mono = &temp_buffer16[y * (uint32_t)(sc->header.ImageWidth)];
+				read_ptr8_mono = &temp_buffer8[y * (uint32_t)(sc->header.ImageWidth)];
 
-			for (int32_t x = 0; x < sc->header.ImageWidth; ++x) {
+				uint32_t shift_left = 16 - (uint32_t)(sc->header.PixelDepth);
+				uint32_t shift_right = (uint32_t)(sc->header.PixelDepth) - shift_left;
 
-				uint16_t r, g, b;
-				int32_t b_idx, g_idx, r_idx, grey_idx;
+				for (int32_t x = 0; x < sc->header.ImageWidth; ++x) {
 
-				b_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x;
-				g_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x + 1;
-				r_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x + 2;
-				grey_idx =  y * (int32_t)(sc->header.ImageWidth) + x;
+					uint16_t r, g, b;
+					int32_t b_idx, g_idx, r_idx, grey_idx;
 
-				if (sc->byte_depth == 2) {
-					if (sc->header.ColorID == SER_RGB) {
-						if (sc->header.PixelDepth == 16) {
-							if (sc->data_proc_same_endianness) {
-								r = *read_ptr++;
-								g = *read_ptr++;
-								b = *read_ptr++;
+					b_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x;
+					g_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x + 1;
+					r_idx = 3 * y * (int32_t)(sc->header.ImageWidth) + 3 * x + 2;
+					grey_idx = y * (int32_t)(sc->header.ImageWidth) + x;
+
+					if (sc->byte_depth == 2) {
+						if (sc->header.ColorID == SER_RGB) {
+							if (sc->header.PixelDepth == 16) {
+								if (sc->data_proc_same_endianness) {
+									r = *read_ptr++;
+									g = *read_ptr++;
+									b = *read_ptr++;
+								}
+								else {
+									r = (*read_ptr8++) << 8;
+									r += *read_ptr8++;
+									g = (*read_ptr8++) << 8;
+									g += *read_ptr8++;
+									b = (*read_ptr8++) << 8;
+									b += *read_ptr8;
+								}
+								frame_data16[b_idx] = b;
+								frame_data16[g_idx] = g;
+								frame_data16[r_idx] = r;
 							}
 							else {
-								r = (*read_ptr8++) << 8;
-								r += *read_ptr8++;
-								g = (*read_ptr8++) << 8;
-								g += *read_ptr8++;
-								b = (*read_ptr8++) << 8;
-								b += *read_ptr8;
+								if (sc->data_proc_same_endianness) {
+									r = *read_ptr++;
+									r = (r << shift_left) + (r >> shift_right);
+									g = *read_ptr++;
+									g = (g << shift_left) + (g >> shift_right);
+									b = *read_ptr++;
+									b = (b << shift_left) + (b >> shift_right);
+									frame_data16[b_idx] = b;
+									frame_data16[g_idx] = g;
+									frame_data16[r_idx] = r;
+								}
+								else {
+									r = *read_ptr8 << 8;
+									r += *read_ptr8;
+									g = *read_ptr8 << 8;
+									g += *read_ptr8;
+									b = *read_ptr8 << 8;
+									b += *read_ptr8;
+									frame_data16[b_idx] = (b << shift_left) + (b >> shift_right);
+									frame_data16[g_idx] = (g << shift_left) + (g >> shift_right);
+									frame_data16[r_idx] = (r << shift_left) + (r >> shift_right);
+								}
+							}
+						}
+						else if (sc->header.ColorID == SER_BGR) {
+							if (sc->header.PixelDepth == 16) {
+								if (sc->data_proc_same_endianness) {
+									b = *read_ptr++;
+									g = *read_ptr++;
+									r = *read_ptr++;
+								}
+								else {
+									b = (*read_ptr8++) << 8;
+									b += *read_ptr8++;
+									g = (*read_ptr8++) << 8;
+									g += *read_ptr8++;
+									r = (*read_ptr8++) << 8;
+									r += *read_ptr8;;
+								}
+							}
+							else {
+								if (sc->data_proc_same_endianness) {
+									b = *read_ptr++;
+									b = (b << shift_left) + (b >> shift_right);
+									g = *read_ptr++;
+									g = (g << shift_left) + (b >> shift_right);
+									r = *read_ptr++;
+									r = (r << shift_left) + (r >> shift_right);
+								}
+								else {
+									//								b += *read_ptr8++;
+									b = *read_ptr8++;
+									b = (b << shift_left) + (b >> shift_right);
+									//								g += *read_ptr8++;
+									g = *read_ptr8++;
+									g = (g << shift_left) + (g >> shift_right);
+									//								r += *read_ptr8++;
+									r = *read_ptr8++;
+									r = (r << shift_left) + (r >> shift_right);
+								}
 							}
 							frame_data16[b_idx] = b;
 							frame_data16[g_idx] = g;
 							frame_data16[r_idx] = r;
 						}
 						else {
-							if (sc->data_proc_same_endianness) {
-								r = *read_ptr++;
-								r = (r << shift_left) + (r >> shift_right);
-								g = *read_ptr++;
-								g = (g << shift_left) + (g >> shift_right);
-								b = *read_ptr++;
-								b = (b << shift_left) + (b >> shift_right);
-								frame_data16[b_idx] = b;
-								frame_data16[g_idx] = g;
-								frame_data16[r_idx] = r;
+							uint16_t val;
+							if (sc->header.PixelDepth == 16) {
+								if (sc->data_proc_same_endianness) {
+									val = *read_ptr_mono++;
+								}
+								else {
+									val = (*read_ptr8_mono++) << 8;
+									val += *read_ptr8_mono++;
+								}
 							}
 							else {
-								r = *read_ptr8 << 8;
-								r += *read_ptr8;
-								g = *read_ptr8 << 8;
-								g += *read_ptr8;
-								b = *read_ptr8 << 8;
-								b += *read_ptr8;
-								frame_data16[b_idx] = (b << shift_left) + (b >> shift_right);
-								frame_data16[g_idx] = (g << shift_left) + (g >> shift_right);
-								frame_data16[r_idx] = (r << shift_left) + (r >> shift_right);
+								if (sc->data_proc_same_endianness) {
+									val = *read_ptr_mono++;
+									val = (val << shift_left) + (val >> shift_right);
+								}
+								else {
+									val = (*read_ptr8_mono++) << 8;
+									val += *read_ptr8_mono++;
+									val = (val << shift_left) + (val >> shift_right);
+								}
 							}
+							frame_data16[grey_idx] = val;
 						}
-					}
-					else if (sc->header.ColorID == SER_BGR) {
-						if (sc->header.PixelDepth == 16) {
-							if (sc->data_proc_same_endianness) {
-								b = *read_ptr++;
-								g = *read_ptr++;
-								r = *read_ptr++;
-							}
-							else {
-								b = (*read_ptr8++) << 8;
-								b += *read_ptr8++;
-								g = (*read_ptr8++) << 8;
-								g += *read_ptr8++;
-								r = (*read_ptr8++) << 8;
-								r += *read_ptr8;;
-							}
-						}
-						else {
-							if (sc->data_proc_same_endianness) {
-								b = *read_ptr++;
-								b = (b << shift_left) + (b >> shift_right);
-								g = *read_ptr++;
-								g = (g << shift_left) + (b >> shift_right);
-								r = *read_ptr++;
-								r = (r << shift_left) + (r >> shift_right);
-							}
-							else {
-//								b += *read_ptr8++;
-								b = *read_ptr8++;
-								b = (b << shift_left) + (b >> shift_right);
-//								g += *read_ptr8++;
-								g = *read_ptr8++;
-								g = (g << shift_left) + (g >> shift_right);
-//								r += *read_ptr8++;
-								r = *read_ptr8++;
-								r = (r << shift_left) + (r >> shift_right);
-							}
-						}
-						frame_data16[b_idx] = b;
-						frame_data16[g_idx] = g;
-						frame_data16[r_idx] = r;
 					}
 					else {
-						uint16_t val;
-						if (sc->header.PixelDepth == 16) {
-							if (sc->data_proc_same_endianness) {
-								val = *read_ptr_mono++;
-							}
-							else {
-								val = (*read_ptr8_mono++) << 8;
-								val += *read_ptr8_mono++;
-							}
+						uint8_t r8, g8, b8;
+						if (sc->header.ColorID == SER_RGB) {
+							r8 = *read_ptr8++;
+							g8 = *read_ptr8++;
+							b8 = *read_ptr8++;
+							frame_data8[b_idx] = b8;
+							frame_data8[g_idx] = g8;
+							frame_data8[r_idx] = r8;
+						}
+						else if (sc->header.ColorID == SER_BGR) {
+							b8 = *read_ptr8++;
+							g8 = *read_ptr8++;
+							r8 = *read_ptr8++;
+							frame_data8[b_idx] = b8;
+							frame_data8[g_idx] = g8;
+							frame_data8[r_idx] = r8;
 						}
 						else {
-							if (sc->data_proc_same_endianness) {
-								val = *read_ptr_mono++;
-								val = (val << shift_left) + (val >> shift_right);
-							}
-							else {
-								val = (*read_ptr8_mono++) << 8;
-								val += *read_ptr8_mono++;
-								val = (val << shift_left) + (val >> shift_right);
-							}
+							frame_data8[grey_idx] = *read_ptr8_mono++;
 						}
-						frame_data16[grey_idx] = val;
-					}
-				}
-				else {
-					uint8_t r8, g8, b8;
-					if (sc->header.ColorID == SER_RGB) {
-						r8 = *read_ptr8++;
-						g8 = *read_ptr8++;
-						b8 = *read_ptr8++;
-						frame_data8[b_idx] = b8;
-						frame_data8[g_idx] = g8;
-						frame_data8[r_idx] = r8;
-					}
-					else if (sc->header.ColorID == SER_BGR) {
-						b8 = *read_ptr8++;
-						g8 = *read_ptr8++;
-						r8 = *read_ptr8++;
-						frame_data8[b_idx] = b8;
-						frame_data8[g_idx] = g8;
-						frame_data8[r_idx] = r8;
-					}
-					else {
-						frame_data8[grey_idx] = *read_ptr8_mono++;
 					}
 				}
 			}
 		}
-	}
-	else {
-		read_values = 0;
-	}
-	free(temp_buffer);
-
-	return read_values;
+		else {
+			read_values = 0;
+		}
+		free(temp_buffer);
+		return read_values;
+	} else return 0;
 }
 
 void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
@@ -756,30 +755,33 @@ void serFixPixelDepth(SerCapture *sc, int frame_number) {
 	_fseeki64(sc->fh, SER_HEADER_SIZE + frame_number * sc->ImageBytes, SEEK_SET);
 
 	size_t im_size = sc->byte_depth == 2 ? sizeof(uint16_t) : sizeof(uint8_t);
-	void* temp_buffer = calloc(im_size, sc->ImageBytes);
-	size_t read_values = fread(temp_buffer, 1, sc->ImageBytes, sc->fh);
-	uint16_t* temp_buffer16 = (uint16_t*)temp_buffer;
+	_Post_ _Notnull_ void* temp_buffer = calloc(im_size, sc->ImageBytes);  // warning C6387
+	if (temp_buffer != 0) { // warning C6387
+		size_t read_values = fread(temp_buffer, 1, sc->ImageBytes, sc->fh);
+		uint16_t* temp_buffer16 = (uint16_t*)temp_buffer;
 
-	uint16_t max_pixel = 0;
-	if (read_values == sc->ImageBytes) {
-		for (int x = 0; x < sc->ImageBytes; x++) {
-			max_pixel |= *temp_buffer16++;
-		}
-
-		int32_t pixel_depth = 8;
-		for (int x = 15; x >= 8; x--) {
-			if (max_pixel >= (1 << x)) {
-				pixel_depth = x + 1;
-				break;
+		uint16_t max_pixel = 0;
+		if (read_values == sc->ImageBytes) {
+			for (int x = 0; x < sc->ImageBytes; x++) {
+				max_pixel |= *temp_buffer16++;
 			}
+
+			int32_t pixel_depth = 8;
+			for (int x = 15; x >= 8; x--) {
+				if (max_pixel >= (1 << x)) {
+					pixel_depth = x + 1;
+					break;
+				}
+			}
+
+			sc->header.PixelDepth = pixel_depth;
+			if (sc->header.PixelDepth > 8)
+				sc->byte_depth = 2;
 		}
 
-		sc->header.PixelDepth = pixel_depth;
-		if (sc->header.PixelDepth > 8)
-			sc->byte_depth = 2;
+		free(temp_buffer);
+
+		_fseeki64(sc->fh, SER_HEADER_SIZE, SEEK_SET);
 	}
-
-	free(temp_buffer);
-
-	_fseeki64(sc->fh, SER_HEADER_SIZE, SEEK_SET);
 }
+

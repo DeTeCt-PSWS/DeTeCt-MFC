@@ -1,9 +1,9 @@
 #pragma once
-#ifndef __DATATION_H_
-#define __DATATION_H_
+#ifndef __DATATION2_H_
+#define __DATATION2_H_
 
-//#include "datation.h"
-//#include <iostream>
+#include "datation.h"
+#include <iostream>
 #include <fstream>
 
 /**********************************************************************************************//**
@@ -71,7 +71,7 @@ void dtcWriteLogHeader(std::string location);
 
 //void dtcCloseLog(std::string location);
 
-void dtcWriteLog2(const std::string location, const LogInfo video_info, const DtcCaptureInfo CaptureInfo, std::stringstream *logline);
+void dtcWriteLog2(const std::string location, const LogInfo video_info, DtcCaptureInfo CaptureInfo, std::stringstream *logline, int* pwaitms);
 
 //void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info);
 

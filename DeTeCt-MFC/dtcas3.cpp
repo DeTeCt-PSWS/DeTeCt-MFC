@@ -1,4 +1,4 @@
-#include "processes_queue.h"
+#include "processes_queue.hpp"
 
 #include "dtcas3.h"
 #include <iostream>
@@ -28,37 +28,37 @@ void read_autostakkert_session_file(std::string configfile, std::string *filenam
 	}
 	
 //***** test if filename exists with full name or at the same directory as configfile
-	if (!file_exists(filename->c_str())) {
+	if (!filesys::exists(filename->c_str())) {
 		std::string acquisition_file2(filename->c_str());
 		//(*filename) = configfile.substr(0, configfile.find_last_of("\\") + 1) + acquisition_file2.substr(acquisition_file2.find_last_of("\\") + 1, acquisition_file2.length());
 		(*filename) = dirfilename(configfile, acquisition_file2);
 //***** test if acquisition file is WJ derotated file
-		if ((!file_exists(filename->c_str())) && (acquisition_file2.find_last_of(WJ_DEROT_STRING) > 0)) {
+		if ((!filesys::exists(filename->c_str())) && (acquisition_file2.find_last_of(WJ_DEROT_STRING) > 0)) {
 			(*filename) = ""; 
 			std::string winjupos_derotation_filename(acquisition_file2);
 			std::string WJ_derot_extension;
 			WJ_derot_extension = WJ_DEROT_EXT;
 			winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
-			if (!file_exists(winjupos_derotation_filename)) {
+			if (!filesys::exists(winjupos_derotation_filename)) {
 				WJ_derot_extension = WJ_DEROT_EXT_OLD;
 				winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
 			}
 //***** test if WJ derotation file exists
-			if (file_exists(winjupos_derotation_filename)) {
+			if (filesys::exists(winjupos_derotation_filename)) {
 				read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
-				if (!file_exists((*filename))) {
+				if (!filesys::exists((*filename))) {
 					(*filename) = dirfilename(configfile, (*filename));
-					if (!file_exists((*filename))) (*filename) = "";
+					if (!filesys::exists((*filename))) (*filename) = "";
 				}
 			} else {
 //***** test if WJ derotated acquisition exists in current directory
 				//winjupos_derotation_filename = configfile.substr(0, configfile.find_last_of("\\") + 1) + winjupos_derotation_filename.substr(winjupos_derotation_filename.find_last_of("\\") + 1, winjupos_derotation_filename.length());
 				winjupos_derotation_filename = dirfilename(configfile, winjupos_derotation_filename);
-				if (file_exists(winjupos_derotation_filename)) {
+				if (filesys::exists(winjupos_derotation_filename)) {
 					read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
-//					if (!file_exists((*filename))) {
+//					if (!filesys::exists((*filename))) {
 //						(*filename) = dirfilename(configfile, (*filename));
-					if (!file_exists((*filename))) (*filename) = "";
+					if (!filesys::exists((*filename))) (*filename) = "";
 //					}
 				} else (*filename) = "";
 			}

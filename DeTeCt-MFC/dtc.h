@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.4.0"
+#define VERSION_NB		"3.4.1"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -69,11 +69,5 @@ extern int debug_mode;
 
 enum _Planet_type { Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptun, Notdefined };
 typedef enum _Planet_type Planet_type;
-
-enum _Rating_type { Error, Null, Low, High };
-typedef enum _Rating_type Rating_type;
-
-enum _Instance_type { autostakkert_parent, parent, autostakkert_single, single, autostakkert_child, child };
-typedef enum _Instance_type Instance_type;
 
 #endif /* __DTC_H__ */

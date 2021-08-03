@@ -1,4 +1,4 @@
-#pragma warning(disable : 4244 4267 4131 4459)
+#pragma warning(disable : 4244 4267 4131 4459 26451)
 
 /*** File libwcs/iget.c
  *** January 4, 2007
@@ -531,3 +531,4 @@ const char *keyword;	/* character string containing the name of the variable
  *
  * Jan  4 2007	Declare header, keyword to be const
  */
+#pragma warning(default : 4244 4267 4131 4459 26451)

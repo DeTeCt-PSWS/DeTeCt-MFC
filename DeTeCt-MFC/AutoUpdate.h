@@ -49,7 +49,7 @@ public:
 	CString version_CString(const SG_Version version);
 
 private:
-	bool	tempversion;				// indicate this is a temp version
+	bool	tempversion = false;				// indicate this is a temp version
 	CString m_SelfFullPath;
 	CString m_SelfFileName;
 	CString m_VersionsFullPath;	//added by MD

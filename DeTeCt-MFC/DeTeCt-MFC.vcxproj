@@ -92,6 +92,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>DeTeCt</TargetName>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
+    <EnableMicrosoftCodeAnalysis>false</EnableMicrosoftCodeAnalysis>
+    <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -244,6 +247,7 @@
       <IgnoreSpecificDefaultLibraries>uafxcw.lib;libcmt.lib</IgnoreSpecificDefaultLibraries>
       <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -288,7 +292,7 @@
     <ClInclude Include="auxfunc.h" />
     <ClInclude Include="img2.h" />
     <ClInclude Include="max.h" />
-    <ClInclude Include="processes_queue.h" />
+    <ClInclude Include="processes_queue.hpp" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="serfmt.h" />
     <ClInclude Include="stdafx.h" />
@@ -406,8 +410,21 @@
     <Image Include="Image.png" />
     <Image Include="res\autostakkert.ico" />
     <Image Include="res\DeTeCt-MFC.ico" />
+    <Image Include="res\FireCapture.bmp" />
+    <Image Include="res\FireCapture.png" />
+    <Image Include="res\Gemini.bmp" />
+    <Image Include="res\Gemini.png" />
+    <Image Include="res\GenikaAstro.bmp" />
+    <Image Include="res\GenikaAstro.png" />
     <Image Include="res\icon1.ico" />
+    <Image Include="res\LucamRecorder.bmp" />
+    <Image Include="res\LucamRecorder.png" />
+    <Image Include="res\parameters.bmp" />
     <Image Include="res\parameters.png" />
+    <Image Include="res\PLXCapture.bmp" />
+    <Image Include="res\PLXCapture.png" />
+    <Image Include="res\SharpCap.bmp" />
+    <Image Include="res\SharpCap.png" />
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DeTeCt.exe.manifest" />

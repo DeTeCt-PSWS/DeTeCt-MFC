@@ -73,8 +73,9 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 				xcm += x * (*ptr);
 				ycm += y * (*ptr);
 				Y += *ptr++;
-			} else *ptr++; 
-		}
+//			} else *ptr++; 
+			} else ptr++; // warning C6269
+			}
 	}
 
 	return cv::Point((int)round(xcm / Y), (int)round(ycm / Y));

@@ -29,3 +29,6 @@
 *.recipe
 /DeTeCt-MFC/x64/Release/DeTeCt.pchast
 /x64/Release/dlls
+*.sarif
+*.lastbuildstate
+*.ClangTidy

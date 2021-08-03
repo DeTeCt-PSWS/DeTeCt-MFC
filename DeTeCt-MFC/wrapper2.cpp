@@ -5,7 +5,7 @@
 /*    WRAPPER: Different acquisitions format routing functions					*/
 /*                                                                              */
 /********************************************************************************/
-#include "processes_queue.h"
+#include "processes_queue.hpp"
 #include <windows.h> //after processes_queue.h
 
 #include "common.h"
@@ -52,13 +52,15 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 		assert(capt != NULL);
 	}
 	else {
-		capt->pCaptureInfo = (DtcCaptureInfo*)malloc(sizeof(DtcCaptureInfo));
+		/*capt->pCaptureInfo = (DtcCaptureInfo*)malloc(sizeof(DtcCaptureInfo));
+
 		if (capt->pCaptureInfo == NULL) {
 			assert(capt->pCaptureInfo != NULL);
-		}
+		}*/
 		if (opts.debug) { fprintf(stderr, "!Debug info: dtcCaptureFromFile: capt @ %p\n", capt); }
 		if (!strcmp(ext, "ser")) {
 			capt->type = CAPTURE_SER;
+			capt->u.sercapture = NULL;
 			if (!(capt->u.sercapture = serCaptureFromFile(fname)))
 			{
 				free(capt);
@@ -74,6 +76,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 		}
 		else if ((!strcmp(ext, "fit")) || (!strcmp(ext, "fits"))) {
 			capt->type = CAPTURE_FITS;
+			capt->u.filecapture = NULL;
 			if (!(capt->u.filecapture = FileCaptureFromFile(fname, pframecount, capt->type)))
 			{
 				free(capt);
@@ -85,6 +88,7 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 		}
 		else if ((!strcmp(ext, "bmp")) || (!strcmp(ext, "dib")) || (!strcmp(ext, "jpeg")) || (!strcmp(ext, "jpg")) || (!strcmp(ext, "jpe")) || (!strcmp(ext, "jp2")) || (!strcmp(ext, "png")) || (!strcmp(ext, "pbm")) || (!strcmp(ext, "pgm")) || (!strcmp(ext, "ppm")) || (!strcmp(ext, "sr")) || (!strcmp(ext, "ras")) || (!strcmp(ext, "tiff")) || (!strcmp(ext, "tif"))) {
 			capt->type = CAPTURE_FILES;
+			capt->u.filecapture = NULL;
 			if (!(capt->u.filecapture = FileCaptureFromFile(fname, pframecount, capt->type)))
 			{
 				free(capt);
@@ -96,10 +100,15 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 		}
 		else {
 			capt->type = CAPTURE_CV;
+			capt->u.capture = NULL;
 			//if (!(capt->u.capture = cvCreateFileCapture(fname, CV_LOAD_IMAGE_ANYCOLOR))) {
+			/*capt->u.capture = cvCaptureFromFile(fname); 
+			if (capt->u.capture == NULL) {*/
+			//if ((capt->u.capture = cvCaptureFromFile(fname)) != 0) {
 			if (!(capt->u.capture = cvCaptureFromFile(fname))) {
 
 				//if (!(capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname)))) {
+				//free(capt->u.capture);
 				free(capt);
 				capt = NULL;
 				fprintf(stderr, "ERROR in dtcCaptureFromFile opening file %s\n", fname);
@@ -108,7 +117,8 @@ DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 			capt->framecount = (int)(dtcGetCaptureProperty(capt, CV_CAP_PROP_FRAME_COUNT));
 		}
 		(*pframecount) = capt->framecount;
-		initDtcCaptureInfo(capt->pCaptureInfo);
+		//initDtcCaptureInfo(capt->pCaptureInfo);
+		initDtcCaptureInfo(&capt->CaptureInfo);
 	}
 	return capt;
 }
@@ -221,7 +231,10 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
 {
 	int framecount;
+	DtcCaptureInfo CaptureInfoSave;
 
+	//CaptureInfoSave = (*(*pcapture)->pCaptureInfo);
+	CaptureInfoSave = (*pcapture)->CaptureInfo;
 	switch ((*pcapture)->type)
 	{
 	case CAPTURE_SER:
@@ -231,14 +244,16 @@ void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
 	case CAPTURE_FILES:
 		fileReinitCaptureRead((*pcapture)->u.filecapture, fname);
 		break;
-	default: // CAPTURE_CV			
+	default: // CAPTURE_CV	
 		dtcReleaseCapture(*pcapture);
 		if (!(*pcapture = dtcCaptureFromFile2(fname, &framecount))) {
-			fprintf(stderr, "ERROR in dtcReinitCaptureRead opening file %s\n", fname);
+			fprintf(stderr, "ERROR in dtcReinitCaptureRead2 opening file %s\n", fname);
 			exit(EXIT_FAILURE);
 		}
 		break;
 	}
+	//(*(*pcapture)->pCaptureInfo) = CaptureInfoSave;
+	(*pcapture)->CaptureInfo = CaptureInfoSave;
 }
 
 
@@ -259,7 +274,7 @@ void dtcReleaseCapture(DtcCapture *capture)
 		//capture->u.videocapture->release();
 		cvReleaseCapture(&capture->u.capture);
 	}
-	free(capture->pCaptureInfo);
+	//free(capture->pCaptureInfo);
 }
 
 /**********************************************************************************************//**
@@ -298,7 +313,7 @@ BOOL Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acqu
 	else
 		(*pfilename_acquisition) = std::string(file.begin(), file.end());
 
-	if (!file_exists((*pfilename_acquisition).c_str())) {
+	if (!filesys::exists((*pfilename_acquisition).c_str())) {
 		if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
 			// Error if autostakkert acquisition file cannot be found
 			(*pmessage) << "Error, ignoring " << file.substr(file.find_last_of("\\") + 1, file.length()).c_str() << " (cannot open file acquisition file " << (*pfilename_acquisition).c_str() << ", " << strerror(errno) << ")\n";

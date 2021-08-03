@@ -417,7 +417,7 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 
 	//added by MD
 	SG_Version ver_server;
-	SG_GetVersion_from_ConfigFile(&ver_server, log_cstring_lines);
+	if (!SG_GetVersion_from_ConfigFile(&ver_server, log_cstring_lines)) return FALSE;
 
 	if (SG_Version_number(ver_server) < SG_Version_number(ver_current)) {
 		(*log_cstring_lines).push_back((CString)"Info: current version " + version_CString(ver_current) + (CString)" is more recent than update version " + version_CString(ver_server) + (CString)" !");
@@ -496,7 +496,9 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 		else
 			//wprintf(L"No new version (%s) on the server\n", m_NextVersion);
 			(*log_cstring_lines).push_back((CString)"Error: no new version (" + ExeName + _T(") on the server"));
-		return (hr) ? TRUE : FALSE;
+		if (hr == 1) return true;
+		else return false;
+		//return (hr) ? TRUE : FALSE;
 	}
 	else { // Ask for individual launch for update
 		(*log_cstring_lines).push_back((CString)"Info: manually launch " + m_SelfFileName + " separately without any other instance running to update it to new version " + version_CString(ver_server));

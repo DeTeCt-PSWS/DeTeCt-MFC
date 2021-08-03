@@ -127,7 +127,7 @@
     <ClInclude Include="wrapper3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="processes_queue.h">
+    <ClInclude Include="processes_queue.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="max.h">
@@ -423,6 +423,45 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\FireCapture.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\GenikaAstro.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\LucamRecorder.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\PLXCapture.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\SharpCap.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Gemini.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\parameters.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Gemini.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\GenikaAstro.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\LucamRecorder.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\PLXCapture.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\SharpCap.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\FireCapture.bmp">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

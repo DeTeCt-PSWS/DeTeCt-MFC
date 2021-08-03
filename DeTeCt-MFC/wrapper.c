@@ -54,10 +54,10 @@ void		initDtcCaptureInfo(DtcCaptureInfo* pCaptureInfo)
 	init_string(pCaptureInfo->centralmeridian);
 	pCaptureInfo->focallength_mm	= INT_MIN;
 	pCaptureInfo->resolution		= INT_MIN;
-	pCaptureInfo->binning			= NotSet;
+	init_string(pCaptureInfo->binning);
 	pCaptureInfo->bitdepth			= INT_MIN;
 	pCaptureInfo->debayer			= NotSet;
-	pCaptureInfo->shutter_ms		= -DBL_MAX;
+	pCaptureInfo->exposure_ms		= -DBL_MAX;
 	pCaptureInfo->gain				= INT_MIN;
 	pCaptureInfo->gamma				= INT_MIN;
 	pCaptureInfo->autoexposure		= NotSet;

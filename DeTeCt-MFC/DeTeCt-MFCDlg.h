@@ -306,6 +306,7 @@ public:
 	afx_msg void OnCbnSelchangeCombo2();
 	//afx_msg void OnBnClickedCheck11();
 	afx_msg void OnBnClickedCheck13();
+	afx_msg void OnBnClickedCheck11();
 };
 #pragma once
 

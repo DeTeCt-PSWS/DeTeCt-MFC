@@ -1,4 +1,4 @@
-#pragma warning(disable : 4244 4267 4131 4706)
+#pragma warning(disable : 4244 4267 4131 4706 6387 26451)
 
 /*** File libwcs/hget.c
  *** May 19, 2011
@@ -1918,3 +1918,4 @@ int	dropzero;	/* If nonzero, drop trailing zeroes */
  * Apr 19 2011	In str2dec(), change comma to space
  * May 19 2011	In strncsrch() always free allocated memory before returning
  */
+#pragma warning(default : 4244 4267 4131 4706 6387 26451)

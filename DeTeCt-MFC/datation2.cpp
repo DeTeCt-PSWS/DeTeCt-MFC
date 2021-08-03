@@ -4,19 +4,19 @@
  * @brief	Implements the datation 2 class.
  **************************************************************************************************/
 
-#include <chrono>
-#include <ctime>
-#include <sstream> 
-#include <string>
-#include <iomanip>
+//#include <chrono>	//not used
+//#include <ctime>	//not used
+//#include <sstream>	//not used
+//#include <string>	//not used
+//#include <iomanip>	//not used
 
-#include "processes_queue.h"
+#include "processes_queue.hpp"
 #include "dtcgui.hpp"
 
-#include <Windows.h> //after processes_queue.h
+//#include <Windows.h> //after processes_queue.h  //not used
 
 #include "datation2.h"
-#include "dtc.h"
+//#include "dtc.h"	//not used
 #include "common2.h"
 
 
@@ -291,20 +291,21 @@ void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info) {
 void dtcWriteLogHeader(std::string location) {
 	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString(location.c_str()), DTC_LOG_SUFFIX));
 
-	std::ifstream filetest(DeTeCtLogFilename);
-	if (!filetest) {
+	//std::ifstream filetest(DeTeCtLogFilename);
+	//if (!filetest) {
+	if (!filesys::exists(CString2string((CString)DeTeCtLogFilename))) {
 		std::ofstream output_file;
 
 		output_file.open(DeTeCtLogFilename);
 
 		output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 		output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
-		output_file << "confidence Rating    ;     Start                 ;     End                   ;     Mid                   ; Duration; fps (fr/s) ; File;                        DeTeCt version and comment; os_version; mean min;avg;max; mean2 min;avg;max; max-mean mean;avg;max; max-mean2 min;avg;max; diff min;avg;max; diff2 min;avg max; distance; Observer ; Location ; Scope ; Camera ; Filter ; Profile ; Diameter (arcsec) ; Magnitude ; Central Meridian (°) ;  Focal length (mm) ; Resolution (arcsec) ; Binning ; Bit depth ; Debayer ; Shutter (ms) ; Gain ; Gamma ; Auto exposure ; Software gain ; Auto histogram ; Brightness ; Auto gain ; Histogram min ; Histogram max ; Histogram (%) ; Noise ; Prefilter ; Sensor temperature (°C) ; Target \n";
+		output_file << "confidence Rating    ;     Start                 ;     End                   ;     Mid                   ; Duration; fps (fr/s) ; File;                        DeTeCt version and comment; os_version; mean min;avg;max; mean2 min;avg;max; max-mean mean;avg;max; max-mean2 min;avg;max; diff min;avg;max; diff2 min;avg max; distance; Observer ; Location ; Scope ; Camera ; Filter ; Profile ; Diameter (arcsec) ; Magnitude ; Central Meridian (°) ;  Focal length (mm) ; Resolution (arcsec) ; Binning ; Bit depth ; Debayer ; Exposure (ms) ; Gain ; Gamma ; Auto exposure ; Software gain ; Auto histogram ; Brightness ; Auto gain ; Histogram min ; Histogram max ; Histogram (%) ; Noise ; Prefilter ; Sensor temperature (°C) ; Target \n";
 
 		//              0.0000	Null         ; 2011/07/01 15:56,595000 LT; 2011/07/01 15:56,650000 LT; 2011/07/01 15:56,622500 LT; 3.3000 s; 30.000 fr/s; G:\work\Impact\tests\...
 		output_file.close();
 	}
-	else filetest.close();
+//	else filetest.close();
 }
 
 /*
@@ -331,9 +332,15 @@ void dtcCloseLog(std::string location) {
 * @param	videos_info	List of the information describing the algorithm output.
 **************************************************************************************************/
 
-void dtcWriteLog2(const std::string location, const LogInfo video_info, const DtcCaptureInfo CaptureInfo, std::stringstream *logline) {
-	CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString (location.c_str()), DTC_LOG_SUFFIX)); 
-	std::ofstream output_file(DeTeCtLogFilename, std::ios_base::app);
+void dtcWriteLog2(const std::string location, const LogInfo video_info, const DtcCaptureInfo CaptureInfo, std::stringstream *logline, int* pwaitms) {
+	//CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder(CString (location.c_str()), DTC_LOG_SUFFIX));
+
+	CString output_filename = DeTeCt_additional_filename_from_folder(CString(location.c_str()), DTC_LOG_SUFFIX);
+	
+	if (!filesys::exists(CString2string(output_filename))) exit(EXIT_FAILURE);
+	
+	*pwaitms += NbWaitedUnlockedFile(output_filename, FILEACCESS_WAIT_MS);
+	std::ofstream output_file(output_filename, std::ios_base::app);
 
 	std::string os_version = "";
 	GetOSversion(&os_version);
@@ -421,15 +428,13 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 	output_file << "; ";
 	if (CaptureInfo.resolution >= 0) 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(2) << CaptureInfo.resolution;
 	output_file << "; ";
-	if (CaptureInfo.binning == False) output_file << "off";
-	else if (CaptureInfo.binning == True) output_file << " on";
-	output_file << "; ";
+	output_file << CaptureInfo.binning << "; ";
 	if (CaptureInfo.bitdepth >= 0) 	output_file << std::setfill(' ') << std::setw(2) << std::setprecision(0) << CaptureInfo.bitdepth;
 	output_file << "; ";
 	if (CaptureInfo.debayer == False) output_file << "off";
 	else if (CaptureInfo.debayer == True) output_file << " on";
 	output_file << "; ";
-	if (CaptureInfo.shutter_ms >= 0) 	output_file << std::setfill(' ') << std::setw(9) << std::setprecision(3) << CaptureInfo.shutter_ms;
+	if (CaptureInfo.exposure_ms >= 0) 	output_file << std::setfill(' ') << std::setw(9) << std::setprecision(3) << CaptureInfo.exposure_ms;
 	output_file << "; ";
 	if (CaptureInfo.gain >= 0) 	output_file << std::setfill(' ') << std::setw(3) << std::setprecision(0) << CaptureInfo.gain;
 	output_file << "; ";

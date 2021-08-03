@@ -1,9 +1,9 @@
 #include "common2.h"
 
-//#include "dtcgui.hpp"
+//#include "dtcgui.hpp"		//not needed
 #include <opencv2\highgui\highgui.hpp>
 #include <codecvt>
-//#include "versionhelpers.h"	//for IsWindowsxxx
+//#include "versionhelpers.h"	//for IsWindowsxxx //not needed
 
 extern "C" {
 #include "common.h"
@@ -167,18 +167,6 @@ void GetOSversion(std::string *pos_version)
 // **************** File functions ****************************
 // ************************************************************
 
-
-/**** return if file with filename exists ***/
-bool file_exists(std::string filename) {
-	std::ifstream filetest(filename);
-	if (!filetest) {
-		filetest.close();
-		return false;
-	}
-	filetest.close();
-	return true;
-}
-
 /**** return full filename constructed from first file directory and second file short filename ***/
 std::string dirfilename(std::string directoryname_from_path, std::string filename_from_path) {
 	return directoryname_from_path.substr(0, directoryname_from_path.find_last_of("\\") + 1) + filename_from_path.substr(filename_from_path.find_last_of("\\") + 1, filename_from_path.length());
@@ -248,4 +236,24 @@ bool rmdir_force(const char *directory_name) {
 	if (status_int<0) return_value = FALSE;
 
 	return return_value;
+}
+
+int NbWaitedUnlockedFile(CString filename, const int delay) {
+	BOOL Unlocked	= TRUE;
+	int counter		= 0;
+
+	do {
+		std::ofstream output_file_tmp(filename, std::ios_base::app);
+		if (!output_file_tmp) {
+			Sleep(delay);
+			Unlocked = FALSE;
+			counter++;
+		}
+		else {
+			Unlocked = TRUE;
+			output_file_tmp._close();
+		}
+	} while (!Unlocked);
+	
+	return counter;
 }

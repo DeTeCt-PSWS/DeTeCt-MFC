@@ -10,12 +10,12 @@ extern "C" {
 	//#include "common.h"
 }
 
-#define CAPTURE_CV		0
+/*#define CAPTURE_CV		0
 #define CAPTURE_SER		1
 #define CAPTURE_FITS	2
 #define CAPTURE_FILES	3
 
-#define DEFAULT_FPS		25.0
+#define DEFAULT_FPS		25.0*/
 
 
 /*struct _DtcCapture2

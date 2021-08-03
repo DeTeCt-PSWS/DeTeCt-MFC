@@ -1,6 +1,7 @@
-#include "processes_queue.h"
+#include "processes_queue.hpp"
+#include "common.h"
 #include "common2.h"
-#include "auxfunc.h"
+//#include "auxfunc.h"
 
 #include <tlhelp32.h>
 #include <psapi.h>
@@ -10,10 +11,29 @@
 #include <vector>
 #include <iterator>
 
-#define QUEUE_LOCK_EXT ".lock"
-#define QUEUE_UNLOCK_EXT ".unlock"
 
-void WriteLockQueue(const CString text, const CString QueueFilename);
+#ifndef _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#endif
+#include <experimental\filesystem>
+namespace filesys = std::experimental::filesystem;
+
+/*** internal functions ***/
+
+BOOL	OpenRQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle);
+BOOL	OpenRWQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle);
+BOOL	OpenWAppendQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle);
+BOOL	OpenWEraseQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle);
+void	ReleaseHandle(HANDLE* pFileHandle);
+
+BOOL	OpenQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle, const DWORD dwDesiredAccess, const DWORD dwShareMode, const DWORD dwCreationDisposition);		//internal
+BOOL	IsItemAlreadyQueued(const CString objectname, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end);			//internal	R--
+BOOL	PopFileFromQueue(CString* objectname, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end);										//internal	--D
+CString	GetLine(HANDLE QueueFileHandle);
+
+int		DetectInstancesNumber();
+int		ProcessChildren(BOOL kills);
+int		ParentProcessChildren(const DWORD parent_PID, const BOOL kills);
 
 /**********************************************************************************************
 ***********************************************************************************************
@@ -23,27 +43,6 @@ void WriteLockQueue(const CString text, const CString QueueFilename);
 ***********************************************************************************************
 **********************************************************************************************/
 
-/**********************************************************************************************
-*
-* @fn	DetectInstancesNumber()
-*
-* @brief	Get number of DeTeCt processes running
-*
-* @author	Marc
-* @date		2020-04-15
-*
-* @return	number of DeTeCt processes running
-**************************************************************************************************/
-
-int ProcessChildren(BOOL kills);
-int ParentProcessChildren(const DWORD parent_PID, const BOOL kills);
-
-int DetectInstancesNumber()
-{
-	char DeTeCtFileNameChar[MAX_PATH];
-
-	return ProcessRunningInstancesNumber(DeTeCtFileName(DeTeCtFileNameChar));
-}
 
 /**********************************************************************************************
 *
@@ -192,51 +191,66 @@ CString DeTeCt_exe_folder()
 * @param	QueueFilename [in,out]	queue filename
 **************************************************************************************************/
 
-void PushItemToQueue(const CString line, const CString tag, const CString QueueFilename, const BOOL use_lock)
+BOOL PushItemToQueue(const CString line, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok, WA
 {
-	int sharing_flag = _SH_DENYNO;
-	if (use_lock) {
-		GetLockQueue((CString)__FUNCTION__ + _T(" ") + line + _T(" ") + tag, QueueFilename);
-		sharing_flag = _SH_DENYRW;
-	}
-	//else WriteLockQueue((CString)__FUNCTION__ + _T("(no lock)"), QueueFilename);
+	DWORD	dwBytesWritten = 0;
+	CT2A objectnamechar(tag + _T(": ") + line + _T("\n"));
 
-	//std::ofstream output_file(QueueFilename, std::ofstream::app, sharing_flag);
-	std::ofstream output_file(QueueFilename, std::ofstream::app);
-	CT2A objectnamechar(tag + ": " + line);
-	output_file << objectnamechar << "\n";
-	output_file.close();
-	if (use_lock) UnlockQueue(QueueFilename);
+	if (pQueueFileHandle == NULL) {
+		HANDLE TempQueueHandle = INVALID_HANDLE_VALUE;
+		if (OpenWAppendQueueFile(QueueFilename, &TempQueueHandle)) {
+			WriteFile(TempQueueHandle, objectnamechar, tag.GetLength() + 2 + line.GetLength() + 1, &dwBytesWritten, NULL);
+			ReleaseHandle(&TempQueueHandle);
+			return TRUE;
+		} else return FALSE;
+	}
+	else {
+		if (OpenWAppendQueueFile(QueueFilename, pQueueFileHandle)) {
+			WriteFile(*pQueueFileHandle, objectnamechar, tag.GetLength() + 2 + line.GetLength() + 1, &dwBytesWritten, NULL);
+			if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+			return TRUE;
+		} else return FALSE;
+	}
 }
 
 
-BOOL GetItemFromQueue(CString *object, const CString tag, const CString QueueFilename)
+BOOL GetItemFromQueue(CString* pObject, const CString search_string, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok, R
 {
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + tag, QueueFilename);
-	//std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in, _SH_DENYRW);
-	std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in);
-	CT2A tmp(tag + ": ");
-	std::string tag_string(tmp);
+	CString line = L"";
+	(*pObject) = "";
 
-
-	if (DeTeCtQueueFile) {
-		std::string line;
-		(*object) = "";
-		while (((*object) == "") && (std::getline(DeTeCtQueueFile, line))) {
-			if (line.find(tag_string) != std::string::npos) {
-				line.erase(line.find(tag_string), tag_string.size());
-				(*object) = line.c_str();
-				DeTeCtQueueFile.close();
-				UnlockQueue(QueueFilename);
-				return TRUE;
-			}
+	if (pQueueFileHandle == NULL) {
+		HANDLE TempQueueHandle = INVALID_HANDLE_VALUE;
+		if (OpenRQueueFile(QueueFilename, &TempQueueHandle)) {
+			do {
+				line = GetLine(TempQueueHandle);
+				if (line.Find(search_string, 0) == 0) {
+					line.Delete(line.Find(search_string), search_string.GetLength());
+					(*pObject) = line;
+					ReleaseHandle(&TempQueueHandle);
+					return TRUE;
+				}
+			} while (((*pObject) == "") && (line.GetLength() > 1));
+			ReleaseHandle(&TempQueueHandle);
 		}
 	}
-	DeTeCtQueueFile.close();
-	UnlockQueue(QueueFilename);
-
+	else {
+		if (OpenRQueueFile(QueueFilename, pQueueFileHandle)) {
+			do {
+				line = GetLine(*pQueueFileHandle);
+				if (line.Find(search_string, 0) == 0) {
+					line.Delete(line.Find(search_string), search_string.GetLength());
+					(*pObject) = line;
+					if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+					return TRUE;
+				}
+			} while (((*pObject) == "") && (line.GetLength() > 1));
+			if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+		}
+	}
 	return FALSE;
 }
+
 
 /**********************************************************************************************
 *
@@ -251,182 +265,87 @@ BOOL GetItemFromQueue(CString *object, const CString tag, const CString QueueFil
 * @param	tag [in]						tag
 * @param	QueueFilename [in,out]	queue filename
 **************************************************************************************************/
-void RemoveItemsFromQueue(const CString objectname, const CString tag, const CString QueueFilename, const BOOL use_lock) {
+void RemoveItemsFromQueue(const CString objectname, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) { //KO / R+Del+WA, could be R+Del+W - check how to keep new created HANDLE, and what to do with close@end
 
-	int sharing_flag = _SH_DENYNO;
-	if (use_lock) {
-		GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname + _T(" ") + tag, QueueFilename);
-		sharing_flag = _SH_DENYRW;
-	}
-	//std::ifstream DeTeCtQueueInputFile(QueueFilename, std::ifstream::in, sharing_flag);
-	std::ifstream DeTeCtQueueInputFile(QueueFilename, std::ifstream::in);
+	BOOL	local_close_handle_at_end = close_handle_at_end;
 
-	if (DeTeCtQueueInputFile) {
-		std::vector<std::string> lines;
-		std::string line;
-		int linesnb = 0;
+	if (pQueueFileHandle == NULL) local_close_handle_at_end = TRUE;
+	if (!OpenRWQueueFile(QueueFilename, pQueueFileHandle)) return;
 
-		CT2A tmp(tag + ": " + objectname);
-		std::string objectstring(tmp);
+	std::vector<CString> cstring_lines;
+	BOOL file_to_be_updated = FALSE;
+	CString object_string = tag + _T(": ") + objectname;
+	CString line = L"";
 
-		while (std::getline(DeTeCtQueueInputFile, line)) {
-			while (line.substr(line.size() - 1, 1) == " ") line.erase(line.size() - 1, 1);
-			//if (objectstring.compare(line) != 0) {
-			if (line.compare(0, objectstring.size(), objectstring) != 0) {
-			lines.push_back(line);
-				linesnb++;
-			}
+	SetFilePointer(*pQueueFileHandle, 0, NULL, FILE_BEGIN);
+	do {
+		line = GetLine(*pQueueFileHandle);
+		if (line.GetLength() > 1) {
+			if (line.Find(object_string, 0) != 0) cstring_lines.push_back(line);
+			else file_to_be_updated = TRUE;
 		}
-		DeTeCtQueueInputFile.close();
+	} while (line.GetLength() > 1);
 
-		CT2A QueueFilenameChar(QueueFilename);
-		//if ((remove(QueueFilenameChar) == 0) && (linesnb > 0)) {
-			//std::ofstream DeTeCtQueueOutputFile(QueueFilename, std::ofstream::out, sharing_flag);
-		if (linesnb > 0) {
-			std::ofstream DeTeCtQueueOutputFile(QueueFilename, std::ofstream::out|std::ofstream::trunc);
-			std::ostream_iterator<std::string> output_iterator(DeTeCtQueueOutputFile, "\n");
-			std::copy(lines.begin(), lines.end(), output_iterator);
-			DeTeCtQueueOutputFile.close();
-		}
+	if (file_to_be_updated) {
+		DWORD	dwBytesWritten = 0;
+
+		SetFilePointerEx(*pQueueFileHandle, { 0 }, NULL, FILE_BEGIN);
+		SetEndOfFile(*pQueueFileHandle);
+		std::for_each(cstring_lines.begin(), cstring_lines.end(), [&](const CString cstring_line) {
+			CT2A line(cstring_line + _T("\n"));
+			WriteFile(*pQueueFileHandle, line, cstring_line.GetLength() + 1, &dwBytesWritten, NULL);
+			});
+		if (local_close_handle_at_end) ReleaseHandle(pQueueFileHandle);
 	}
-	else 	DeTeCtQueueInputFile.close();
-	if (use_lock) UnlockQueue(QueueFilename);
+	else if (local_close_handle_at_end) ReleaseHandle(pQueueFileHandle); // Item to be removed not found
+
 }
 
-void SetIntParamToQueue(const int param, const CString tag, const CString QueueFilename) {
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + (CString)std::to_string(param).c_str() + _T(" ") + tag, QueueFilename);
-	RemoveItemsFromQueue((CString)"", tag, QueueFilename, FALSE);
-	//RemoveItemsFromQueue((CString)"", tag, QueueFilename, TRUE);
-	PushItemToQueue((CString)std::to_string(param).c_str(), tag, QueueFilename, FALSE);
-	//PushItemToQueue((CString)std::to_string(param).c_str(), tag, QueueFilename, TRUE);
-	UnlockQueue(QueueFilename);
+void SetIntParamToQueue(const int param, const CString tag, const CString QueueFilename) { //KO because of removeitems
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
+
+	//RemoveItemsFromQueue((CString)"", tag, QueueFilename, &QueueFileHandle, FALSE);
+	RemoveItemsFromQueue((CString)"", tag, QueueFilename, &QueueFileHandle, FALSE);
+	PushItemToQueue((CString)std::to_string(param).c_str(), tag, QueueFilename, &QueueFileHandle, TRUE);
 }
 
-int GetIntParamFromQueue(const CString tag, const CString QueueFilename) {
+int GetIntParamFromQueue(const CString tag, const CString QueueFilename) { //ok, R
 	int value = 0;
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
+	
 	CString object;
-	GetItemFromQueue(&object, tag, QueueFilename);
+	GetItemFromQueue(&object, tag + _T(": "), QueueFilename, &QueueFileHandle, TRUE);
 	value = StrToInt(object);
 	return value;
 }
 
-BOOL IsItemAlreadyQueued(const CString objectname, const CString tag, const CString QueueFilename, const BOOL use_lock)
-{
-	int sharing_flag = _SH_DENYNO;
-	if (use_lock) {
-		GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname + _T(" ") + tag, QueueFilename);
-		sharing_flag = _SH_DENYRW;
-	}
-	//else WriteLockQueue((CString)__FUNCTION__ + _T(" ") + objectname + _T(" ") + tag, QueueFilename);
-
-	//std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in, sharing_flag);
-	std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in);
-
-	if (DeTeCtQueueFile) {
-		std::string line;
-		CT2A tmp(tag + objectname);
-		std::string objectstring(tmp);
-
-		while (std::getline(DeTeCtQueueFile, line)) {
-			while (line.substr(line.size() - 1, 1) == " ") line.erase(line.size() - 1, 1);
-			if (line.compare(objectstring) == 0) {
-				DeTeCtQueueFile.close();
-				if (use_lock) UnlockQueue(QueueFilename);
-				return TRUE;
-			}
-		}
-	}
-	DeTeCtQueueFile.close();
-	if (use_lock) UnlockQueue(QueueFilename);
-	return FALSE;
-}
-
-
-void LockQueue(const CString text, const CString QueueFilename)
-{
-	std::string lock_filename = CString2string((CString)QueueFilename).substr(0, CString2string((CString)QueueFilename).find_last_of(".")) + QUEUE_LOCK_EXT;
-
-	std::ofstream lock_file(lock_filename, std::ofstream::app);
-	if (lock_file) {
-		//std::string text_string = CString2string(text) + " PID" + std::to_string(GetCurrentProcessId()).c_str(); 	// do not know why, but need to convert to string then back to cstring to have it work
-		//lock_file << text_string.c_str() << "\n";
-		lock_file.flush();
-	}
-	lock_file.close();
-}
-
-void UnlockQueue(const CString QueueFilename)
-{
-	std::string lock_filename = CString2string((CString)QueueFilename).substr(0, CString2string((CString)QueueFilename).find_last_of(".")) + QUEUE_LOCK_EXT;
-
-	//WriteLockQueue((CString)__FUNCTION__ + _T(" init (no lock)"), QueueFilename);
-	std::ifstream lock_file(lock_filename, std::ifstream::in);
-	//std::ifstream lock_file(lock_filename);
-	//WriteLockQueue((CString)__FUNCTION__ + _T(" if stream (no lock)"), QueueFilename);
-	if (lock_file) {
-		//WriteLockQueue((CString)__FUNCTION__ + _T(" close (no lock)"), QueueFilename);
-		lock_file.close(); // Needed to release lock on .... lock file!
-		do {
-			//WriteLockQueue((CString)__FUNCTION__ + _T(" remove (no lock)"), QueueFilename); 
-			remove(lock_filename.c_str());
-		}  while (file_exists(lock_filename.c_str())); //makes sure lock is removed
-	} else lock_file.close();
-}
-
-void GetLockQueue(const CString text, const CString QueueFilename) {
-	std::string lock_filename = CString2string((CString)QueueFilename).substr(0, CString2string((CString)QueueFilename).find_last_of(".")) + QUEUE_LOCK_EXT;
-
-	do {
-		std::ifstream lock_file(lock_filename, std::ifstream::in);
-		//std::ifstream lock_file(lock_filename);
-		//lock_file.close();
-		if (lock_file) {
-			lock_file.close(); // Needed to release lock on .... lock file!
-			Sleep(100 + rand() % 400);
-		}
-		else {
-			lock_file.close();
-			break;
-		}
-	} while (TRUE);
-	LockQueue(text, QueueFilename);
-}
-
 // For Debug
 
-void WriteLockQueue(const CString text, const CString QueueFilename)
+int NbItemFromQueue(const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok, R
 {
-	std::string lock_filename = CString2string((CString)QueueFilename).substr(0, CString2string((CString)QueueFilename).find_last_of(".")) + QUEUE_LOCK_EXT;
+	int		nbitem		= 0;
+	CString tag_string	= tag + _T(": ");
+	CString line		= L"";
 
-	//std::ofstream lock_file(lock_filename, std::ofstream::app);
-	std::ofstream lock_file(lock_filename);
-	if (lock_file) {
-		std::string text_string = CString2string(text); 	// do not know why, but need to convert to string then back to cstring to have it work
-		lock_file << text_string.c_str() << "\n";
-		lock_file.flush();
+	if (pQueueFileHandle == NULL) {
+		HANDLE TempQueueHandle = INVALID_HANDLE_VALUE;
+		if (OpenRQueueFile(QueueFilename, &TempQueueHandle)) {
+			do {
+				line = GetLine(TempQueueHandle);
+				if (line.Find(tag_string, 0) == 0) nbitem++;
+			} while (line.GetLength() > 1);
+			ReleaseHandle(&TempQueueHandle);
+		}
 	}
-	lock_file.close();
-}
-
-int NbItemFromQueue(const CString tag, const CString QueueFilename, const BOOL use_lock)
-{
-	int sharing_flag = _SH_DENYNO;
-	if (use_lock) {
-		GetLockQueue((CString)__FUNCTION__ + _T(" ") + tag, QueueFilename);
-		sharing_flag = _SH_DENYRW;
+	else {
+		if (OpenRQueueFile(QueueFilename, pQueueFileHandle)) {
+			do {
+				line = GetLine(*pQueueFileHandle);
+				if (line.Find(tag_string, 0) == 0) nbitem++;
+			} while (line.GetLength() > 1);
+			if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+		}
 	}
-	//std::ifstream	DeTeCtQueueFile(QueueFilename, std::ifstream::in, sharing_flag);
-	std::ifstream	DeTeCtQueueFile(QueueFilename, std::ifstream::in);
-	CT2A tmp(tag + _T(": "));
-	std::string		tag_string(tmp);
-	int				nbitem = 0;
-
-	if (DeTeCtQueueFile) {
-		std::string line;
-		while (std::getline(DeTeCtQueueFile, line)) if (line.find(tag_string) != std::string::npos) nbitem++;
-	}
-	DeTeCtQueueFile.close();
-	if (use_lock) UnlockQueue(QueueFilename);
 	return nbitem;
 }
 
@@ -443,65 +362,11 @@ int NbItemFromQueue(const CString tag, const CString QueueFilename, const BOOL u
 * @param	QueueFilename [in,out]	queue filename
 **************************************************************************************************/
 
-void PushFileToQueue(const CString objectname, const CString QueueFilename)
+void PushFileToQueue(const CString objectname, const CString QueueFilename) //ok  because of pushitems //KO to link!
 {
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname, QueueFilename);
-	//std::ofstream DeTeCtQueueFile(QueueFilename, std::ofstream::app, _SH_DENYRW);
-	std::ofstream DeTeCtQueueFile(QueueFilename, std::ofstream::app);
-	CT2A objectnamechar(L"file: " + objectname);
-	DeTeCtQueueFile << objectnamechar << "\n";
-	DeTeCtQueueFile.close();
-	UnlockQueue(QueueFilename);
-}
-
-/**********************************************************************************************
-*
-* @fn	PopFileFromQueue(CString *objectname,  CString QueueFilename)
-*
-* @brief	pops and removes objectname from QueueFilename (first position)
-*
-* @author	Marc
-* @date		2020-04-15
-*
-* @param	objectname [out]				object
-* @param	QueueFilename [in]		queue filename
-*
-* @return	FALSE if Queue does not exist, TRUE otherwise
-**************************************************************************************************/
-
-BOOL PopFileFromQueue(CString *objectname, const CString QueueFilename, const BOOL use_lock)
-{
-	int sharing_flag = _SH_DENYNO;
-	if (use_lock) {
-		GetLockQueue((CString)__FUNCTION__, QueueFilename);
-		sharing_flag = _SH_DENYRW;
-	}
-	//else WriteLockQueue((CString)__FUNCTION__ + _T("(no lock)"), QueueFilename);
-
-	//std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in, sharing_flag);
-	std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in);
-
-	if (DeTeCtQueueFile) {
-		std::string line;
-		std::string tag("file: ");
-
-		(*objectname) = "";
-		while (((*objectname) == "") && (std::getline(DeTeCtQueueFile, line))) {
-			//copy in objectname first line, removing tag
-			if (line.find(tag) != std::string::npos) {
-				DeTeCtQueueFile.close();
-				line.erase(line.find(tag), tag.size());
-				(*objectname) = line.c_str();
-				if (use_lock) UnlockQueue(QueueFilename);							// Before RemoveFileFromQueue which also looks Queue
-				RemoveFileFromQueue((*objectname), QueueFilename, FALSE);
-				//RemoveFileFromQueue((*objectname), QueueFilename, TRUE);
-				return TRUE;
-			}
-		}
-	}
-	DeTeCtQueueFile.close();
-	if (use_lock) UnlockQueue(QueueFilename);
-	return FALSE;
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
+	
+	PushItemToQueue(objectname, L"file", QueueFilename, &QueueFileHandle, TRUE);
 }
 
 /**********************************************************************************************
@@ -517,46 +382,13 @@ BOOL PopFileFromQueue(CString *objectname, const CString QueueFilename, const BO
 * @param	QueueFilename [in,out]		queue filename
 **************************************************************************************************/
 
-void RemoveFileFromQueue(const CString objectname, const CString QueueFilename, const BOOL use_lock)
+void RemoveFileFromQueue(const CString objectname, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //KO because of removeitems ; - check how to keep new created HANDLE, and what to do with close@end
 {
-	int sharing_flag = _SH_DENYNO;
-	if (use_lock) {
-		GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname, QueueFilename);
-		sharing_flag = _SH_DENYRW;
+	if (pQueueFileHandle == NULL) {
+		HANDLE TempQueueHandle = INVALID_HANDLE_VALUE;
+		RemoveItemsFromQueue(objectname, L"file", QueueFilename, &TempQueueHandle, TRUE);
 	}
-	//std::ifstream DeTeCtQueueInputFile(QueueFilename, std::ifstream::in, sharing_flag);
-	std::ifstream DeTeCtQueueInputFile(QueueFilename, std::ifstream::in);
-
-	if (DeTeCtQueueInputFile) {
-		std::vector<std::string> lines;
-		std::string line;
-		int linesnb = 0;
-
-		CT2A tmp(L"file: " + objectname);
-		std::string objectstring(tmp);
-
-		while (std::getline(DeTeCtQueueInputFile, line)) {
-			while (line.substr(line.size() - 1, 1) == " ") line.erase(line.size() - 1, 1);
-			if (objectstring.compare(line) != 0) {
-				lines.push_back(line);
-				linesnb++;
-			}
-		}
-		DeTeCtQueueInputFile.close();
-
-		CT2A QueueFilenameChar(QueueFilename);
-		//if ((remove(QueueFilenameChar) == 0) && (linesnb > 0)) {
-			//std::ofstream DeTeCtQueueOutputFile(QueueFilename, std::ofstream::out, sharing_flag);
-		if (linesnb > 0) {
-			//std::ofstream DeTeCtQueueOutputFile(QueueFilename, std::ofstream::out|std::ofstream::trunc, sharing_flag);
-			std::ofstream DeTeCtQueueOutputFile(QueueFilename, std::ofstream::out | std::ofstream::trunc);
-			std::ostream_iterator<std::string> output_iterator(DeTeCtQueueOutputFile, "\n");
-			std::copy(lines.begin(), lines.end(), output_iterator);
-			DeTeCtQueueOutputFile.close();
-		}
-	}
-	else 	DeTeCtQueueInputFile.close();
-	if (use_lock) UnlockQueue(QueueFilename);
+	else RemoveItemsFromQueue(objectname, L"file", QueueFilename, pQueueFileHandle, close_handle_at_end);
 }
 
 /**********************************************************************************************
@@ -574,102 +406,83 @@ void RemoveFileFromQueue(const CString objectname, const CString QueueFilename, 
 * @return	returns if objectname is already queued in QueueFilename
 **************************************************************************************************/
 
-BOOL IsFileAlreadyQueued(const CString objectname, const CString QueueFilename)
+BOOL IsFileAlreadyQueued(const CString objectname, const CString QueueFilename) //ok because of GetItem
 {
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname, QueueFilename);
-	//std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in, _SH_DENYRW);
-	std::ifstream DeTeCtQueueFile(QueueFilename, std::ifstream::in);
+	CString	processed_line;
+	HANDLE	QueueFileHandle = INVALID_HANDLE_VALUE;
 
-	if (DeTeCtQueueFile) {
-		std::string line;
-		CT2A tmp(L"file: " + objectname);
-		std::string objectstring(tmp);
+	return GetItemFromQueue(&processed_line, L"file: " + objectname, QueueFilename, &QueueFileHandle, TRUE);
+}
 
-		while (std::getline(DeTeCtQueueFile, line)) {
-			while (line.substr(line.size() - 1, 1) == " ") line.erase(line.size() - 1, 1);
-			if (line.compare(objectstring) == 0) {
-				DeTeCtQueueFile.close();
-				UnlockQueue(QueueFilename);
-				return TRUE;
-			}
-		}
+
+int  NbFilesFromQueue(const CString QueueFilename) //ok because of NbItem
+{
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
+
+	int		nbitem = 0;
+	CString tag_string = L"file";
+	CString line = L"";
+
+	if (OpenRQueueFile(QueueFilename, &QueueFileHandle)) {
+		do {
+			line = GetLine(QueueFileHandle);
+			if (line.Find(tag_string, 0) == 0) nbitem++;
+		} while (line.GetLength() > 1);
+		ReleaseHandle(&QueueFileHandle);
 	}
-	DeTeCtQueueFile.close();
-	UnlockQueue(QueueFilename);
-	return FALSE;
+		return nbitem;
 }
 
-
-int  NbFilesFromQueue(const CString QueueFilename)
+BOOL GetFileFromQueue(CString* pObjectname, const CString QueueFilename) //ko
 {
-	GetLockQueue((CString)__FUNCTION__, QueueFilename);
-	int nbfiles = NbItemFromQueue((CString)"file", (CString)QueueFilename, FALSE) + NbItemFromQueue((CString)"file_processing", (CString)QueueFilename, FALSE)
-		+ NbItemFromQueue((CString)"file_processed ", (CString)QueueFilename, FALSE) + NbItemFromQueue((CString)"file_ok        ", (CString)QueueFilename, FALSE) + NbItemFromQueue((CString)"file_ko        ", (CString)QueueFilename, FALSE);
-	//int nbfiles = NbItemFromQueue((CString)"file", (CString)QueueFilename, TRUE) + NbItemFromQueue((CString)"file_processing", (CString)QueueFilename, TRUE)
-	//	+ NbItemFromQueue((CString)"file_processed ", (CString)QueueFilename, TRUE) + NbItemFromQueue((CString)"file_ok        ", (CString)QueueFilename, TRUE) + NbItemFromQueue((CString)"file_ko        ", (CString)QueueFilename, TRUE);
-	UnlockQueue(QueueFilename);
-	return nbfiles;
-}
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
 
-BOOL GetFileFromQueue(CString *objectname, const CString QueueFilename)
-{
-	//if (!file_exists(CString2string(QueueFilename))) exit(EXIT_FAILURE);	// exits DeTeCt if Queuefile does not exists
-
-	GetLockQueue((CString)__FUNCTION__, QueueFilename);
-	if (PopFileFromQueue(objectname, QueueFilename, FALSE)) {
-		if (!IsItemAlreadyQueued(*objectname, _T("file_processing"), QueueFilename, FALSE)) {
-			PushItemToQueue(*objectname, _T("file_processing"), QueueFilename, FALSE);
-			UnlockQueue(QueueFilename);
+	if (PopFileFromQueue(pObjectname, QueueFilename, &QueueFileHandle, FALSE)) {
+		if (!IsItemAlreadyQueued(*pObjectname, _T("file_processing"), QueueFilename, &QueueFileHandle, FALSE)) {
+			PushItemToQueue(*pObjectname, _T("file_processing"), QueueFilename, &QueueFileHandle, FALSE);
+			ReleaseHandle(&QueueFileHandle);
 			return TRUE;
 		}
 	}
-	/*if (PopFileFromQueue(objectname, QueueFilename, TRUE)) {
-		if (!IsItemAlreadyQueued(*objectname, _T("file_processing"), QueueFilename, TRUE)) {
-			PushItemToQueue(*objectname, _T("file_processing"), QueueFilename, TRUE);
-			UnlockQueue(QueueFilename);
-			return TRUE;
-		}
-	}*/
-	UnlockQueue(QueueFilename);
+	ReleaseHandle(&QueueFileHandle);
 	return FALSE;
 }
 
-void SetFileProcessingFromQueue(const CString objectname, const CString QueueFilename) {
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname, QueueFilename);
-	if (!IsItemAlreadyQueued(objectname, _T("file_processing"), QueueFilename, FALSE)) {
-		RemoveItemsFromQueue(objectname, _T("file"), QueueFilename, FALSE);
-		PushItemToQueue(objectname, _T("file_processing"), QueueFilename, FALSE);
+void SetFileProcessingFromQueue(const CString objectname, const CString QueueFilename) { //KO
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
+
+	if (!IsItemAlreadyQueued(objectname, _T("file_processing"), QueueFilename, &QueueFileHandle, FALSE)) {
+		RemoveItemsFromQueue(objectname, _T("file"), QueueFilename, &QueueFileHandle, FALSE);
+		PushItemToQueue(objectname, _T("file_processing"), QueueFilename, &QueueFileHandle, FALSE);
 	}
-	/*if (!IsItemAlreadyQueued(objectname, _T("file_processing"), QueueFilename, TRUE)) {
-		RemoveItemsFromQueue(objectname, _T("file"), QueueFilename, TRUE);
-		PushItemToQueue(objectname, _T("file_processing"), QueueFilename, TRUE);
-	}*/
-	UnlockQueue(QueueFilename);
+	ReleaseHandle(&QueueFileHandle);
 }
 
-void SetProcessingFileProcessedFromQueue(const CString objectname_cstring, const CString details, const CString tag, const CString QueueFilename) {
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + objectname_cstring + _T(" ") + (CString)details + _T(" ") + tag, QueueFilename);
-	PushItemToQueue(objectname_cstring + details, tag, QueueFilename, FALSE);
-	//PushItemToQueue(objectname_cstring + details, tag, QueueFilename, TRUE);
-	RemoveItemsFromQueue(objectname_cstring, _T("file_processing"), QueueFilename, FALSE);
-	//RemoveItemsFromQueue(objectname_cstring, _T("file_processing"), QueueFilename, TRUE);
-	UnlockQueue(QueueFilename);
+void SetProcessingFileProcessedFromQueue(const CString objectname_cstring, const CString details, const CString tag, const CString QueueFilename) { //KO
+	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
+
+	PushItemToQueue(objectname_cstring + details, tag, QueueFilename, &QueueFileHandle, FALSE);
+	RemoveItemsFromQueue(objectname_cstring, _T("file_processing"), QueueFilename, &QueueFileHandle, FALSE);
+	ReleaseHandle(&QueueFileHandle);
 }
 
 
-BOOL GetProcessedFileFromQueue(CString *processed_filename, CString *processed_filename_acquisition, CString *processed_message, Rating_type *processed_rating, double *duration, int *nframe_child, int *fps_int_child, const CString tag, const CString QueueFilename)
+BOOL GetProcessedFileFromQueue(CString *processed_filename, CString *processed_filename_acquisition, CString *processed_message, Rating_type *processed_rating, double *duration, int *nframe_child, int *fps_int_child, const CString QueueFilename) //KO
 {
-	if (!file_exists(CString2string(QueueFilename))) exit(EXIT_FAILURE);  	// exits DeTeCt if Queuefile does not exists
-	CString processed_line;
-	BOOL status;
-	if (!GetItemFromQueue(&processed_line, tag, QueueFilename)) return FALSE;
+	if (!filesys::exists(CString2string(QueueFilename))) exit(EXIT_FAILURE);  	// exits DeTeCt if Queuefile does not exists
+	CString	processed_line;
+	BOOL	status;
+	HANDLE	QueueFileHandle		= INVALID_HANDLE_VALUE;
+
+	if (!GetItemFromQueue(&processed_line, _T("file_processed : "), QueueFilename, &QueueFileHandle, FALSE)) {
+		ReleaseHandle(&QueueFileHandle);
+		return FALSE;
+	}
 
 	(*duration)			= 0;
 	(*nframe_child)		= 0;
 	(*fps_int_child)	= 0;
-	GetLockQueue((CString)__FUNCTION__ + _T(" ") + tag, QueueFilename);
 	std::string tmp_line(CString2string(processed_line));
-	std::string tag_string = CString2string(tag);
 	status = TRUE;
 
 	while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
@@ -706,14 +519,11 @@ BOOL GetProcessedFileFromQueue(CString *processed_filename, CString *processed_f
 	if (tmp_line.find("|")) (*fps_int_child) = atoi(tmp_line.c_str());
 	else status = FALSE;
 
-	RemoveItemsFromQueue(processed_line,				_T("file_processed "), (CString)QueueFilename, FALSE);
-	if (status)	PushItemToQueue(processed_line,			_T("file_ok        "), (CString)QueueFilename, FALSE);
-	else		PushItemToQueue(processed_line,			_T("file_ko        "), (CString)QueueFilename, FALSE);
-	/*RemoveItemsFromQueue(processed_line, _T("file_processed "), (CString)QueueFilename, TRUE);
-	if (status)	PushItemToQueue(processed_line, _T("file_ok        "), (CString)QueueFilename, TRUE);
-	else		PushItemToQueue(processed_line, _T("file_ko        "), (CString)QueueFilename, TRUE);*/
+	RemoveItemsFromQueue(processed_line,				_T("file_processed "), (CString)QueueFilename, &QueueFileHandle, FALSE);
+	if (status)	PushItemToQueue(processed_line,			_T("file_ok        "), (CString)QueueFilename, &QueueFileHandle, FALSE);
+	else		PushItemToQueue(processed_line,			_T("file_ko        "), (CString)QueueFilename, &QueueFileHandle, FALSE);
 
-	UnlockQueue(QueueFilename);
+	ReleaseHandle(&QueueFileHandle);
 	return status;
 }
 
@@ -818,12 +628,8 @@ int ProcessRunningInstancesNumber(const char *ProcessFilename)
 		Process32First(hndl, &process);
 		do
 		{
-			//TCHAR Buffer[MAX_PATH];
-			//if (GetModuleFileNameEx(hndl, 0, Buffer, MAX_PATH))
-			//wprintf(L"%8u, %s\n", process.th32ProcessID, process.szExeFile);
 			sprintf(RunningProcessName, "%ws", process.szExeFile);
 			if (strcmp(RunningProcessName, ProcessFilename) == 0) ProcessesQuantity++;
-			//DBOUT("Process " << process.szExeFile << "\n");
 		} while (Process32Next(hndl, &process));
 		CloseHandle(hndl);
 	}
@@ -835,24 +641,8 @@ BOOL IsProcessRunning(const DWORD pid)
 	HANDLE process = OpenProcess(SYNCHRONIZE, FALSE, pid);
 	DWORD ret = WaitForSingleObject(process, 0);
 	CloseHandle(process);
-	return ret == WAIT_TIMEOUT;
 
-	/*** Check current running processes ***/
-/*	HANDLE hndl = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS | TH32CS_SNAPMODULE, 0);
-	if (hndl)
-	{
-		PROCESSENTRY32  process = { sizeof(PROCESSENTRY32) };
-		Process32First(hndl, &process);
-		do
-		{
-			if (process.th32ProcessID == pid) {
-				CloseHandle(hndl);
-				return TRUE;
-			}
-		} while (Process32Next(hndl, &process));
-		CloseHandle(hndl);
-	}
-	return FALSE;*/
+	return ret == WAIT_TIMEOUT;
 }
 
 int KillsChildrenProcesses()
@@ -868,6 +658,155 @@ int ChildrenProcessesNumber()
 int ParentChildrenProcessesNumber(const DWORD parent_PID)
 {
 	return ParentProcessChildren(parent_PID, FALSE);
+}
+
+/**********************************************************************************************
+***********************************************************************************************
+
+	internal functions
+
+***********************************************************************************************
+**********************************************************************************************/
+
+// ************** DeTeCt process queue management **********
+
+BOOL OpenRQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle) //ok
+{
+	if (((*pQueueFileHandle == INVALID_HANDLE_VALUE) || (*pQueueFileHandle == NULL)) && (!filesys::exists(CString2string(QueueFilename)))) return FALSE; // only because file must be read: Queuefilename must exist already
+
+	if (OpenQueueFile(QueueFilename, pQueueFileHandle, (GENERIC_READ | GENERIC_WRITE), 0, OPEN_ALWAYS)) {
+		SetFilePointer(*pQueueFileHandle, 0, NULL, FILE_BEGIN);
+		return TRUE;
+	} else return FALSE;
+}
+
+BOOL OpenRWQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle) //ok
+{
+	if (OpenQueueFile(QueueFilename, pQueueFileHandle, (GENERIC_READ | GENERIC_WRITE), 0, OPEN_ALWAYS)) {
+		SetFilePointer(*pQueueFileHandle, 0, NULL, FILE_BEGIN);
+		return TRUE;
+	}
+	else return FALSE;
+}
+
+BOOL OpenWAppendQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle) //ok
+{
+	if (OpenQueueFile(QueueFilename, pQueueFileHandle, (GENERIC_READ | GENERIC_WRITE), 0, OPEN_ALWAYS)) {
+		SetFilePointer(*pQueueFileHandle, 0, NULL, FILE_END);
+		return TRUE;
+	}
+	else return FALSE;
+}
+
+BOOL OpenWEraseQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle) //ok
+{
+	if (OpenQueueFile(QueueFilename, pQueueFileHandle, (GENERIC_READ | GENERIC_WRITE), 0, OPEN_ALWAYS)) {
+		SetFilePointer(*pQueueFileHandle, 0, NULL, FILE_BEGIN);
+		SetEndOfFile(*pQueueFileHandle);
+		return TRUE;
+	}
+	else return FALSE;
+}
+
+BOOL OpenQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle, const DWORD dwDesiredAccess, const DWORD dwShareMode, const DWORD dwCreationDisposition) //ok
+{
+	if ((*pQueueFileHandle != INVALID_HANDLE_VALUE) && (*pQueueFileHandle != NULL)) return TRUE;
+	
+	if (QueueFilename.GetLength() > 1) {
+		do {
+			(*pQueueFileHandle) = CreateFileW(QueueFilename, dwDesiredAccess,		dwShareMode,		NULL,					dwCreationDisposition,	FILE_ATTRIBUTE_NORMAL, NULL);
+			//dwLastErrorCode = GetLastError();
+			if ((*pQueueFileHandle == INVALID_HANDLE_VALUE) || (*pQueueFileHandle == NULL)) Sleep(FILEACCESS_WAIT_MS);
+			else {
+				return TRUE;
+			}
+		} while (TRUE);
+	}
+	else return FALSE;
+}
+
+void ReleaseHandle(HANDLE* pFileHandle) {
+	if (*pFileHandle != INVALID_HANDLE_VALUE) {
+		CloseHandle(*pFileHandle);
+		(*pFileHandle) = INVALID_HANDLE_VALUE;
+	}
+}
+
+BOOL IsItemAlreadyQueued(const CString objectname, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok
+{
+	CString	processed_line;
+	
+	return GetItemFromQueue(&processed_line, tag + _T(": ") + objectname, QueueFilename, pQueueFileHandle, close_handle_at_end);
+}
+
+/**********************************************************************************************
+*
+* @fn	PopFileFromQueue(CString *objectname,  CString QueueFilename)
+*
+* @brief	pops and removes objectname from QueueFilename (first position)
+*
+* @author	Marc
+* @date		2020-04-15
+*
+* @param	objectname [out]				object
+* @param	QueueFilename [in]		queue filename
+*
+* @return	FALSE if Queue does not exist, TRUE otherwise
+**************************************************************************************************/
+
+BOOL PopFileFromQueue(CString* pObjectname, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //KO
+{
+	if (GetItemFromQueue(pObjectname, L"file: ", QueueFilename, pQueueFileHandle, FALSE)) {
+		RemoveFileFromQueue((*pObjectname), QueueFilename, pQueueFileHandle, FALSE);
+		if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+		return TRUE;
+	}
+	else {
+		if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+		return FALSE;
+	}
+}
+
+CString GetLine(HANDLE QueueFileHandle) //ok
+{
+	char	line[MAX_STRING];
+	char	singlechar[MAX_STRING];
+	DWORD	dwsinglecharRead = 0;
+	init_string(line);
+	init_string(singlechar);
+	do {
+		if (ReadFile(QueueFileHandle, singlechar, 1, &dwsinglecharRead, NULL)) {
+			if (singlechar[0] != '\n') strcat(line, singlechar);
+		}
+		else {
+			CString cstring_line(line);
+			return cstring_line;
+		}
+	} while ((dwsinglecharRead>0) && (singlechar[0] != '\n'));
+	CString cstring_line(line);
+	return cstring_line;
+}
+
+
+// ************** Process functions **********
+
+/**********************************************************************************************
+*
+* @fn	DetectInstancesNumber()
+*
+* @brief	Get number of DeTeCt processes running
+*
+* @author	Marc
+* @date		2020-04-15
+*
+* @return	number of DeTeCt processes running
+**************************************************************************************************/
+
+int DetectInstancesNumber()
+{
+	char DeTeCtFileNameChar[MAX_PATH];
+
+	return ProcessRunningInstancesNumber(DeTeCtFileName(DeTeCtFileNameChar));
 }
 
 int ProcessChildren(const BOOL kills)

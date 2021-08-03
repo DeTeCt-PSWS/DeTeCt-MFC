@@ -16,7 +16,13 @@
 #define IDD_PROGRESSDIALOG              143
 #define IDI_ICON_AS                     148
 #define IDB_PNG1                        149
-#define IDB_PARAMETERS2                 152
+#define IDB_FIRECAPTURE                 178
+#define IDB_GENIKA                      180
+#define IDB_LUCAMRECORDER               181
+#define IDB_PARAMETERS                  182
+#define IDB_PLXCAPTURE                  183
+#define IDB_SHARPCAP                    184
+#define IDB_GEMINI                      187
 #define IDC_EDIT1                       1004
 #define IDC_EDIT2                       1005
 #define IDC_EDIT3                       1006
@@ -135,7 +141,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        153
+#define _APS_NEXT_RESOURCE_VALUE        188
 #define _APS_NEXT_COMMAND_VALUE         32787
 #define _APS_NEXT_CONTROL_VALUE         1105
 #define _APS_NEXT_SYMED_VALUE           101

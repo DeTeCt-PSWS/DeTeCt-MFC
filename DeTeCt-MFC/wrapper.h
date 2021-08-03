@@ -11,10 +11,13 @@
 
 //#include <opencv2/videoio/videoio_c.h> //TEST opencv3
 
-#define CAPTURE_CV		0
+enum _CaptureType { CAPTURE_CV, CAPTURE_SER, CAPTURE_FITS, CAPTURE_FILES };
+typedef enum _CaptureType CaptureType;
+
+/*#define CAPTURE_CV		0
 #define CAPTURE_SER		1
 #define CAPTURE_FITS	2
-#define CAPTURE_FILES	3
+#define CAPTURE_FILES	3*/
 
 #define DEFAULT_FPS		25.0
 
@@ -35,10 +38,10 @@ struct _DtcCaptureInfo {
 	char			centralmeridian[MAX_STRING]; //  = {};
 	int				focallength_mm;		// = -1;
 	double			resolution;			// = -1.0;
-	BOOL_TYPE		binning;			// = NotSet;
+	char			binning[MAX_STRING]; //  = {};
 	int				bitdepth;			// = -1;
 	BOOL_TYPE		debayer;			// = NotSet;
-	double			shutter_ms;			// = -1.0;
+	double			exposure_ms;			// = -1.0;
 	int				gain;				// = -1;
 	int				gamma;				// = -1;
 	BOOL_TYPE		autoexposure;		// = NotSet;
@@ -60,8 +63,8 @@ typedef struct _DtcCaptureInfo DtcCaptureInfo;
 
 struct _DtcCapture
 {
-	int type;
-	int framecount;
+	CaptureType				type;
+	int						framecount;
 	union
 	{
 		CvCapture			*capture;
@@ -69,7 +72,8 @@ struct _DtcCapture
 		FileCapture			*filecapture;
 		//cv::VideoCapture *videocapture;
 	} u;
-	DtcCaptureInfo	*pCaptureInfo;
+//	DtcCaptureInfo			*pCaptureInfo;
+	DtcCaptureInfo			CaptureInfo;
 };
 
 typedef struct _DtcCapture DtcCapture;
