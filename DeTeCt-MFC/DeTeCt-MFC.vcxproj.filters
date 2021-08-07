@@ -464,6 +464,9 @@
     <Image Include="res\FireCapture.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\ASICap.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DeTeCt.exe.manifest" />

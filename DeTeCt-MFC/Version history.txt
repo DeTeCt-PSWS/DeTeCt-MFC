@@ -60,6 +60,9 @@ Detection:		**stretch black level in detection max-mean/mean images
                                                VERSION HISTORY
 ===============================================================================================================
 --------------------------------------------------------------------------------------
+v3.4.2.0
+Logs:			SharpCap and ASICap new versions settings better support
+--------------------------------------------------------------------------------------
 v3.4.1.0
 Email:			Add detect version in email
 Detection:		*Do not save detection original images not stretched (max-mean2, mean2, diff2) - saves 50% storage

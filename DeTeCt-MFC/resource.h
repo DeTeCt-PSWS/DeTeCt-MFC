@@ -23,6 +23,8 @@
 #define IDB_PLXCAPTURE                  183
 #define IDB_SHARPCAP                    184
 #define IDB_GEMINI                      187
+#define IDB_BITMAP1                     188
+#define IDB_ASICAP                      188
 #define IDC_EDIT1                       1004
 #define IDC_EDIT2                       1005
 #define IDC_EDIT3                       1006
@@ -141,7 +143,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        188
+#define _APS_NEXT_RESOURCE_VALUE        189
 #define _APS_NEXT_COMMAND_VALUE         32787
 #define _APS_NEXT_CONTROL_VALUE         1105
 #define _APS_NEXT_SYMED_VALUE           101

@@ -990,70 +990,78 @@ int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_lo
 				timezone=0;
 			}
 											if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+			} else {
+				strcpy(logfilename, logfilename_dir);
+				strncat(logfilename, "CameraSettings.txt", strlen("CameraSettings.txt"));
+				logfile = fopen(logfilename, "r");
+				if (logfile != NULL) {						/*      CameraSettings;txt */
+					strcpy(software, "SharpCap");
+											if (debug_mode) { fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename); }
+				} else {
 /* Genika log */
 /* ASICap log */
-			} else {
-				strcpy(logfilename, filename);
-				strncat(logfilename, ".txt", strlen(".txt"));
-				logfile=fopen(logfilename,"r");
-											if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
-				if (logfile==NULL) {
-/* Marc Delcroix's LucamRecorder log */	
-					strcpy(logfilename, logfilename_rac);
-					strncat(logfilename, "-Ser-Stream_info.Log", strlen("-Ser-Stream_info.Log"));
-											if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+					strcpy(logfilename, filename);
+					strncat(logfilename, ".txt", strlen(".txt"));
 					logfile=fopen(logfilename,"r");
-					if (logfile!=NULL) {
-						strcpy(software,"Lucam Recorder");
-					} else {
-/* LucamRecorder log */	
+												if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+					if (logfile==NULL) {
+/* Marc Delcroix's LucamRecorder log */	
 						strcpy(logfilename, logfilename_rac);
-						strncat(logfilename, "-Ser-Stream.Log", strlen("-Ser-Stream.Log"));
-											if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+						strncat(logfilename, "-Ser-Stream_info.Log", strlen("-Ser-Stream_info.Log"));
+												if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
 						logfile=fopen(logfilename,"r");
 						if (logfile!=NULL) {
 							strcpy(software,"Lucam Recorder");
 						} else {
-/* Marc Delcroix's LucamRecorder log fixed name */	
-							strcpy(logfilename, logfilename_dir);
-							strcat(logfilename, "stream_info.log");
-													if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+/* LucamRecorder log */	
+							strcpy(logfilename, logfilename_rac);
+							strncat(logfilename, "-Ser-Stream.Log", strlen("-Ser-Stream.Log"));
+												if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
 							logfile=fopen(logfilename,"r");
 							if (logfile!=NULL) {
 								strcpy(software,"Lucam Recorder");
 							} else {
-/* LucamRecorder log fixed name */	
+/* Marc Delcroix's LucamRecorder log fixed name */	
 								strcpy(logfilename, logfilename_dir);
-								strcat(logfilename, "Stream.Log");
-													if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+								strcat(logfilename, "stream_info.log");
+														if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
 								logfile=fopen(logfilename,"r");
 								if (logfile!=NULL) {
 									strcpy(software,"Lucam Recorder");
 								} else {
-/* PLxCapture log */	
-									strcpy(logfilename, logfilename_rac);
-									strncat(logfilename, ".plx", strlen(".plx"));
-													if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+/* LucamRecorder log fixed name */	
+									strcpy(logfilename, logfilename_dir);
+									strcat(logfilename, "Stream.Log");
+														if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
 									logfile=fopen(logfilename,"r");
 									if (logfile!=NULL) {
-										strcpy(software,"PLxCapture");
-									} else { /* PLX log filename with info at the end */
-										pDir = opendir(logfilename_dir);
-										if (pDir == NULL) {
-											printf("ERROR in dtcGetInfoDatationFromLogFile: Cannot open directory '%s'\n", logfilename_dir);
-											return EXIT_FAILURE;
-										}
-										while (((pDirent = readdir(pDir)) != NULL) && (logfile == NULL)) {
-											get_fileextension(pDirent->d_name, tmpline, EXT_MAX);
-											if ((strcmp(tmpline, "plx") == 0) && (strcmp(left(pDirent->d_name, strlen(logfilename_short), logfilename_tmp), logfilename_short) == 0)) {
-												strcpy(logfilename, logfilename_dir);
-												strcat(logfilename, pDirent->d_name);
-												logfile = fopen(logfilename, "r");
+										strcpy(software,"Lucam Recorder");
+									} else {
+/* PLxCapture log */	
+										strcpy(logfilename, logfilename_rac);
+										strncat(logfilename, ".plx", strlen(".plx"));
+														if (debug_mode) {fprintf(stderr, "dtcGetInfoDatationFromLogFile: Testing file %s\n", logfilename);}
+										logfile=fopen(logfilename,"r");
+										if (logfile!=NULL) {
+											strcpy(software,"PLxCapture");
+										} else { /* PLX log filename with info at the end */
+											pDir = opendir(logfilename_dir);
+											if (pDir == NULL) {
+												printf("ERROR in dtcGetInfoDatationFromLogFile: Cannot open directory '%s'\n", logfilename_dir);
+												return EXIT_FAILURE;
 											}
-										}
-										closedir(pDir);
-										if (logfile != NULL) {
-											strcpy(software, "PLxCapture");
+											while (((pDirent = readdir(pDir)) != NULL) && (logfile == NULL)) {
+												get_fileextension(pDirent->d_name, tmpline, EXT_MAX);
+												if ((strcmp(tmpline, "plx") == 0) && (strcmp(left(pDirent->d_name, strlen(logfilename_short), logfilename_tmp), logfilename_short) == 0)) {
+													strcpy(logfilename, logfilename_dir);
+													strcat(logfilename, pDirent->d_name);
+													logfile = fopen(logfilename, "r");
+												}
+											}
+											closedir(pDir);
+											if (logfile != NULL) {
+												strcpy(software, "PLxCapture");
+											}
 										}
 									}
 								}
@@ -2125,18 +2133,9 @@ MM.dd.yyyy
 /* SharpCap                                                                                                   */
 /**************************************************************************************************************/
 			} else if (strcmp(software,"SharpCap")==0) {
-				if (strstr(line, "=") == NULL) {
-					strcpy(fieldname, line);
-				}
-				else {
-					strncpy(fieldname, line, InStr(line, "="));
-				}
-				while ((fieldname[strlen(fieldname) - 1] == ' ') && (strlen(fieldname) > 0)) {
-					strcpy(fieldname, left(fieldname, strlen(fieldname) - 1, tmpline));
-				}
 				strcat(fieldname, "\0");
 																																				//	0123456789012345678901234																				
-				if ((strcmp(left(fieldname, 9, tmpline), "TimeStamp") == 0) || (strcmp(fieldname, "StartCapture") == 0)) {	//	2021-07-30T17:52:23.1234Z
+				if ((strcmp(fieldname, "TimeStamp") == 0) || (strcmp(fieldname, "StartCapture") == 0)) {	//	2021-07-30T17:52:23.1234Z
 					year = atoi(mid(value, 0, 4, tmpline));
 					month = atoi(mid(value, 5, 2, tmpline));
 					day = atoi(mid(value, 8, 2, tmpline));
@@ -2159,40 +2158,42 @@ MM.dd.yyyy
 				else if ((strcmp(fieldname, "FrameCount") == 0)) { 					// Frames captured=29248
 					(*pnbframes) = strtol(value, NULL, 10);
 				}
-				else if (strcmp(left(fieldname, 15, tmpline), "SharpCapVersion") == 0) {		// SharpCapVersion=3.2.6482.0
+				else if (strcmp(fieldname, "SharpCapVersion") == 0) {		// SharpCapVersion=3.2.6482.0
 					software_version = strtod(left(value, 3, tmpline), NULL);
 					if (debug_mode) { fprintf(stderr, "SharpCap v%1.1f\n", software_version); }
-				} else if ((strcmp(left(fieldname, 1, tmpline), "[") == 0) && (strcmp(right(fieldname, 1, tmpline), "]") == 0)) {	//	[ZWO ASI120MM-S]
+				} else if ((strncmp(fieldname, "[", 1) == 0) && (strcmp(right(fieldname, 1, tmpline), "]") == 0)) {	//	[ZWO ASI120MM-S]
 					strcpy((pCaptureInfo->camera), right(left(fieldname, strlen(fieldname) - 1, tmpline), strlen(fieldname) - 2, tmpline2));
 				}
-				else if (strcmp(left(fieldname, 7, tmpline), "Binning") == 0) {					//	Binning=1
+				else if (strcmp(fieldname, "Binning") == 0) {					//	Binning=1
 					if (strcmp(value,"1") ==0) strcpy((pCaptureInfo->binning), "1x1");
 					else if (strcmp(value, "2") == 0) strcpy((pCaptureInfo->binning), "2x2");
 					else strcpy((pCaptureInfo->binning), value);
 				}
-				else if ((strcmp(left(fieldname, 12, tmpline), "Colour Space") == 0) || (strcmp(left(fieldname, 11, tmpline), "ColourSpace") == 0)) {			//	Colour Space=MONO8, MONO16, RAW8, RAW16, RGB24
-					if (strcmp(right(fieldname, 2, tmpline), "16") == 0) (pCaptureInfo->bitdepth) = 16;
-					else if (strcmp(right(fieldname, 1, tmpline), "8") == 0) (pCaptureInfo->bitdepth) = 8;
-					else if (strcmp(fieldname, "RGB24") == 0) {
+				else if ((strcmp(fieldname, "Colour Space") == 0) || (strcmp(fieldname, "ColourSpace") == 0)) {			//	Colour Space=MONO8, MONO16, RAW8, RAW16, RGB24
+					if (strcmp(right(value, 2, tmpline), "16") == 0) (pCaptureInfo->bitdepth) = 16;
+					else if (strcmp(right(value, 1, tmpline), "8") == 0) (pCaptureInfo->bitdepth) = 8;
+					else if (strcmp(value, "RGB24") == 0) {
 						(pCaptureInfo->bitdepth) = 9;
 						(pCaptureInfo->debayer) = True;
 					}
-					if (strcmp(left(fieldname, 3, tmpline), "RAW") == 0) (pCaptureInfo->debayer) = False;
+					if (strncmp(value, "RAW", 3) == 0) (pCaptureInfo->debayer) = False;
 				}
-				else if ((strcmp(left(fieldname, 18, tmpline), "Sensor Temp") == 0) || (strcmp(left(fieldname, 11, tmpline), "Temperature") == 0)) {			//	Sensor Temp=22,25
+				else if ((strcmp(fieldname, "Sensor Temp") == 0) || (strcmp(fieldname, "Temperature") == 0)) {			//	Sensor Temp=22,25
 					(pCaptureInfo->temp_C) = strtod(replace_str(value, ",", "."), NULL);
 				}
-				else if (strcmp(left(fieldname, 10, tmpline), "Brightness") == 0) {				//	Brightness=0
+				else if (strcmp(fieldname, "Brightness") == 0) {				//	Brightness=0
 					(pCaptureInfo->brightness) = atoi(value);
 				}
-				else if (strcmp(left(fieldname, 4, tmpline), "Gain") == 0) {					//	Gain=100
+				else if (strcmp(fieldname, "Gain") == 0) {					//	Gain=100
 					(pCaptureInfo->gain) = atoi(value);
 				}
-				else if (strcmp(left(fieldname, 5, tmpline), "Gamma") == 0) {					//	Gamma=70 (off)
+				else if (strcmp(fieldname, "Gamma") == 0) {					//	Gamma=70 (off)
 					(pCaptureInfo->gamma) = atoi(value);
 				}
-				else if (strcmp(left(fieldname, 8, tmpline), "Exposure") == 0) {			//	Shutter=4.100ms
-					(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "ms", ""), NULL) * 1000.0;
+				else if (strcmp(fieldname, "Exposure") == 0) {			//	Shutter=4.100ms
+					if ((InStr(value, "us") > 0) || (InStr(fieldname, "us") > 0))		(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "us", ""), NULL) / 1000.0;
+					else if ((InStr(value, "ms") > 0) || (InStr(fieldname, "ms") > 0))	(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "ms", ""), NULL);
+					else																(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "s", ""), NULL) * 1000.0;
 				}
 			}
 /**************************************************************************************************************/
@@ -2200,21 +2201,10 @@ MM.dd.yyyy
 /**************************************************************************************************************/
 
 			else if (strcmp(software, "ASICap") == 0) {
-			if (strstr(line, "=") == NULL) {
-					strcpy(fieldname, line);
-				}
-				else {
-					strncpy(fieldname, line, InStr(line, "="));
-				}
-				while ((fieldname[strlen(fieldname) - 1] == ' ') && (strlen(fieldname) > 0)) {
-					strcpy(fieldname, left(fieldname, strlen(fieldname) - 1, tmpline));
-				}
-				strcat(fieldname, "\0");
-
-				if ((strcmp((fieldname, 1, tmpline), "[") == 0) && (strcmp(right(fieldname, 1, tmpline), "]") == 0)) {	//	[ZWO ASI120MM-S]
+				if ((strncmp(fieldname, "[", 1) == 0) && (strcmp(right(fieldname, 1, tmpline), "]") == 0)) {	//	[ZWO ASI120MM-S]
 					strcpy((pCaptureInfo->camera), right(left(fieldname, strlen(fieldname) - 1, tmpline), strlen(fieldname) - 2, tmpline2));
 				}
-				else if ((strcmp(left(fieldname, 9, tmpline), "TimeStamp") == 0) || (strcmp(fieldname, "StartCapture") == 0)) {	//	2021-07-30T17:52:23.1234Z
+				else if (strcmp(fieldname, "StartCapture") == 0) {	//	2021-07-30T17:52:23.1234Z
 					year = atoi(mid(value, 0, 4, tmpline));
 					month = atoi(mid(value, 5, 2, tmpline));
 					day = atoi(mid(value, 8, 2, tmpline));
@@ -2264,7 +2254,10 @@ MM.dd.yyyy
 					(pCaptureInfo->gamma) = atoi(value);
 				}
 				else if (strcmp(fieldname, "Exposure") == 0) {			//	Shutter=4.100ms
-					(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "ms", ""), NULL);
+					if		((InStr(value, "us") > 0) || (InStr(fieldname, "us") > 0))	(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "us", ""), NULL) / 1000.0;
+					else if ((InStr(value, "ms") > 0) || (InStr(fieldname, "ms") > 0))	(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "ms", ""), NULL);
+					else																(pCaptureInfo->exposure_ms) = strtod(replace_str(replace_str(value, ",", "."), "s", ""), NULL) * 1000.0;
+					
 				}
 			}
 		}

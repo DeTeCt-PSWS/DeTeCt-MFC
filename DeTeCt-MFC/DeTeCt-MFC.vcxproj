@@ -408,6 +408,7 @@
     <Image Include="Documents\detect_guide\v3.2.3_legend.jpg" />
     <Image Include="Documents\detect_guide\v3.2.3_legend_v2.jpg" />
     <Image Include="Image.png" />
+    <Image Include="res\ASICap.bmp" />
     <Image Include="res\autostakkert.ico" />
     <Image Include="res\DeTeCt-MFC.ico" />
     <Image Include="res\FireCapture.bmp" />
