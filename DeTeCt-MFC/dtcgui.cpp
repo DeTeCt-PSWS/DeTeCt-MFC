@@ -10,6 +10,7 @@
 #include "dtcgui.hpp"
 #include "common2.h"
 #include "DeTeCt-MFC.h"
+//#include "dtc.h"	// for VERSION_NB
 #include <windows.h> //after processes_queue.h
 #include <string>
 #include <vector>
@@ -50,6 +51,8 @@ char impact_detection_dirname[MAX_STRING] = {};
 char zip_detection_location[MAX_STRING] = {};
 char zipfile[MAX_STRING] = {};
 char log_detection_dirname[MAX_STRING] = {};
+char email_subject_probabilities[MAX_STRING] = {};
+char email_body_probabilities[MAX_STRING] = {};
 
 extern CDeTeCtMFCDlg dlg;
 //extern CDeTeCtMFCDlg::CButton AS;
@@ -76,7 +79,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 
 	//        std::vector<std::string> non_supported_ext = { "bat", "exe", "log", "txt", "Jpg", "jpg", "Png", "png", "Tif", "tif",
 	// "Bmp", "bmp", "Fit", "fit"};
-	std::vector<std::string> supported_videoext = { "m4v", "avi", "ser", "wmv" };
+	std::vector<std::string> supported_videoext = { "m4v", "avi", "ser", "wmv" , "mp4", "mov"};
 	std::vector<std::string> supported_fileext = { "bmp", "jpg", "jpeg", "jp2", "dib", "png", "p?m", "sr", "ras", "tif",
 		"tiff", "fit", "fits" };
 	std::vector<std::string> supported_otherext = { AUTOSTAKKERT_EXT };
@@ -244,7 +247,7 @@ int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 	int x0, y0;
 	int lastivalFrame;
 	double maxMeanValue;
-	double d;
+	double d = DBL_MAX;
 /*	long frame_distance; */
 	ITEM **ord, **tmp;
 	ITEM *tmpSrc;
@@ -347,7 +350,7 @@ int detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *lis
 			});
 			*/
 			/* make that only the 70% of the frames have to be in the place of impact */
-			int count;
+			int count = 0;
 			std::for_each(potential_impact.begin() + 1, potential_impact.end(), [&](const ITEM* it) {
 				d = sqrt(pow(it->point->x - brightest->point->x, 2) + pow(it->point->y - brightest->point->y, 2));
 				if (d <= radius) count++;
@@ -951,11 +954,11 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 			std::vector<cv::Mat> frameList;
 			std::vector<cv::Point> cmShifts;
 			std::vector<DiffImage> diffImages;
-			std::vector<unsigned int> maxPtX; //std::vector<uint16_t> maxPtX;
-			std::vector<unsigned int> maxPtY; //std::vector<uint16_t> maxPtY;
-			std::vector<double> maxPtB; //std::vector<uint8_t> maxPtB;
-			std::vector<unsigned long> frameErrors; //std::vector<uint16_t> frameErrors;
-			std::vector<unsigned long> frameNumbers;//std::vector<uint16_t> frameNumbers;
+			std::vector<unsigned int> maxPtX; 
+			std::vector<unsigned int> maxPtY; 
+			std::vector<double> maxPtB; 
+			std::vector<unsigned long> frameErrors;
+			std::vector<unsigned long> frameNumbers;
 			cv::Mat xMat;
 			cv::Mat yMat;
 			cv::Mat bMat;
@@ -1024,7 +1027,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 					LogString(+(CString)message.c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 					double fake_stat[3] = { 0.0, 0.0, 0.0 };
 					//LogInfo info(popts->filename, start_time, end_time, duration, fps_real, timetype, "WARNING, datation info only", 0, 0);
-					LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, 0, 0, 0, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, rating_classification);
+					LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, 0, 0, 0, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, fake_stat, rating_classification, croi.width, croi.height);
 
 					std::stringstream logline;
 					dtcWriteLog2(log_consolidated_directory, info, (pCapture->CaptureInfo), &logline, &wait_count_total);
@@ -1534,7 +1537,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 								pMskMat.convertTo(pMskMat, CV_8U);
 								if (nframe > 1) {
 									if (nframe <= (long)opts.nframesRef) {
-										cv::accumulateWeighted(pGryMat, pRefMat, 1 / nframe, opts.thrWithMask ? pMskMat : cv::noArray());
+										cv::accumulateWeighted(pGryMat, pRefMat, 1.0 / nframe, opts.thrWithMask ? pMskMat : cv::noArray());
 									}
 									else {
 										cv::add(pRefMat, pGryMat / opts.nframesRef, pRefMat, opts.thrWithMask ? pMskMat : cv::noArray());
@@ -1929,10 +1932,12 @@ if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log
 					if ((maxDtcImp->point->x != 0) && (maxDtcImp->point->y != 0)) {
 						dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImp->point->x, maxDtcImp->point->y), CV_RGB(255, 255, 0), 20, 30);		// Pale Yellow, was CV_RGB(255, 0, 0) initially
 						distance = sqrt(pow(maxDtcImg->point->x - maxDtcImp->point->x, 2) + pow(maxDtcImg->point->y - maxDtcImp->point->y, 2));
+						distance = distance / (MIN(croi.width, croi.height) / opts.secSize);
 					}
 					else {
 						/* algorithm did not work */
 						distance = 9999;
+						distance = 1.0;
 					}
 					dtcDrawImpact(pADUdtcImg, cv::Point(maxDtcImg->point->x, maxDtcImg->point->y), CV_RGB(0, 128, 255), 15, 25);	// Blue, was CV_RGB(0, 255, 0) initially
 /*					begin_imagedisplay_time = clock();
@@ -2072,7 +2077,7 @@ if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log
 							}
 						}
 					} // nb_impact = 0
-					else if (distance == 9999) {
+					else if (distance == 1.0) {
 						/* algorithm did not work */
 						if ((max_mean_stat[2] - max_mean_stat[1]) < opts.impact_max_avg_min) {
 							/* No impact, contrast threshold not respected */
@@ -2180,11 +2185,11 @@ if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log
 						dtcCorrectDatation((DtcCapture*)pCapture, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
 					std::string location = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\") + 1);
 
-					if (extension.compare(AUTOSTAKKERT_EXT) == 0) strcat(comment, "; from as3");
+					if (extension.compare(AUTOSTAKKERT_EXT) == 0) strcat(comment, ", from as3");
 
 //						if (!is_image_correct) {
 
-					LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence, distance, mean_stat, mean2_stat, max_mean_stat, max_mean2_stat, diff_stat, diff2_stat, rating_classification);
+					LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence, distance, mean_stat, mean2_stat, max_mean_stat, max_mean2_stat, diff_stat, diff2_stat, rating_classification, croi.width, croi.height);
 					dtcWriteLog2(log_consolidated_directory, info, (pCapture->CaptureInfo), &logline_tmp, &wait_count_total);
 					// if child instance, also writes log line to global log
 					//if (log_consolidated_directory_global.compare(log_consolidated_directory) !=0) dtcWriteLog2(log_consolidated_directory_global, info, &logline_tmp);
@@ -2829,6 +2834,38 @@ if (opts.debug) LogString(
 			log_messages.push_back("");
 			log_messages.push_back("CHECK the DETECTION IMAGES for impacts and SEND the RESULTS, NO DETECTION also MATTERS!");
 			log_messages.push_back("delcroix.marc@free.fr");
+
+			strcpy(email_subject_probabilities, " (");
+			strcpy(email_body_probabilities, "");
+			if (nb_high_impact > 0) {
+				strcat(email_subject_probabilities, std::to_string(nb_high_impact).c_str());
+				strcat(email_subject_probabilities, " high ");
+				strcat(email_body_probabilities, "High probability= ");
+				strcat(email_body_probabilities, std::to_string(nb_high_impact).c_str());
+				strcat(email_body_probabilities, "%0A");
+			}
+			if (nb_low_impact > 0) {
+				strcat(email_subject_probabilities, std::to_string(nb_low_impact).c_str());
+				strcat(email_subject_probabilities, " low ");
+				strcat(email_body_probabilities, "Low  probability= ");
+				strcat(email_body_probabilities, std::to_string(nb_low_impact).c_str());
+				strcat(email_body_probabilities, "%0A");
+			}
+			if (nb_null_impact > 0) {
+				strcat(email_body_probabilities, "Null probability= ");
+				strcat(email_body_probabilities, std::to_string(nb_null_impact).c_str());
+				strcat(email_body_probabilities, "%0A");
+			}
+			if (nb_error_impact > 0) {
+				strcat(email_body_probabilities, "Error           = ");
+				strcat(email_body_probabilities, std::to_string(nb_error_impact).c_str());
+				strcat(email_body_probabilities, "%0A");
+			}
+			strcat(email_subject_probabilities, std::to_string(nb_null_impact + nb_error_impact + nb_low_impact + nb_high_impact).c_str());
+			strcat(email_subject_probabilities, " total)");
+			strcat(email_body_probabilities, "Total           = ");
+			strcat(email_body_probabilities, std::to_string(nb_null_impact + nb_error_impact + nb_low_impact + nb_high_impact).c_str());
+			strcat(email_body_probabilities, "%0A");
 		}
 //		if (popts->autostakkert) {
 		//if (popts->parent_instance) {
@@ -3437,6 +3474,7 @@ void WriteIni() {
 	//char DeTeCtIniFilename_char[MAX_STRING];
 	//remove(CString2char(DeTeCtIniFilename, DeTeCtIniFilename_char));
 
+	::WritePrivateProfileString(L"general", L"version", CA2T(VERSION_NB), DeTeCtIniFilename);
 	str.Format(L"%.2f", opts.incrLumImpact);
 	::WritePrivateProfileString(L"impact", L"min_strength", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.nframesRef);

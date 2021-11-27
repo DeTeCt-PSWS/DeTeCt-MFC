@@ -141,8 +141,7 @@ char *lcase(const char *src, char *dst)
 
 char *ucase(const char *src, char *dst)
 {
-	size_t len;
-	len = strlen(src);
+	size_t len = strlen(src);
 	
 	if (len>=MAX_STRING) {
 		fprintf(stderr,"ERROR in ucase: incorrect length %zi\n",len);
@@ -153,6 +152,21 @@ char *ucase(const char *src, char *dst)
 	}	
 	return dst;
 }
+
+char* str_trail_fill(const char* src, const char *character, const int size, char* dst)
+{
+	size_t len = strlen(src);
+
+	init_string(dst);
+	strcpy(dst, src);
+	if (size > len) {
+		for (int i = 0; i < (size - len); i++) {
+			strcat(dst, character);
+		}
+	}
+	return dst;
+}
+
 
 /*****************File extended functions***************************/
 

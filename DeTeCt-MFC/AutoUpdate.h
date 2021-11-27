@@ -32,21 +32,23 @@ class AutoUpdate
 public:
 	AutoUpdate(std::vector<CString>* log_cstring_lines);
 	~AutoUpdate();
-	BOOL	SG_GetVersion(LPWSTR ExeFile, SG_Version *ver, std::vector<CString>* log_cstring_lines);
-	BOOL	SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CString>* log_cstring_lines);	//added by MD
-	void	AddNextVersionToFileName(CString& ExeFile, SG_Version ver);
-	CString	GetSelfFullPath();
-	BOOL	ReplaceTempVersion(std::vector<CString>* log_cstring_lines);
-	BOOL	ReplaceExeVersion(const CString Exename, const CString NewExeName, std::vector<CString>* log_cstring_lines);
-	BOOL	SG_VersionStringMatch(CString ExeFile, SG_Version *ver);
-	BOOL	SG_VersionsCompare(const SG_Version ver1, const SG_Version ver2);
-	BOOL	CheckForUpdates(std::vector<CString> *log_cstring_lines);
-	void	SetSelfFullPath(CString Path);
-	CString GetSelfFileName();
-	void	SetSelfFileName(CString FileName);
-	BOOL	AutoUpdate::ApplyAgentUpdate(CString Agent, BOOL ReplaceSelf, std::vector<CString>* log_cstring_lines);
-	long	SG_Version_number(const SG_Version version);
-	CString version_CString(const SG_Version version);
+	BOOL		SG_GetVersion(LPWSTR ExeFile, SG_Version *ver, std::vector<CString>* log_cstring_lines);
+	BOOL		SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CString>* log_cstring_lines);	//added by MD
+	void		AddNextVersionToFileName(CString& ExeFile, SG_Version ver);
+	CString		GetSelfFullPath();
+	BOOL		ReplaceTempVersion(std::vector<CString>* log_cstring_lines);
+	BOOL		ReplaceExeVersion(const CString Exename, const CString NewExeName, std::vector<CString>* log_cstring_lines);
+	BOOL		SG_VersionStringMatch(CString ExeFile, SG_Version *ver);
+	BOOL		SG_VersionsCompare(const SG_Version ver1, const SG_Version ver2);
+	BOOL		CheckForUpdates(std::vector<CString> *log_cstring_lines);
+	void		SetSelfFullPath(CString Path);
+	CString		GetSelfFileName();
+	void		SetSelfFileName(CString FileName);
+	BOOL		AutoUpdate::ApplyAgentUpdate(CString Agent, BOOL ReplaceSelf, std::vector<CString>* log_cstring_lines);
+	long		SG_Version_number(const SG_Version version);
+	CString		version_CString(const SG_Version version);
+	SG_Version	SG_Version_from_ini(const char* SG_Version_string);		//added by MD
+	BOOL		Update_ini_parameters(const char* SG_Version_string);	//added by MD
 
 private:
 	bool	tempversion = false;				// indicate this is a temp version

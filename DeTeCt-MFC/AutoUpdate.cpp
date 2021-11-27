@@ -202,7 +202,7 @@ BOOL AutoUpdate::SG_GetVersion(LPWSTR ExeFile, SG_Version *ver, std::vector<CStr
 	LPBYTE lpVersionInfo = new BYTE[dwFVISize];
 	GetFileVersionInfo(ExeFile, 0, dwFVISize, lpVersionInfo);
 	UINT uLen;
-	VS_FIXEDFILEINFO *lpFfi;
+	VS_FIXEDFILEINFO *lpFfi = NULL;
 	VerQueryValue(lpVersionInfo, _T("\\"), (LPVOID *)&lpFfi, &uLen);
 	if (lpFfi && uLen)
 	{
@@ -427,6 +427,7 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 		if (DeleteFile(m_SelfFullPath + OLDSUFFIX)) { // exe backup exists so update finished
 			(*log_cstring_lines).push_back((CString)"Info: successful update to version " + version_CString(ver_server));
 			if (opts.interactive) MessageBox(NULL, m_SelfFileName + _T(" successfully updated to version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
+			if (Update_ini_parameters(opts.version)) (*log_cstring_lines).push_back((CString)"Info: ini parameters updated.");
 			return FALSE;
 		}
 		else {
@@ -494,7 +495,6 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 			}
 		}
 		else
-			//wprintf(L"No new version (%s) on the server\n", m_NextVersion);
 			(*log_cstring_lines).push_back((CString)"Error: no new version (" + ExeName + _T(") on the server"));
 		if (hr == 1) return true;
 		else return false;
@@ -515,6 +515,53 @@ CString AutoUpdate::version_CString(const SG_Version version) {
 	CString strVer;
 	strVer.Format(L"%d.%d.%d.%d", version.Major, version.Minor, version.Revision, version.SubRevision);
 	return strVer;
+}
+
+BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
+	SG_Version	version_ini = SG_Version_from_ini(SG_Version_string);
+	SG_Version	version_update = { 10, 10, 10, 10 };
+	BOOL		update = FALSE;
+
+	// DON'T FORGET TO UPDATE ALSO WriteIni AND CDeTeCtMFCDlg::CDeTeCtMFCDlg() for DEFAULT VALUES!!!
+
+	version_update.Major		= 3;
+	version_update.Minor		= 4;
+	version_update.Revision		= 3;
+	version_update.SubRevision	= 0;
+	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+		opts.impact_distance_max	= 0.03;		// to detect 2021.09.13 impact as high
+		opts.ROI_min_size			= 70;		// to ignore too small ROIs where impact could be missed
+		opts.impact_duration_min	= 0.4;		// to detect 2020.08.11 impact as high
+		WriteIni();
+		update = TRUE;
+	}
+	return update;
+}
+
+SG_Version AutoUpdate::SG_Version_from_ini(const char *SG_Version_string) {
+	SG_Version SG_Version_return = { 0, 0, 0, 0 };
+
+	std::string line(SG_Version_string);
+	int pos_separator = (int)line.find_first_of(".");
+	if (pos_separator > 0) {
+		SG_Version_return.Major = stoi(line.substr(0, pos_separator));
+		line = line.substr(pos_separator + 1, line.size() - pos_separator - 1);
+		pos_separator = (int)line.find_first_of(".");
+		if (pos_separator > 0) {
+			SG_Version_return.Minor = stoi(line.substr(0, pos_separator));
+			line = line.substr(pos_separator + 1, line.size() - pos_separator - 1);
+			pos_separator = (int)line.find_first_of(".");
+			if (pos_separator > 0) {
+				SG_Version_return.Revision = stoi(line.substr(0, pos_separator));
+				line = line.substr(pos_separator + 1, line.size() - pos_separator - 1);
+				pos_separator = (int)line.find_first_of(".");
+				if (pos_separator > 0) {
+					SG_Version_return.SubRevision = stoi(line.substr(0, pos_separator));
+				}
+			}
+		}
+	}
+	return SG_Version_return;
 }
 
 //#pragma warning(default:4477 4313 4840 4189)

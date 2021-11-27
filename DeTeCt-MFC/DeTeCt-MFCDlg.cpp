@@ -240,16 +240,18 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	init_string(opts.ofilename); // exception read access
 	init_string(opts.ovfname); // exception read access
 
+	//; Option file for DeTeCt 3.5.0.0
+	::GetPrivateProfileString(L"general", L"version", L"0.0.0.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	strcpy(opts.version, CT2A(optionStr));
+
 	opts.nsaveframe = 0;
 	opts.ostype = OTYPE_NO;
 	opts.ovtype = OTYPE_NO;
-						::GetPrivateProfileString(L"impact",L"min_strength",			L"0.3", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"min_strength",			L"0.3", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.timeImpact = std::stod(optionStr);
 	opts.incrLumImpact = std::stod(optionStr);
 	opts.incrFrameImpact=::GetPrivateProfileInt(L"impact",	L"frames",					5, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.6", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.6", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_duration_min = std::stod(optionStr);
 	opts.radius =		::GetPrivateProfileInt(L"impact",	L"radius",					10, DeTeCtIniFilename);
 	opts.nframesROI = 1;
@@ -257,18 +259,16 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.bayer =		::GetPrivateProfileInt(L"other",	L"debayer",					0, DeTeCtIniFilename);
 	opts.medSize =		::GetPrivateProfileInt(L"roi",		L"medbuf",					5, DeTeCtIniFilename);
 	opts.ROI_min_px_val=::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",			10, DeTeCtIniFilename);
-	opts.ROI_min_size = ::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			20, DeTeCtIniFilename);
+	opts.ROI_min_size = ::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			70, DeTeCtIniFilename);
 	opts.wait = 1;
-						::GetPrivateProfileString(L"roi",	L"sizfac",					L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		DeTeCtIniFilename);
+						::GetPrivateProfileString(L"roi",	L"sizfac",					L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.facSize = std::stod(optionStr);
-						::GetPrivateProfileString(L"roi",	L"secfac",					L"1.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		DeTeCtIniFilename);
+						::GetPrivateProfileString(L"roi",	L"secfac",					L"1.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.secSize = std::stod(optionStr);
 	opts.threshold =	::GetPrivateProfileInt(L"impact",	L"thresh",					0, DeTeCtIniFilename);
 	opts.learningRate = 0.0;
 	opts.thrWithMask =	::GetPrivateProfileInt(L"impact",	L"mask",					0, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"impact",L"impact_distance_max",	L"4.5", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"impact_distance_max",	L"0.03", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_distance_max = std::stod(optionStr);
 						::GetPrivateProfileString(L"impact",L"impact_max_avg_min",		L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
 		DeTeCtIniFilename);
@@ -928,6 +928,8 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 	extern char zip_detection_location[MAX_STRING];
 	extern char zipfile[MAX_STRING];
 	extern char log_detection_dirname[MAX_STRING];
+	extern char email_subject_probabilities[MAX_STRING];
+	extern char email_body_probabilities[MAX_STRING];
 
 	wchar_t	wimpact_detection_dirname[MAX_STRING];
 	//mbstowcs(wimpact_detection_dirname, impact_detection_dirname, strlen(impact_detection_dirname) + 1);//Plus null
@@ -940,6 +942,7 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 	if (opts.email) {
 		strcpy(mailto_command, "mailto:delcroix.marc@free.fr?subject=Impact detection ");
 		strcat_s(mailto_command, sizeof(mailto_command), log_detection_dirname);
+		strcat_s(mailto_command, sizeof(mailto_command), email_subject_probabilities);
 		strcat(mailto_command, "&body=(*please attach ");
 	}
 
@@ -973,7 +976,9 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 		strcat(mailto_command, PROGNAME);
 		strcat(mailto_command, " v");
 		strcat(mailto_command, VERSION_NB);
-		strcat(mailto_command, ", I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ACheers,%0A");
+		strcat(mailto_command, ", I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ADetails:%0A");
+		strcat(mailto_command, email_body_probabilities);
+		strcat(mailto_command, "%0A%0ACheers,%0A");
 		mbstowcs(wmailto_command, mailto_command, strlen(mailto_command) + 1);
 		ShellExecute(NULL, L"open", wmailto_command, NULL, NULL, SW_SHOWNORMAL);
 	}
@@ -1951,13 +1956,13 @@ void PrefDialog::OnBnClickedButton1()
 	useFilter.SetCheck(true);
 	filterSelect.EnableWindow(useFilter.GetCheck());
 
-	opts.impact_duration_min = 0.6;
-	opts.ROI_min_px_val = 10;
-	opts.ROI_min_size = 20;
-	opts.impact_distance_max = 4.5;
-	opts.impact_max_avg_min = 177.0;
-	opts.impact_confidence_min = 3.0;
-	opts.maxinstances = 1;
+	opts.impact_duration_min =		0.6;
+	opts.ROI_min_px_val =			10;
+	opts.ROI_min_size =				70;
+	opts.impact_distance_max =		0.03;
+	opts.impact_max_avg_min =		177.0;
+	opts.impact_confidence_min =	3.0;
+	opts.maxinstances =				1;
 	strcpy(opts.darkfilename, "darkfile.tif");
 
 	// Apply changes

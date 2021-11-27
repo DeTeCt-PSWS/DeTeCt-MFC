@@ -94,6 +94,7 @@ struct options {
 	BOOL			autostakkert = FALSE;					// Launched from autostakkert
 	DWORD			autostakkert_PID = 0;					// Parent autostakkert PID
 	DWORD			detect_PID = 0;							// Parent detect PID
+	char			version[MAX_STRING] = {}; 
 	char			DeTeCtQueueFilename[MAX_STRING] = {};
 	char			LogConsolidatedDirname[MAX_STRING] = {};
 	BOOL			parent_instance = FALSE;

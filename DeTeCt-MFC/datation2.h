@@ -19,46 +19,50 @@
 //#define DETECTLOGNAME "DeTeCt.log"
 
 struct _LogInfo {
-	char *filename;
-	double start_time;
-	double end_time;
-	double duration;
-	double fps;
+	char	*filename;
+	double	start_time;
+	double	end_time;
+	double	duration;
+	double	fps;
 	TIME_TYPE timetype;
-	char *comment;
-	int nb_impact;
-	double confidence;
-	double distance;
-	double mean_stat[3];
-	double mean2_stat[3];
-	double max_mean_stat[3];
-	double max_mean2_stat[3];
-	double diff_stat[3];
-	double diff2_stat[3];
-	char *rating_classification;
+	char	*comment;
+	int		nb_impact;
+	double	confidence;
+	double	distance;
+	double	mean_stat[3];
+	double	mean2_stat[3];
+	double	max_mean_stat[3];
+	double	max_mean2_stat[3];
+	double	diff_stat[3];
+	double	diff2_stat[3];
+	char	*rating_classification;
+	int		ROI_width;
+	int		ROI_height;
 	//double noise;
 
 	_LogInfo(const char *fn, const double st, const double et, const double d,
-		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double dist, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3], const char *classification) {
-		filename = (char*)fn;
-		start_time = st;
-		end_time = et;
-		duration = d;
-		fps = fs;
-		timetype = tt;
-		comment = (char*)com;
-		nb_impact = ni;
-		confidence = c;
-		distance = dist;
+		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double dist, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3], const char *classification, const int width, const int height) {
+		filename =		(char*)fn;
+		start_time =	st;
+		end_time =		et;
+		duration =		d;
+		fps =			fs;
+		timetype =		tt;
+		comment =		(char*)com;
+		nb_impact =		ni;
+		confidence =	c;
+		distance =		dist;
 		for (int i = 0; i < 3; i++) {
-			mean_stat[i] = mean_m[i];
-			mean2_stat[i] = mean2_m[i];
-			max_mean_stat[i] = max_mean_m[i];
-			max_mean2_stat[i] = max_mean2_m[i];
-			diff_stat[i] = diff_m[i];
-			diff2_stat[i] = diff2_m[i];
+			mean_stat[i] =		mean_m[i];
+			mean2_stat[i] =		mean2_m[i];
+			max_mean_stat[i] =	max_mean_m[i];
+			max_mean2_stat[i] =	max_mean2_m[i];
+			diff_stat[i] =		diff_m[i];
+			diff2_stat[i] =		diff2_m[i];
 		}
-		rating_classification = (char*)classification;
+		rating_classification =	(char*)classification;
+		ROI_width =	 width;
+		ROI_height = height;
 		//noise = CaptureInfo.noise;
 	}
 };

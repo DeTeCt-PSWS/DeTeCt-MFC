@@ -23,7 +23,7 @@
 //WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 #include "WndResizer.h"
 
-const CString filter = CString(_T("Video/image (*.ser,*.avi,*.wmv,*.m4v,*.")) + _T(AUTOSTAKKERT_EXT) + _T(",*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
+const CString filter = CString(_T("Video/image (*.ser,*.avi,*.wmv,*.mp4,*.m4v,*.mp4,*.mov,*.")) + _T(AUTOSTAKKERT_EXT) + _T(",*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
 
 // CDeTeCtMFCDlg dialog
 
