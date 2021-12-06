@@ -259,6 +259,9 @@
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(IntDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
+    <Manifest>
+      <AdditionalManifestFiles>res/manifest.xml %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
     <Text Include="Documents\ReadMe.txt" />
@@ -410,7 +413,21 @@
     <Image Include="Image.png" />
     <Image Include="res\ASICap.bmp" />
     <Image Include="res\autostakkert.ico" />
+    <Image Include="res\bitmap2.bmp" />
+    <Image Include="res\bitmap6.bmp" />
+    <Image Include="res\critical.bmp" />
+    <Image Include="res\critical.ico" />
+    <Image Include="res\critical.png" />
     <Image Include="res\DeTeCt-MFC.ico" />
+    <Image Include="res\exclamation.bmp" />
+    <Image Include="res\exclamation.ico" />
+    <Image Include="res\exclamation.png" />
+    <Image Include="res\exclamation_small.bmp" />
+    <Image Include="res\exclamation_small.ico" />
+    <Image Include="res\exclamation_small.png" />
+    <Image Include="res\exclamation_small2.bmp" />
+    <Image Include="res\exclamation_small2.ico" />
+    <Image Include="res\exclamation_small3.bmp" />
     <Image Include="res\FireCapture.bmp" />
     <Image Include="res\FireCapture.png" />
     <Image Include="res\Gemini.bmp" />
@@ -418,12 +435,19 @@
     <Image Include="res\GenikaAstro.bmp" />
     <Image Include="res\GenikaAstro.png" />
     <Image Include="res\icon1.ico" />
+    <Image Include="res\icon2.ico" />
+    <Image Include="res\information.bmp" />
+    <Image Include="res\information.ico" />
+    <Image Include="res\information.png" />
     <Image Include="res\LucamRecorder.bmp" />
     <Image Include="res\LucamRecorder.png" />
     <Image Include="res\parameters.bmp" />
     <Image Include="res\parameters.png" />
     <Image Include="res\PLXCapture.bmp" />
     <Image Include="res\PLXCapture.png" />
+    <Image Include="res\question.bmp" />
+    <Image Include="res\question.ico" />
+    <Image Include="res\question.png" />
     <Image Include="res\SharpCap.bmp" />
     <Image Include="res\SharpCap.png" />
   </ItemGroup>

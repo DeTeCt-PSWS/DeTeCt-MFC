@@ -20,6 +20,7 @@ std::string					wstring2string(const std::wstring& wstr);
 bool						starts_with(const std::string& s1, const std::string& s2);
 bool						replace(std::string& str, const std::string& from, const std::string& to);
 bool						duplicate_txtfile(const CString InputFileName, const CString OutputFileName);
+CString						GetLine(HANDLE QueueFileHandle);
 
 void						StreamDeTeCtOSversions(std::wstringstream *ss);
 void						GetOSversion(std::string *pos_version);

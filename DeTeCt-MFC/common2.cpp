@@ -79,6 +79,26 @@ std::vector<std::string> read_txt(std::string path) {
 	});
 }*/
 
+CString GetLine(HANDLE QueueFileHandle) //ok
+{
+	char	line[MAX_STRING];
+	char	singlechar[MAX_STRING];
+	DWORD	dwsinglecharRead = 0;
+	init_string(line);
+	init_string(singlechar);
+	do {
+		if (ReadFile(QueueFileHandle, singlechar, 1, &dwsinglecharRead, NULL)) {
+			if (singlechar[0] != '\n') strcat(line, singlechar);
+		}
+		else {
+			CString cstring_line(line);
+			return cstring_line;
+		}
+	} while ((dwsinglecharRead > 0) && (singlechar[0] != '\n'));
+	CString cstring_line(line);
+	return cstring_line;
+}
+
 
 // ************************************************************
 // ******************* OS functions ***************************

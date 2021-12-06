@@ -28,45 +28,40 @@ Files:			avi support to be fixed
 
 High priority:
 --------------
-				Check csv for low positives
-				PIPP: look for log file without _pipp, reads logs from pipp to detect changes
-				ignore "DSO", "Star"
+Detection:		Check csv for low positives
+Detection:		PIPP: look for log file without _pipp, reads logs from pipp to detect changes
+Detection:		Ignore "DSO", "Star"
 Files:			Bug in format supported (e.g. mp4) in file selection (works for folder)
-Parameters:		Generate optional images by default
 Detection:		Improve differential photometry impact detection (more tolerant in terms of successive frames?)
 Detection:		Look for second+ differential photometry (yellow cross) candidates near max brightness (blue cross)
 Detection:		Change color of crosses in case of low/high/error
 Detection:		Scan directory
-Autoupdate:		Add entry in the menu
 Autostakkert:	Log AS3 (median quality)
-				Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
+Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
 GUI:			Advertise contributions by displaying current impact frequency estimation
-				Add generate preflat option
 				TBD: slowness in files acquisition addition (fileget_name to be optimized with readdir)
 				**Extra tool to analyze images
 Instances:		Children list to optimize exit
+				Children count to stop processes scan
 				TBD: optimize children count process
 				TBD: InstanceType to modify with GetIntParam?
-Development:	Debug parameter window (not saved in ini file)
-				Dev. subrevision automatic version update for subscribers
-				Dev. parameters (debug, autostakkert simulation mode)
-				Add clean directory checkbox in dev. parameters
-				malloc/free new/delete checks
-				expose only needed functions
+Development:	Dev. subrevision automatic version update for subscribers
+				Expose only needed functions
 GUI:			Pause/Resume button (M.Lewis)
 GUI:			Exit mode for all instances (like Pause/Resume)
 GUI:			End after next video (M.Lewis)
-GUI:			Option to show/not show the detection image (Martin)
 ROI:			Scan of 90° from cog to edge (for Saturn)
 				Histogram usage (like in AS)
 				Increase size of ROI (Martin)
 				TBD: Use as3 ROI
 				*TBD: build histogram of image to determine the bg (like AS does)
 Alignement:		*TBD: Detection of bad frames (broken, bars)
+Algorithm:		use duration max for impact candidates
+				attempt to match impact candidates with brightest point in max-mean
+				*detect and ignore artifacts images (sliding brightness average?)
 				*TBD: build histogram of image to determine the bg (like AS does)
 				*TBD: Prioritize as3 over file even if as3 is read after
 FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
-Detection:		*detect and ignore artifacts images (sliding brightness average?)
 Detection:		*ignore off planet impact detection (check level of background?)
 Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
 Detection:		**stretch black level in detection max-mean/mean images
@@ -74,6 +69,23 @@ Detection:		**stretch black level in detection max-mean/mean images
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+v3.5.1: Algorithm improvement (% of frame for impact candidate), user settings separated from advanced settings, option to (de)activate detection/mean image during processing (M.Lewis), bugfixes
+GUI:			User and advanced/dev. settings separate windows
+				Entry "Update to latest version" in the Help menu to update manually
+				Entry "Versions history" in the Help menu (opens github releases page)
+User Settings:	Option to show/not show detection image (Martin)
+				Option to show/not show mean image
+				Show mean/detection images without any time limit (speeds up processing)
+				preflat image generation option (not saved in ini file)
+				dateonly option not saved (one time action)
+Adv. Settings:	Debug option in adv. parameters (not saved in ini file)
+				Zip option moved to dev. section
+				(pre)clean directory checkbox in dev. parameters (one time action)
+Algorithm:		30% factor of frames in impact candidate (adapted after bugfix)
+Logs:			DeTeCt version and ini file at begining of output log
+Bugfix:			High probability rating qualification
+				MP4 file selection
+--------------------------------------------------------------------------------------
 v3.5.0 (=v3.4.3.0)
 Detection:		Distance calculation now relative to size of ROI (withdrawing security factor)
 				Impact_distance_max=3%		(tuning for 2021.09.13 impact)

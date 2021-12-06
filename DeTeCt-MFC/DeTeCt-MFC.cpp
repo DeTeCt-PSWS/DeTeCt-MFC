@@ -289,11 +289,11 @@ BOOL CDeTeCtMFCApp::InitInstance()
 						//opts.reprocessing = FALSE; // By default (but not mandatory), noreprocessing on when launched from AutoStakkert - implemented in function using reprocessing
 					}
 					else if (starts_with(param, "-debug")) {
-						opts.debug = TRUE;																					// simulate AutoStakkert launch (DEV only)
+						opts.debug = TRUE;																					// debug info mode (DEV only)
 						opts.message[index_message++] = "DEBUG mode on";
 						opts.message[index_message] = "\0";
 					}
-					else if (starts_with(param, "-nodebug")) opts.debug = FALSE;											// simulate AutoStakkert launch (DEV only)
+					else if (starts_with(param, "-nodebug")) opts.debug = FALSE;											// debug info mode (DEV only)
 					else if (starts_with(param, "-help")) {
 						opts.message[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
 						opts.message[index_message++] = "   -autoprocessing   automatic mode launching detection without interaction";
@@ -538,7 +538,7 @@ if (opts.debug) {
 /* InitCommonControlsEx() is required on Windows XP if an application
 // manifest specifies use of ComCtl32.dll version 6 or later to enable
 // visual styles.  Otherwise, any window creation will fail.*/
-	INITCOMMONCONTROLSEX InitCtrls;
+	INITCOMMONCONTROLSEX InitCtrls = {};
 	InitCtrls.dwSize = sizeof(InitCtrls);
 // Set this to include all the common control classes you want to use in your application.
 	InitCtrls.dwICC = ICC_WIN95_CLASSES;

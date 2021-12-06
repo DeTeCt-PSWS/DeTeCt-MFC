@@ -51,7 +51,7 @@ extern "C" {
 	int 	InRstr(const char *str, const char *search);
 	char 	*lcase(const char *src, char *dst);
 	char 	*ucase(const char *src, char *dst);
-	char* str_trail_fill(const char* src, const char *character, const int size, char* dst);
+	char*	str_trail_fill(const char* src, const char *character, const int size, char* dst);
 
 	char 	*getline_ux_win(FILE *file);
 	void 	init_string(char *variable);

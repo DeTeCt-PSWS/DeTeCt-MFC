@@ -12,8 +12,12 @@
 #define IDR_MAINFRAME                   128
 #define IDR_MENU1                       130
 #define IDD_PREFERENCES                 132
+#define IDD_SETINGS                     132
+#define IDD_SETTINGS_ADVANCED           132
 #define IDD_SENDLOGDIALOG               140
 #define IDD_PROGRESSDIALOG              143
+#define IDD_USER_PREFERENCES            144
+#define IDD_SETTINGS_USER               144
 #define IDI_ICON_AS                     148
 #define IDB_PNG1                        149
 #define IDB_FIRECAPTURE                 178
@@ -25,6 +29,19 @@
 #define IDB_GEMINI                      187
 #define IDB_BITMAP1                     188
 #define IDB_ASICAP                      188
+#define IDI_ICON_INFO                   189
+#define IDB_BITMAP2                     193
+#define IDB_CRITICAL                    193
+#define IDB_BITMAP3                     194
+#define IDB_BITMAP4                     195
+#define IDB_INFORMATION                 195
+#define IDB_BITMAP5                     196
+#define IDB_QUESTION                    196
+#define IDI_ICON_EXCLAMATION            203
+#define IDI_ICON_EXCLAMATION_SMALL      210
+#define IDB_EXCLAMATION_SMALL           211
+#define IDI_ICON2                       215
+#define IDI_CRITICAL                    215
 #define IDC_EDIT1                       1004
 #define IDC_EDIT2                       1005
 #define IDC_EDIT3                       1006
@@ -90,6 +107,8 @@
 #define IDC_FRAME_MINSIZE               1074
 #define IDC_CHECK10                     1075
 #define IDC_IMPACTLOW                   1076
+#define IDC_CHECK17                     1076
+#define IDC_CHECK_CLEAN                 1076
 #define IDC_CHECK18                     1077
 #define IDC_STATIC_TOTALPROGRESS        1077
 #define IDC_IMPACTHIGH                  1078
@@ -122,6 +141,12 @@
 #define IDC_CHECK_SHUTDOWN              1102
 #define IDC_SPIN_INSTANCES              1103
 #define IDC_STATIC_MAXINST              1104
+#define ID_PREFOK_USER                  1105
+#define IDC_RESET_USER                  1107
+#define IDC_CHECK_FLAT                  1108
+#define IDC_CHECK_DEBUG                 1109
+#define IDC_CHECK_MEAN_IMG              1110
+#define IDC_CHECK_DETECTION_IMG         1111
 #define ID_FILE_OPENFOLDER              32771
 #define ID_SETTINGS_PREFERENCES         32772
 #define ID_HELP_EXIT                    32773
@@ -131,21 +156,24 @@
 #define ID_FILE_OPENFILE                32777
 #define ID_HELP_TUTORIAL                32778
 #define ID_HELP_DOCUMENTATION           32779
-#define ID_HELP_CHECKFORUPDATES         32780
 #define ID_HELP_CHECKSFORUPDATE         32781
 #define ID_HELP_PROJECTRESULTS          32782
 #define ID_FILE_RESETFILELIST           32783
 #define ID_FILE_RESETEXECUTIONLOG       32784
 #define ID_FILE_CLEAREXECUTIONLOG       32785
 #define ID_FILE_CLEARIMPACTFILES        32786
+#define ID_HELP_HISTORY                 32788
+#define ID_Menu                         32789
+#define ID_SETTINGS_USER                32790
+#define ID_SETTINGS_ADVANCED            32791
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        189
-#define _APS_NEXT_COMMAND_VALUE         32787
-#define _APS_NEXT_CONTROL_VALUE         1105
+#define _APS_NEXT_RESOURCE_VALUE        216
+#define _APS_NEXT_COMMAND_VALUE         32792
+#define _APS_NEXT_CONTROL_VALUE         1112
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

@@ -23,7 +23,7 @@
 //WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 #include "WndResizer.h"
 
-const CString filter = CString(_T("Video/image (*.ser,*.avi,*.wmv,*.mp4,*.m4v,*.mp4,*.mov,*.")) + _T(AUTOSTAKKERT_EXT) + _T(",*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits;*.m4v||");
+const CString filter = CString(_T("Video/image (*.ser,*.avi,*.wmv,*.mp4,*.m4v,*.mov,*.")) + _T(AUTOSTAKKERT_EXT) + _T(",*.png,*.jpg,*.jpeg,*.jp2,*.tif,*.tiff,*.fit,*.fits,*.bmp,*.dib,*.p?m,*.sr,*.ras)|*.avi;*.ser;*.wmv;*.mp4;*.m4v;*.mov;*.as3;*.bmp;*.jpg;*.jpeg;*.jp2;*.dib;*.png;*.p?m;*.sr;*.ras;*.tif;*.tiff;*.fit;*.fits||");
 
 // CDeTeCtMFCDlg dialog
 
@@ -97,9 +97,11 @@ public:
 	afx_msg void OnHelpExit();
 	afx_msg void OnHelpTutorial();
 	afx_msg void OnHelpChecksForUpdate();
+	afx_msg void OnHelpHistory();
 	afx_msg void OnHelpDocumentation();
 	afx_msg void OnHelpProjectResults();
-	afx_msg void OnSettingsPreferences();
+	afx_msg void OnSettingsUser();
+	afx_msg void OnSettingsAdvanced();
 	afx_msg void OnFileExit();
 	afx_msg void OnLbnSelchangeList1();
 	afx_msg void EnableZipLink(BOOL enable);
@@ -191,8 +193,7 @@ public:
 	static CStatic* getMaxInstances() {
 		return &MaxInstances;
 	}
-	//std::vector<std::string> file_list = {};
-	//std::vector<std::string> acquisition_file_list = {};
+
 	AcquisitionFilesList acquisition_files;
 	afx_msg void OnFileOpenfile();
 	afx_msg void OnFileResetFileList();
@@ -207,11 +208,6 @@ public:
 private:
 	CWndResizer m_resizer;
 public:
-	afx_msg void OnStnClickedStaticComputing();
-	afx_msg void OnBnClickedCheck2();
-	afx_msg void OnBnClickedCheck1();
-	afx_msg void OnBnClickedCheck3();
-	afx_msg void OnStnClickedStaticComputing2();
 	afx_msg void OnBnClickedOk3();
 	afx_msg void OnStnClickedStaticproba();
 	afx_msg void OnBnClickedOk2();
@@ -221,8 +217,6 @@ public:
 	afx_msg void OnDeltaposSpinInstances(NMHDR *pNMHDR, LRESULT *pResult);
 };
 #pragma once
-
-//extern AcquisitionFilesList acquisition_files;
 
 // PrefDialog dialog
 
@@ -245,7 +239,7 @@ public:
 
 // Dialog Data
 #ifdef AFX_DESIGN_TIME
-	enum { IDD = IDD_PREFERENCES };
+	enum { IDD = IDD_SETTINGS_ADVANCED };
 #endif
 
 protected:
@@ -254,22 +248,9 @@ protected:
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedOk();
-	CEdit meanValue;
-	CEdit impactFrameNum;
-	CEdit impactMinTime;
-	CEdit impactRadius;
-	CEdit impactBrightThresh;
-	CEdit roiSizeFactor;
-	CEdit roiSecFactor;
-	CEdit roiMedianBufSize;
-	CEdit histScale;
-	CButton applyMask;
-	CButton Zip;
-	CButton Explorer;
-	CButton Email;
-	CButton Noreprocessing;
-	CButton detailedADUdtc;
-	CButton saveIntFramesADUdtc;
+	afx_msg void OnBnClickedButton1();
+
+	//Processing Visualisation
 	CButton showROI;
 	CButton showTrack;
 	CButton showDif;
@@ -279,37 +260,98 @@ public:
 	CButton showSmooth;
 	CButton showHist;
 	CButton showResult;
-	CButton datesOnly;
-	CButton ignoreIncorrectFrames;
-	CButton useFilter;
-	CComboBox filterSelect;
-	CEdit minimumFrames;
-	afx_msg void OnBnClickedCheck15();
-	afx_msg void OnBnClickedButton1();
+	CButton saveIntFramesADUdtc;
+	
+	CButton NoZip;
+	CButton Debug;
+	CButton CleanDir;
+	afx_msg void OnBnClickedClean();
+
+	//Impact
+	CEdit meanValue;
 	CSpinButtonCtrl meanValueSpin;
+	afx_msg void OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult); //Meanvalue
+	CEdit impactMinTime;
 	CSpinButtonCtrl minTimeSpin;
+	afx_msg void OnDeltaposSpin2(NMHDR* pNMHDR, LRESULT* pResult); //Impactm min time
+	CEdit impactRadius;
 	CSpinButtonCtrl radiusSpin;
+	CEdit impactBrightThresh;
 	CSpinButtonCtrl brightThreshSpin;
+	CButton applyMask;
+	
+	//ROI
+	CEdit roiSizeFactor;
 	CSpinButtonCtrl sizeFactSpin;
+	afx_msg void OnDeltaposSpin12(NMHDR* pNMHDR, LRESULT* pResult); //roiSizeFactor
+	CEdit roiSecFactor;
 	CSpinButtonCtrl secFactSpin;
+	afx_msg void OnDeltaposSpin13(NMHDR* pNMHDR, LRESULT* pResult); //roiSecFactor
+	CEdit roiMedianBufSize;
 	CSpinButtonCtrl medianBufSpin;
+
+	//Other processing configuration
+	CEdit impactFrameNum;
 	CSpinButtonCtrl nframeSpin;
+	CEdit minimumFrames;
 	CSpinButtonCtrl minFrameSpin;
+	CEdit histScale;
 	CSpinButtonCtrl histoSpin;
-	afx_msg void OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin2(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin14(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin12(NMHDR *pNMHDR, LRESULT *pResult);
-	afx_msg void OnDeltaposSpin13(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnDeltaposSpin14(NMHDR* pNMHDR, LRESULT* pResult); //histscale
 	CComboBox debayeringCode;
 
 	afx_msg void OnCbnSelchangeCombo2();
-	//afx_msg void OnBnClickedCheck11();
-	afx_msg void OnBnClickedCheck13();
-	afx_msg void OnBnClickedCheck11();
+	CButton ignoreIncorrectFrames;
+	CButton useFilter;
+	CComboBox filterSelect;
+	afx_msg void OnBnClickedCheck15(); //use filter
 };
 #pragma once
 
+// PrefDialog dialog
+
+/**********************************************************************************************//**
+ * @class	PrefDialogUser
+ *
+ * @brief	Dialog for setting the preferences.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+class PrefDialogUser : public CDialog
+{
+	DECLARE_DYNAMIC(PrefDialogUser)
+
+public:
+	PrefDialogUser(CWnd* pParent = NULL);   // standard constructor
+	virtual ~PrefDialogUser();
+
+	// Dialog Data
+#ifdef AFX_DESIGN_TIME
+	enum { IDD = IDD_SETTINGS_USER };
+#endif
+
+protected:
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual BOOL OnInitDialog();
+	DECLARE_MESSAGE_MAP()
+public:
+	afx_msg void OnBnClickedOk();
+	afx_msg void OnBnClickedButton1();
+
+	CButton ShowDetectImg;
+	CButton ShowMeanImg;
+	//Processing actions
+	CButton Email;
+	//CButton Explorer;
+	CButton Noreprocessing;
+	CButton detailedADUdtc;
+
+	CButton datesOnly;
+	CButton Flat;
+};
+#pragma once
 
 // SendEmailDlg dialog
 

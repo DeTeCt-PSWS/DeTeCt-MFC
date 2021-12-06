@@ -6,6 +6,7 @@
 /*                                                                              */
 /********************************************************************************/
 
+//#include "stdafx.h"
 
 #include <stdio.h>
 
@@ -15,6 +16,7 @@
 #include "auxfunc.h"
 
 #include "dtcgui.hpp"
+
 
 //#include <opencv2/imgproc.hpp> //TEST opencv3
 

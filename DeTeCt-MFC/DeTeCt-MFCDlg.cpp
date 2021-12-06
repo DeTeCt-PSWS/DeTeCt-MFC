@@ -74,7 +74,6 @@ CStatic			CDeTeCtMFCDlg::acquisitionSW;
 CButton			CDeTeCtMFCDlg::execAS;
 CStatic			CDeTeCtMFCDlg::Instance;
 CStatic			CDeTeCtMFCDlg::MaxInstances;
-//CButton			PrefDialog::OnBnClickedOk();
 
 CListBox	SendEmailDlg::outputLog;
 std::vector<LPCTSTR> SendEmailDlg::logMessages;
@@ -138,9 +137,9 @@ CAboutDlg::CAboutDlg() : CDialog(IDD_ABOUTBOX)
 }
 
 BEGIN_MESSAGE_MAP(CAboutDlg, CDialog)
-	ON_UPDATE_COMMAND_UI(ID_EXIT_QUIT, &CAboutDlg::OnUpdateExitQuit)
-	ON_BN_CLICKED(IDC_MFCLINK1, &CAboutDlg::OnBnClickedMfclink1)
-	ON_BN_CLICKED(IDC_MFCLINK2, &CAboutDlg::OnBnClickedMfclink2)
+	ON_UPDATE_COMMAND_UI(ID_EXIT_QUIT,	&CAboutDlg::OnUpdateExitQuit)
+	ON_BN_CLICKED(IDC_MFCLINK1,			&CAboutDlg::OnBnClickedMfclink1)
+	ON_BN_CLICKED(IDC_MFCLINK2,			&CAboutDlg::OnBnClickedMfclink2)
 END_MESSAGE_MAP()
 
 /**************************************************************************************************
@@ -231,16 +230,11 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_DETECTMFC_DIALOG, pParent)
 {
 	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
-
-	_TCHAR optionStr[1000];
-
-	//opts.filename = opts.ofilename = opts.ovfname = opts.sfname;
-	//opts.filename = opts.ofilename = opts.ovfname;
+	_TCHAR optionStr[MAX_STRING];
 	init_string(opts.filename); // exception read access
 	init_string(opts.ofilename); // exception read access
 	init_string(opts.ovfname); // exception read access
 
-	//; Option file for DeTeCt 3.5.0.0
 	::GetPrivateProfileString(L"general", L"version", L"0.0.0.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	strcpy(opts.version, CT2A(optionStr));
 
@@ -251,7 +245,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.timeImpact = std::stod(optionStr);
 	opts.incrLumImpact = std::stod(optionStr);
 	opts.incrFrameImpact=::GetPrivateProfileInt(L"impact",	L"frames",					5, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.6", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.4", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_duration_min = std::stod(optionStr);
 	opts.radius =		::GetPrivateProfileInt(L"impact",	L"radius",					10, DeTeCtIniFilename);
 	opts.nframesROI = 1;
@@ -270,22 +264,22 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.thrWithMask =	::GetPrivateProfileInt(L"impact",	L"mask",					0, DeTeCtIniFilename);
 						::GetPrivateProfileString(L"impact",L"impact_distance_max",	L"0.03", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_distance_max = std::stod(optionStr);
-						::GetPrivateProfileString(L"impact",L"impact_max_avg_min",		L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"impact_max_avg_min",		L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_max_avg_min = std::stod(optionStr);
-						::GetPrivateProfileString(L"impact",L"impact_confidence_min",	L"3.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]),
-		DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"impact_confidence_min",	L"3.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_confidence_min = std::stod(optionStr);
 	opts.histScale = 1;
-	opts.viewROI =		::GetPrivateProfileInt(L"view",		L"roi",						FALSE, DeTeCtIniFilename);
-	opts.viewTrk =		::GetPrivateProfileInt(L"view",		L"trk",						FALSE, DeTeCtIniFilename);
-	opts.viewDif =		::GetPrivateProfileInt(L"view",		L"dif",						FALSE, DeTeCtIniFilename);
-	opts.viewRef =		::GetPrivateProfileInt(L"view",		L"ref",						FALSE, DeTeCtIniFilename);
-	opts.viewThr =		::GetPrivateProfileInt(L"view",		L"thr",						FALSE, DeTeCtIniFilename);
-	opts.viewSmo =		::GetPrivateProfileInt(L"view",		L"smo",						FALSE, DeTeCtIniFilename);
-	opts.viewRes =		::GetPrivateProfileInt(L"view",		L"res",						FALSE, DeTeCtIniFilename);
-	opts.viewHis =		::GetPrivateProfileInt(L"view",		L"his",						FALSE, DeTeCtIniFilename);
-	opts.viewMsk =		::GetPrivateProfileInt(L"view",		L"msk",						FALSE, DeTeCtIniFilename);
+	opts.show_detect_image =	::GetPrivateProfileInt(L"view",		L"detect",					TRUE, DeTeCtIniFilename);
+	opts.show_mean_image =		::GetPrivateProfileInt(L"view",		L"mean",					FALSE, DeTeCtIniFilename);
+	opts.viewROI =				::GetPrivateProfileInt(L"view",		L"roi",						FALSE, DeTeCtIniFilename);
+	opts.viewTrk =				::GetPrivateProfileInt(L"view",		L"trk",						FALSE, DeTeCtIniFilename);
+	opts.viewDif =				::GetPrivateProfileInt(L"view",		L"dif",						FALSE, DeTeCtIniFilename);
+	opts.viewRef =				::GetPrivateProfileInt(L"view",		L"ref",						FALSE, DeTeCtIniFilename);
+	opts.viewThr =				::GetPrivateProfileInt(L"view",		L"thr",						FALSE, DeTeCtIniFilename);
+	opts.viewSmo =				::GetPrivateProfileInt(L"view",		L"smo",						FALSE, DeTeCtIniFilename);
+	opts.viewRes =				::GetPrivateProfileInt(L"view",		L"res",						FALSE, DeTeCtIniFilename);
+	opts.viewHis =				::GetPrivateProfileInt(L"view",		L"his",						FALSE, DeTeCtIniFilename);
+	opts.viewMsk =				::GetPrivateProfileInt(L"view",		L"msk",						FALSE, DeTeCtIniFilename);
 	opts.verbose = 0;
 	opts.filter.type = ::GetPrivateProfileInt(L"other",		L"filter",					1, DeTeCtIniFilename);
 	opts.filter.param[0] =	3;
@@ -304,9 +298,11 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.wROI = 0;
 	opts.hROI = 0;
 
-	opts.debug =		::GetPrivateProfileInt(L"processing",	L"debug",				FALSE, DeTeCtIniFilename);
+	opts.debug = FALSE;
+	//opts.debug =		::GetPrivateProfileInt(L"processing",	L"debug",				FALSE, DeTeCtIniFilename);
 	debug_mode = opts.debug;
-	opts.dateonly =		::GetPrivateProfileInt(L"processing",	L"dateonly",			FALSE, DeTeCtIniFilename);
+	opts.dateonly = FALSE;
+	//opts.dateonly =		::GetPrivateProfileInt(L"processing",	L"dateonly",			FALSE, DeTeCtIniFilename);
 	opts.zip =			::GetPrivateProfileInt(L"processing",	L"zip",					TRUE, DeTeCtIniFilename);
 	opts.email =		::GetPrivateProfileInt(L"processing",	L"email",				TRUE, DeTeCtIniFilename);
 	// From main window checkboxes
@@ -319,14 +315,11 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	else if (opts.maxinstances < 1) opts.maxinstances = 1;
 	opts.reprocessing = ::GetPrivateProfileInt(L"processing",	L"reprocessing",		TRUE, DeTeCtIniFilename);
 
-
-
 	//AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	//AFX_MANAGE_STATE(AFX_MODULE_STATE* pModuleState);
 	/*CWinApp* pwinapp;
 	pwinapp = AfxGetApp();
-	m_hIcon = pwinapp->LoadIcon(IDR_MAINFRAME);*/
-	
+	m_hIcon = pwinapp->LoadIcon(IDR_MAINFRAME);*/	
 	//m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
 
@@ -378,7 +371,6 @@ void CDeTeCtMFCDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_INSTANCE, Instance);
 	DDX_Control(pDX, IDC_STATIC_MAXINST, MaxInstances);
 	DDX_Control(pDX, IDC_SPIN_INSTANCES, ValueMaxInstances);
-
 }	
 
 /*
@@ -396,8 +388,10 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_HELP_TUTORIAL, &CDeTeCtMFCDlg::OnHelpTutorial)
 	ON_COMMAND(ID_HELP_DOCUMENTATION, &CDeTeCtMFCDlg::OnHelpDocumentation)
 	ON_COMMAND(ID_HELP_CHECKSFORUPDATE, &CDeTeCtMFCDlg::OnHelpChecksForUpdate)
+	ON_COMMAND(ID_HELP_HISTORY, &CDeTeCtMFCDlg::OnHelpHistory)
 	ON_COMMAND(ID_HELP_PROJECTRESULTS, &CDeTeCtMFCDlg::OnHelpProjectResults)
-	ON_COMMAND(ID_SETTINGS_PREFERENCES, &CDeTeCtMFCDlg::OnSettingsPreferences)
+	ON_COMMAND(ID_SETTINGS_USER, &CDeTeCtMFCDlg::OnSettingsUser)
+	ON_COMMAND(ID_SETTINGS_ADVANCED, &CDeTeCtMFCDlg::OnSettingsAdvanced)
 	ON_COMMAND(ID_FILE_EXIT, &CDeTeCtMFCDlg::OnFileExit)
 	ON_LBN_SELCHANGE(IDC_LIST1, &CDeTeCtMFCDlg::OnLbnSelchangeList1)
 	ON_COMMAND(ID_FILE_OPENFILE, &CDeTeCtMFCDlg::OnFileOpenfile)
@@ -406,11 +400,6 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_FILE_CLEARIMPACTFILES, &CDeTeCtMFCDlg::OnFileClearImpactFiles)
 	ON_WM_GETMINMAXINFO()
 	ON_BN_CLICKED(IDC_FRAME, &CDeTeCtMFCDlg::OnBnClickedFrame)
-	ON_STN_CLICKED(IDC_STATIC_COMPUTING, &CDeTeCtMFCDlg::OnStnClickedStaticComputing)
-	ON_BN_CLICKED(IDC_CHECK2, &CDeTeCtMFCDlg::OnBnClickedCheck2)
-	ON_BN_CLICKED(IDC_CHECK1, &CDeTeCtMFCDlg::OnBnClickedCheck1)
-	ON_BN_CLICKED(IDC_CHECK3, &CDeTeCtMFCDlg::OnBnClickedCheck3)
-	ON_STN_CLICKED(IDC_STATIC_COMPUTING2, &CDeTeCtMFCDlg::OnStnClickedStaticComputing2)
 	ON_BN_CLICKED(IDOK3, &CDeTeCtMFCDlg::OnBnClickedOk3)
 	ON_STN_CLICKED(IDC_STATICPROBA, &CDeTeCtMFCDlg::OnStnClickedStaticproba)
 	ON_BN_CLICKED(IDOK2, &CDeTeCtMFCDlg::OnBnClickedOk2)
@@ -574,8 +563,6 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	ValueMaxInstances.SetBuddy(&MaxInstances);
 	ValueMaxInstances.SetRange(1, processor_count);
 	ValueMaxInstances.SetPos(opts.maxinstances);
-	//CDeTeCtMFCDlg::getMaxInstances()->SetWindowText((CString)"Max instances: " + std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(processor_count).c_str());
-	//CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str());
 	CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(processor_count).c_str());
 
 	CWnd *okbtn = GetDlgItem(IDOK);
@@ -673,7 +660,6 @@ BOOL CDeTeCtMFCDlg::OnCheckUpdate()
 	std::for_each(log_cstring_lines.begin(), log_cstring_lines.end(), [&](const CString log_cstring_line) {
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + log_cstring_line);
 		});
-	//MessageBox(log_cstring, _T("Check update"),MB_OKCANCEL);
 
 	return TRUE;
 }
@@ -922,9 +908,7 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 
 void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 {
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 	extern char impact_detection_dirname[MAX_STRING];
-//	extern char zip_detection_dirname[MAX_STRING];
 	extern char zip_detection_location[MAX_STRING];
 	extern char zipfile[MAX_STRING];
 	extern char log_detection_dirname[MAX_STRING];
@@ -932,7 +916,6 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 	extern char email_body_probabilities[MAX_STRING];
 
 	wchar_t	wimpact_detection_dirname[MAX_STRING];
-	//mbstowcs(wimpact_detection_dirname, impact_detection_dirname, strlen(impact_detection_dirname) + 1);//Plus null
 	size_t ReturnValue;
 	mbstowcs_s(&ReturnValue, wimpact_detection_dirname, strlen(impact_detection_dirname) + 1, impact_detection_dirname, strlen(impact_detection_dirname));
 
@@ -948,9 +931,6 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 
 	// Zip post-processing
 	if (strlen(zip_detection_location) > 0) {
-//	if (strlen(zip_detection_dirname) > 0) {
-//		wchar_t wzip_detection_dirname[MAX_STRING];
-//		mbstowcs(wzip_detection_dirname, zip_detection_dirname, strlen(zip_detection_dirname) + 1);//Plus null
 
 		wchar_t wzip_detection_location[MAX_STRING];
 		mbstowcs(wzip_detection_location, zip_detection_location, strlen(zip_detection_location) + 1);//Plus null
@@ -1036,7 +1016,6 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 	if (strlen(opts.filename) > 0) file = std::string(opts.filename);
 	else if (dialog.DoModal() == IDOK) {
 		file_path = std::wstring(dialog.GetPathName().GetString());
-		//file = std::string(file_path.begin(), file_path.end());
 		file = wstring2string(file_path);
 	}
 	std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
@@ -1059,9 +1038,6 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 			// Clears window
 			std::wstringstream ss2;
 			OnFileResetFileList();
-			//impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
-			//ss2 << "Resetting file list for analysis";
-			//impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 
 			// Gets file acquisition name from autostakkert session file
@@ -1078,7 +1054,6 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 					//log directory when autostakkert mode or multi instance mode
 					folder_path = CString2string(DeTeCt_exe_folder());;
 				}
-				//std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\")); 
 				CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
 				std::string log_file(DeTeCtLogFilename);
 if (opts.debug) impactDetectionLog.AddString(L"!Debug info : Logfile=" +  (CString)log_file.c_str());
@@ -1164,7 +1139,6 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 	else {
 		if (dialog.DoModal() == IDOK) {
 			folder_path = std::wstring(dialog.GetPathName().GetString());
-			//path = std::string(folder_path.begin(), folder_path.end());
 			path = wstring2string(folder_path);
 		}
 	}
@@ -1179,7 +1153,6 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 	// Set-up global variable
 		scan_folder_path = path;
 		strcpy(opts.LogConsolidatedDirname, path.c_str());
-		//impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"\n");
 		ss2 << "Scanning " << folder_path << " for files to be analysed, please wait...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
@@ -1208,11 +1181,8 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 							//log directory when autostakkert mode or multi instance mode
 							folder_path_consolidated = CString2string(DeTeCt_exe_folder());;
 						}
-						//std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\")); 
 						CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path_consolidated.c_str(), DTC_LOG_SUFFIX));
 						std::string log_file(DeTeCtLogFilename);
-						//CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
-						//std::string log_file(DeTeCtLogFilename);
 if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString)log_file.c_str());
 						if (Is_CaptureFile_To_Be_Processed(filename_acquisition, log_file, &ss3)) {
 					// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
@@ -1290,6 +1260,7 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
 	//this->RedrawWindow();
+	if (opts.clean_dir) CDeTeCtMFCDlg::OnFileClearImpactFiles();
 	if ((acquisition_files.file_list.size() > 0) && (!opts.interactive)) OnBnClickedOk();
 }
 
@@ -1333,7 +1304,20 @@ void CDeTeCtMFCDlg::OnHelpTutorial()
 
 void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
 {
-	ShellExecute(NULL, L"open", L"https://github.com/DeTeCt-PSWS/DeTeCt-MFC/releases/latest", NULL, NULL, SW_SHOWNORMAL);
+	OnCheckUpdate();
+}
+/**************************************************************************************************
+ * @fn	void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
+ *
+ * @brief	Opens latest version webpage
+ *
+ * @author	Marc
+ * @date	2019-10-24
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnHelpHistory()
+{
+	ShellExecute(NULL, L"open", L"https://github.com/DeTeCt-PSWS/DeTeCt-MFC/releases", NULL, NULL, SW_SHOWNORMAL);
 }
 /**************************************************************************************************
  * @fn	void CDeTeCtMFCDlg::OnHelpDocumentation()
@@ -1369,7 +1353,7 @@ void CDeTeCtMFCDlg::OnHelpProjectResults()
 }
 
 /**************************************************************************************************
- * @fn	void CDeTeCtMFCDlg::OnSettingsPreferences()
+ * @fn	void CDeTeCtMFCDlg::OnSettingsAdvanced()
  *
  * @brief	Executes the settings -> preferences action. Opens the preferences window
  *
@@ -1377,15 +1361,29 @@ void CDeTeCtMFCDlg::OnHelpProjectResults()
  * @date	2017-05-12
  **************************************************************************************************/
 
-void CDeTeCtMFCDlg::OnSettingsPreferences()
+void CDeTeCtMFCDlg::OnSettingsAdvanced()
 {
-	PrefDialog *preferences = new PrefDialog();
-	preferences->DoModal();
+	PrefDialog *SettingsAdvanced = new PrefDialog();
+	SettingsAdvanced->DoModal();
+}
+
+/**************************************************************************************************
+ * @fn	void CDeTeCtMFCDlg::OnSettingsUser()
+ *
+ * @brief	Executes the settings -> preferences action. Opens the preferences window
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnSettingsUser()
+{
+	PrefDialogUser* SettingsUser = new PrefDialogUser();
+	SettingsUser->DoModal();
 }
 
 void CDeTeCtMFCDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 {
-	// TODO: ajoutez ici le code de votre gestionnaire de messages et/ou les paramètres par défaut des appels
 	// Limits the size to the frame
 	// cf. http://www.flounder.com/getminmaxinfo.htm
 
@@ -1414,7 +1412,6 @@ void CDeTeCtMFCDlg::OnGetMinMaxInfo(MINMAXINFO* lpMMI)
 void CDeTeCtMFCDlg::OnFileResetFileList() {
 	// Init
 	if (opts.parent_instance) {
-		//UnlockQueue((CString)opts.DeTeCtQueueFilename); //new queue method
 		remove(opts.DeTeCtQueueFilename);
 		strcpy(opts.DeTeCtQueueFilename, "");
 	}
@@ -1508,7 +1505,6 @@ void CDeTeCtMFCDlg::OnFileClearImpactFiles() {
 
 	directory = opendir(opts.LogConsolidatedDirname);
 	if (directory == NULL) {
-	//if (!(directory = opendir(opts.LogConsolidatedDirname))) {
 		closedir(directory);
 		return;
 	}
@@ -1518,7 +1514,6 @@ void CDeTeCtMFCDlg::OnFileClearImpactFiles() {
 		return;
 	}
 	do {
-		//if (entry->d_type != NULL) { //directory NULL to cancel C28182
 		if (entry->d_type == DT_DIR) { //directory
 			if ((!(strcmp(entry->d_name, ".") == 0) && !(strcmp(entry->d_name, "..") == 0)) && (starts_with(entry->d_name, "Impact_detection"))) {
 				std::string folder(entry->d_name);
@@ -1534,7 +1529,6 @@ void CDeTeCtMFCDlg::OnFileClearImpactFiles() {
 				message = message + (CString)(file.c_str()) + L"\n";
 			}
 		}
-	//} while (entry = readdir(directory));
 	} while ((entry = readdir(directory)) != 0);
 
 	if ((directory_to_be_deleted_list.size() == 0) && (file_to_be_deleted_list.size() == 0)) {
@@ -1588,18 +1582,15 @@ void CDeTeCtMFCDlg::OnFileExit()
 			if (!(MessageBox(message + _T("Are you sure you want to stop and exit DeTeCt ?"), _T("Close"), MB_OKCANCEL) == IDOK)) return; // exits only with confirmation for parent instance
 		}
 		KillsChildrenProcesses();
-		//UnlockQueue((CString)opts.DeTeCtQueueFilename); //new queue method
 		remove(opts.DeTeCtQueueFilename);
 		strcpy(opts.DeTeCtQueueFilename, "");
 		CDialog::OnOK();
 	}
 	else {		// exit without confirmation for child instances
-		//UnlockQueue((CString)opts.DeTeCtQueueFilename);
 		KillsChildrenProcesses(); //Kills images left???
 		CDialog::OnOK();
 	}
 }
-
 
 
 
@@ -1613,17 +1604,15 @@ IMPLEMENT_DYNAMIC(PrefDialog, CDialog)
 * Maps the IDS of the controls defined above to the actions which are the functions below
 */
 BEGIN_MESSAGE_MAP(PrefDialog, CDialog)
-	ON_BN_CLICKED(ID_PREFOK, &PrefDialog::OnBnClickedOk)
-	ON_BN_CLICKED(IDC_CHECK15, &PrefDialog::OnBnClickedCheck15)
-	ON_BN_CLICKED(IDC_BUTTON1, &PrefDialog::OnBnClickedButton1)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1, &PrefDialog::OnDeltaposSpin1)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN2, &PrefDialog::OnDeltaposSpin2)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN14, &PrefDialog::OnDeltaposSpin14)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN12, &PrefDialog::OnDeltaposSpin12)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN13, &PrefDialog::OnDeltaposSpin13)
-	ON_CBN_SELCHANGE(IDC_COMBO2, &PrefDialog::OnCbnSelchangeCombo2)
-	ON_BN_CLICKED(IDC_CHECK13, &PrefDialog::OnBnClickedCheck13)
-	ON_BN_CLICKED(IDC_CHECK11, &PrefDialog::OnBnClickedCheck11)
+	ON_BN_CLICKED(ID_PREFOK,			&PrefDialog::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_CHECK15,			&PrefDialog::OnBnClickedCheck15)			//use filter
+	ON_BN_CLICKED(IDC_BUTTON1,			&PrefDialog::OnBnClickedButton1)			//Reset to default
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1,	&PrefDialog::OnDeltaposSpin1)	//Mean value (min impact strength)
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN2,	&PrefDialog::OnDeltaposSpin2)	//Impact mean time
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN14,	&PrefDialog::OnDeltaposSpin14)	//Histscale
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN12,	&PrefDialog::OnDeltaposSpin12)	//ROI size factor
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN13,	&PrefDialog::OnDeltaposSpin13)	//ROI sec factor
+	ON_CBN_SELCHANGE(IDC_COMBO2,		&PrefDialog::OnCbnSelchangeCombo2)		//Debayer
 END_MESSAGE_MAP()
 
 
@@ -1639,7 +1628,7 @@ END_MESSAGE_MAP()
  **************************************************************************************************/
 
 PrefDialog::PrefDialog(CWnd* pParent /*=NULL*/)
-	: CDialog(IDD_PREFERENCES, pParent)
+	: CDialog(IDD_SETTINGS_ADVANCED, pParent)
 {
 }
 
@@ -1671,6 +1660,21 @@ PrefDialog::~PrefDialog()
 BOOL PrefDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
+
+	std::wstringstream ss;
+
+	//Processing visualisation
+	showROI.SetCheck(opts.viewROI);
+	showTrack.SetCheck(opts.viewTrk);
+	showDif.SetCheck(opts.viewDif);
+	showRef.SetCheck(opts.viewRef);
+	showMask.SetCheck(opts.viewMsk);
+	showThresh.SetCheck(opts.viewThr);
+	showSmooth.SetCheck(opts.viewSmo);
+	showHist.SetCheck(opts.viewHis);
+	showResult.SetCheck(opts.viewRes);
+	
+	//Impact
 	meanValueSpin.SetBuddy(&meanValue);
 	meanValueSpin.SetRange(0, 1);
 	minTimeSpin.SetBuddy(&impactMinTime);
@@ -1679,19 +1683,7 @@ BOOL PrefDialog::OnInitDialog()
 	radiusSpin.SetRange(5, 20);
 	brightThreshSpin.SetBuddy(&impactBrightThresh);
 	brightThreshSpin.SetRange(0, 255);
-	sizeFactSpin.SetBuddy(&roiSizeFactor);
-	sizeFactSpin.SetRange(0, 2);
-	secFactSpin.SetBuddy(&roiSecFactor);
-	secFactSpin.SetRange(0, 1);
-	medianBufSpin.SetBuddy(&roiMedianBufSize);
-	medianBufSpin.SetRange(5, 50);
-	nframeSpin.SetBuddy(&impactFrameNum);
-	nframeSpin.SetRange(1, 50);
-	minFrameSpin.SetBuddy(&minimumFrames);
-	minFrameSpin.SetRange(3, 10000);
-	histoSpin.SetBuddy(&histScale);
-	histoSpin.SetRange(0, 1);
-	std::wstringstream ss;
+	
 	ss << std::fixed << std::setprecision(2) << opts.incrLumImpact;
 	meanValue.SetWindowText(ss.str().c_str());
 	impactFrameNum.SetWindowText(std::to_wstring(opts.nframesRef).c_str());
@@ -1706,6 +1698,21 @@ BOOL PrefDialog::OnInitDialog()
 	impactBrightThresh.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << opts.facSize;
+	applyMask.SetCheck(opts.thrWithMask);
+
+	saveIntFramesADUdtc.SetCheck(opts.allframes);
+	NoZip.SetCheck(!opts.zip);
+	Debug.SetCheck(opts.debug);
+	CleanDir.SetCheck(opts.clean_dir);
+
+	//ROI
+	sizeFactSpin.SetBuddy(&roiSizeFactor);
+	sizeFactSpin.SetRange(0, 2);
+	secFactSpin.SetBuddy(&roiSecFactor);
+	secFactSpin.SetRange(0, 1);
+	medianBufSpin.SetBuddy(&roiMedianBufSize);
+	medianBufSpin.SetRange(5, 50);
+	
 	roiSizeFactor.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << opts.secSize;
@@ -1713,29 +1720,25 @@ BOOL PrefDialog::OnInitDialog()
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(0) << opts.medSize;
 	roiMedianBufSize.SetWindowText(ss.str().c_str());
-	minimumFrames.SetWindowText(std::to_wstring(opts.minframes).c_str());
+
+	//Other processingconfiguration
+	nframeSpin.SetBuddy(&impactFrameNum);
+	nframeSpin.SetRange(1, 50);
+	minFrameSpin.SetBuddy(&minimumFrames);
+	minFrameSpin.SetRange(3, 10000);
+	histoSpin.SetBuddy(&histScale);
+	histoSpin.SetRange(0, 1);
+	
+	minimumFrames.SetWindowText(std::to_wstring(opts.minframes).c_str()); //not shown
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << opts.histScale;
 	histScale.SetWindowText(ss.str().c_str());
-	applyMask.SetCheck(opts.thrWithMask);
-	//ADUdtconly.SetCheck(opts.ADUdtconly);
-	//detailedADUdtc.EnableWindow(opts.ADUdtconly);
-	//saveIntFramesADUdtc.EnableWindow(opts.ADUdtconly);
-	Zip.SetCheck(opts.zip);
-	Email.SetCheck(opts.email);
-	Noreprocessing.SetCheck(!opts.reprocessing);
-	detailedADUdtc.SetCheck(opts.detail);
-	saveIntFramesADUdtc.SetCheck(opts.allframes);
-	showROI.SetCheck(opts.viewROI);
-	showTrack.SetCheck(opts.viewTrk);
-	showDif.SetCheck(opts.viewDif);
-	showRef.SetCheck(opts.viewRef);
-	showMask.SetCheck(opts.viewMsk);
-	showThresh.SetCheck(opts.viewThr);
-	showSmooth.SetCheck(opts.viewSmo);
-	showResult.SetCheck(opts.viewRes);
-	showHist.SetCheck(opts.viewHis);
-	datesOnly.SetCheck(opts.dateonly);
+
+	debayeringCode.AddString(L"None");
+	debayeringCode.AddString(L"RGGB");
+	debayeringCode.AddString(L"GRBG");
+	debayeringCode.AddString(L"BGGR");
+	debayeringCode.AddString(L"GBRG");
 	ignoreIncorrectFrames.SetCheck(opts.ignore);
 	useFilter.SetCheck(true);
 	filterSelect.EnableWindow(useFilter.GetCheck());
@@ -1743,16 +1746,12 @@ BOOL PrefDialog::OnInitDialog()
 	filterSelect.AddString(L"Box filter");
 	filterSelect.AddString(L"Median filter");
 	filterSelect.AddString(L"Gaussian filter");
-	debayeringCode.AddString(L"None");
-	debayeringCode.AddString(L"RGGB");
-	debayeringCode.AddString(L"GRBG");
-	debayeringCode.AddString(L"BGGR");
-	debayeringCode.AddString(L"GBRG");
 	if (opts.bayer > 0)
 		debayeringCode.SetCurSel(opts.bayer - 45);
-	else 
+	else
 		debayeringCode.SetCurSel(0);
 	filterSelect.SetCurSel(opts.filter.type);
+
 	return TRUE;
 }
 
@@ -1772,21 +1771,8 @@ BOOL PrefDialog::OnInitDialog()
 void PrefDialog::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Control(pDX, IDC_EDIT1, meanValue);
-	DDX_Control(pDX, IDC_EDIT16, impactFrameNum);
-	DDX_Control(pDX, IDC_EDIT2, impactMinTime);
-	DDX_Control(pDX, IDC_EDIT6, impactRadius);
-	DDX_Control(pDX, IDC_EDIT3, impactBrightThresh);
-	DDX_Control(pDX, IDC_EDIT12, roiSizeFactor);
-	DDX_Control(pDX, IDC_EDIT13, roiSecFactor);
-	DDX_Control(pDX, IDC_EDIT15, roiMedianBufSize);
-	DDX_Control(pDX, IDC_EDIT14, histScale);
-	DDX_Control(pDX, IDC_CHECK16, applyMask);
-	DDX_Control(pDX, IDC_CHECK10, Zip);
-	DDX_Control(pDX, IDC_CHECK18, Email);
-	DDX_Control(pDX, IDC_NOREPROC, Noreprocessing);
-	DDX_Control(pDX, IDC_CHECK11, detailedADUdtc);
-	DDX_Control(pDX, IDC_CHECK12, saveIntFramesADUdtc);
+	
+	//Processing visualisation
 	DDX_Control(pDX, IDC_CHECK1, showROI);
 	DDX_Control(pDX, IDC_CHECK2, showTrack);
 	DDX_Control(pDX, IDC_CHECK3, showDif);
@@ -1796,24 +1782,45 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK7, showSmooth);
 	DDX_Control(pDX, IDC_CHECK8, showHist);
 	DDX_Control(pDX, IDC_CHECK9, showResult);
-	DDX_Control(pDX, IDC_CHECK13, datesOnly);
+	
+	//Impact
+	DDX_Control(pDX, IDC_EDIT1, meanValue);
+	DDX_Control(pDX, IDC_SPIN1, meanValueSpin);
+	DDX_Control(pDX, IDC_EDIT16, impactFrameNum);
+	DDX_Control(pDX, IDC_EDIT2, impactMinTime); //not shown
+	DDX_Control(pDX, IDC_SPIN2, minTimeSpin); //not shown
+	DDX_Control(pDX, IDC_EDIT6, impactRadius);
+	DDX_Control(pDX, IDC_SPIN6, radiusSpin);
+	DDX_Control(pDX, IDC_EDIT3, impactBrightThresh);
+	DDX_Control(pDX, IDC_SPIN3, brightThreshSpin);
+	DDX_Control(pDX, IDC_CHECK16, applyMask);
+	
+	DDX_Control(pDX, IDC_CHECK12,		saveIntFramesADUdtc);
+	DDX_Control(pDX, IDC_CHECK10,		NoZip);
+	DDX_Control(pDX, IDC_CHECK_DEBUG,	Debug);
+	DDX_Control(pDX, IDC_CHECK_CLEAN,	CleanDir);
+
+	//ROI
+	DDX_Control(pDX, IDC_EDIT12, roiSizeFactor);
+	DDX_Control(pDX, IDC_SPIN12, sizeFactSpin);
+	DDX_Control(pDX, IDC_EDIT13, roiSecFactor);
+	DDX_Control(pDX, IDC_SPIN13, secFactSpin);
+	DDX_Control(pDX, IDC_EDIT15, roiMedianBufSize);
+	DDX_Control(pDX, IDC_SPIN15, medianBufSpin);
+
+	//Other processing configuration
+	DDX_Control(pDX, IDC_SPIN16, nframeSpin);
+	DDX_Control(pDX, IDC_EDIT17, minimumFrames);
+	DDX_Control(pDX, IDC_SPIN17, minFrameSpin);
+	DDX_Control(pDX, IDC_EDIT14, histScale);
+	DDX_Control(pDX, IDC_SPIN14, histoSpin);
+
+	
+	DDX_Control(pDX, IDC_COMBO2, debayeringCode);
 	DDX_Control(pDX, IDC_CHECK14, ignoreIncorrectFrames);
 	DDX_Control(pDX, IDC_CHECK15, useFilter);
 	DDX_Control(pDX, IDC_COMBO1, filterSelect);
-	DDX_Control(pDX, IDC_EDIT17, minimumFrames);
-	DDX_Control(pDX, IDC_SPIN1, meanValueSpin);
-	DDX_Control(pDX, IDC_SPIN2, minTimeSpin);
-	DDX_Control(pDX, IDC_SPIN6, radiusSpin);
-	DDX_Control(pDX, IDC_SPIN3, brightThreshSpin);
-	DDX_Control(pDX, IDC_SPIN12, sizeFactSpin);
-	DDX_Control(pDX, IDC_SPIN13, secFactSpin);
-	DDX_Control(pDX, IDC_SPIN15, medianBufSpin);
-	DDX_Control(pDX, IDC_SPIN16, nframeSpin);
-	DDX_Control(pDX, IDC_SPIN17, minFrameSpin);
-	DDX_Control(pDX, IDC_SPIN14, histoSpin);
-	DDX_Control(pDX, IDC_COMBO2, debayeringCode);
 }
-
 
 // PrefDialog message handlers
 
@@ -1830,13 +1837,21 @@ void PrefDialog::OnBnClickedOk()
 {
 	CString str;
 	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
-	//char DeTeCtIniFilename_char[MAX_STRING];
-	//remove(CString2char(DeTeCtIniFilename, DeTeCtIniFilename_char));
-
+	
+	//Processing visualisation
+	opts.viewROI = showROI.GetCheck();
+	opts.viewTrk = showTrack.GetCheck();
+	opts.viewDif = showDif.GetCheck();
+	opts.viewRef = showRef.GetCheck();
+	opts.viewMsk = showMask.GetCheck();
+	opts.viewThr = showThresh.GetCheck();
+	opts.viewSmo = showSmooth.GetCheck();
+	opts.viewHis = showHist.GetCheck();
+	opts.viewRes = showResult.GetCheck();
+	
+	//Impact
 	meanValue.GetWindowTextW(str);
 	opts.incrLumImpact = std::stof(str.GetString());
-	impactFrameNum.GetWindowTextW(str);
-	opts.nframesRef = std::stoi(str.GetString());
 	impactMinTime.GetWindowTextW(str);
 	opts.incrFrameImpact = std::stoi(str.GetString());
 	str.Format(L"%.2f", opts.impact_duration_min);
@@ -1845,39 +1860,34 @@ void PrefDialog::OnBnClickedOk()
 	opts.radius = std::stod(str.GetString());
 	impactBrightThresh.GetWindowTextW(str);
 	opts.threshold = std::stod(str.GetString());
+	opts.thrWithMask = applyMask.GetCheck();
+
+	opts.allframes =	saveIntFramesADUdtc.GetCheck();
+	opts.zip =			!NoZip.GetCheck();
+	opts.debug =		Debug.GetCheck();
+	opts.clean_dir = CleanDir.GetCheck();
+
+	//ROI
 	roiSizeFactor.GetWindowTextW(str);
 	opts.facSize = std::stof(str.GetString());
 	roiSecFactor.GetWindowTextW(str);
 	opts.secSize = std::stof(str.GetString());
 	roiMedianBufSize.GetWindowTextW(str);
 	opts.medSize = std::stol(str.GetString());
+
+	//Other processing configuration
+	impactFrameNum.GetWindowTextW(str);
+	opts.nframesRef = std::stoi(str.GetString());
 	minimumFrames.GetWindowTextW(str);
 	opts.minframes = std::stoi(str.GetString());
 	histScale.GetWindowTextW(str);
 	opts.histScale = std::stod(str.GetString());
-	opts.thrWithMask = applyMask.GetCheck();
-	opts.detail = detailedADUdtc.GetCheck();
-	opts.allframes = saveIntFramesADUdtc.GetCheck();
-	opts.viewROI = showROI.GetCheck();
-	opts.viewTrk = showTrack.GetCheck();
-	opts.viewRef = showRef.GetCheck();
-	opts.viewMsk = showMask.GetCheck();
-	opts.viewThr = showThresh.GetCheck();
-	opts.viewSmo = showSmooth.GetCheck();
-	opts.viewRes = showResult.GetCheck();
-	opts.viewDif = showDif.GetCheck();
-	opts.viewHis = showHist.GetCheck();
-	opts.ignore = ignoreIncorrectFrames.GetCheck();
+
 	//int bayerCodes[] = { 0, cv::COLOR_BayerBG2RGB, cv::COLOR_BayerGB2RGB, cv::COLOR_BayerRG2RGB, cv::COLOR_BayerGR2RGB };
+	opts.ignore = ignoreIncorrectFrames.GetCheck();
 	opts.filter.type = filterSelect.GetCurSel();
 
-	opts.dateonly = datesOnly.GetCheck();
-	opts.zip = Zip.GetCheck();
-	opts.email = Email.GetCheck();
-	opts.reprocessing = !Noreprocessing.GetCheck();
-
 	WriteIni();
-
 	CDialog::OnOK();
 }
 
@@ -1909,39 +1919,7 @@ void PrefDialog::OnBnClickedCheck15()
 
 void PrefDialog::OnBnClickedButton1()
 {
-	std::wstringstream ss;
-	ss << std::fixed << std::setprecision(2) << 0.3;
-	meanValue.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	impactFrameNum.SetWindowText(std::to_wstring(50).c_str());
-	ss << std::fixed << std::setprecision(2) << 5;
-	impactMinTime.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << 10.0;
-	impactRadius.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << 0.0;
-	impactBrightThresh.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(2) << 0.9;
-	roiSizeFactor.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(2) << 1.05;
-	roiSecFactor.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << 5.0;
-	roiMedianBufSize.SetWindowText(ss.str().c_str());
-	minimumFrames.SetWindowText(std::to_wstring(15).c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(2) << 0.8;
-	histScale.SetWindowText(ss.str().c_str());
-	applyMask.SetCheck(0);
-	Zip.SetCheck(1);
-	Explorer.SetCheck(1);
-	Email.SetCheck(1);
-	Noreprocessing.SetCheck(0);
-	detailedADUdtc.SetCheck(0);
-	saveIntFramesADUdtc.SetCheck(0);
+	//Processing visualisation
 	showROI.SetCheck(0);
 	showTrack.SetCheck(0);
 	showDif.SetCheck(0);
@@ -1951,12 +1929,50 @@ void PrefDialog::OnBnClickedButton1()
 	showSmooth.SetCheck(0);
 	showResult.SetCheck(0);
 	showHist.SetCheck(0);
-	datesOnly.SetCheck(0);
+
+	//Impact
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << 0.3;
+	meanValue.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	impactFrameNum.SetWindowText(std::to_wstring(50).c_str());
+	ss << std::fixed << std::setprecision(2) << 5;	// not shown
+	impactMinTime.SetWindowText(ss.str().c_str());	// not shown
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << 10.0;
+	impactRadius.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << 0.0;
+	impactBrightThresh.SetWindowText(ss.str().c_str());
+	applyMask.SetCheck(0);
+
+	saveIntFramesADUdtc.SetCheck(0);
+	NoZip.SetCheck(0);
+	Debug.SetCheck(0);
+	CleanDir.SetCheck(0);
+
+		//ROI
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.9;
+	roiSizeFactor.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 1.05;
+	roiSecFactor.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << 5.0;
+	roiMedianBufSize.SetWindowText(ss.str().c_str());
+	
+	//Other processing configuration
+	minimumFrames.SetWindowText(std::to_wstring(15).c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.8;
+	histScale.SetWindowText(ss.str().c_str());
+	
 	ignoreIncorrectFrames.SetCheck(0);
 	useFilter.SetCheck(true);
 	filterSelect.EnableWindow(useFilter.GetCheck());
 
-	opts.impact_duration_min =		0.6;
+	opts.impact_duration_min =		0.4;
 	opts.ROI_min_px_val =			10;
 	opts.ROI_min_size =				70;
 	opts.impact_distance_max =		0.03;
@@ -1967,8 +1983,6 @@ void PrefDialog::OnBnClickedButton1()
 
 	// Apply changes
 	PrefDialog::OnBnClickedOk();
-	
-	// TODO: Add your control notification handler code here
 }
 
 
@@ -1987,7 +2001,6 @@ void PrefDialog::OnBnClickedButton1()
 void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
-	// TODO: Add your control notification handler code here
 
 	CString str;
 	meanValue.GetWindowTextW(str);
@@ -2020,7 +2033,6 @@ void PrefDialog::OnDeltaposSpin2(NMHDR *pNMHDR, LRESULT *pResult)
 	//val += pNMUpDown->iDelta * 0.1;
 	val += pNMUpDown->iDelta;
 	std::wstringstream ss;
-	//ss << std::fixed << std::setprecision(2) << val;
 	ss << val;
 	impactMinTime.SetWindowTextW(ss.str().c_str());
 	*pResult = 0;
@@ -2108,6 +2120,167 @@ void PrefDialog::OnCbnSelchangeCombo2()
 	opts.bayer = bayerCodes[debayeringCode.GetCurSel()];
 }
 
+//******************************************************************************************************************************************************************************************************************************************************************************************
+// PrefDialogUser dialog
+//******************************************************************************************************************************************************************************************************************************************************************************************
+
+IMPLEMENT_DYNAMIC(PrefDialogUser, CDialog)
+
+/**
+* Maps the IDS of the controls defined above to the actions which are the functions below
+*/
+BEGIN_MESSAGE_MAP(PrefDialogUser, CDialog)
+	ON_BN_CLICKED(ID_PREFOK_USER, &PrefDialogUser::OnBnClickedOk)
+	ON_BN_CLICKED(IDC_RESET_USER, &PrefDialogUser::OnBnClickedButton1)
+END_MESSAGE_MAP()
+
+
+/**************************************************************************************************
+ * @fn	PrefDialogUser::PrefDialogUser(CWnd* pParent )
+ *
+ * @brief	Constructor.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ *
+ * @param [in,out]	pParent	If non-null, the parent.
+ **************************************************************************************************/
+
+PrefDialogUser::PrefDialogUser(CWnd* pParent /*=NULL*/)
+	: CDialog(IDD_SETTINGS_USER, pParent)
+{
+}
+
+/**************************************************************************************************
+ * @fn	PrefDialogUser::~PrefDialogUser()
+ *
+ * @brief	Destructor.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+PrefDialogUser::~PrefDialogUser()
+{
+}
+
+/**************************************************************************************************
+ * @fn	BOOL PrefDialogUser::OnInitDialog()
+ *
+ * @brief	Initializes this dialog and the controls within it. Sets the values of the controls to
+ * 			the current option values. And sets the spinners to have reasonable value ranges.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ *
+ * @return	True if it succeeds, false if it fails.
+ **************************************************************************************************/
+
+BOOL PrefDialogUser::OnInitDialog()
+{
+	CDialog::OnInitDialog();
+
+	std::wstringstream ss;
+
+	ShowDetectImg.SetCheck(opts.show_detect_image);
+	ShowMeanImg.SetCheck(opts.show_mean_image);
+
+	Email.SetCheck(opts.email);
+	Noreprocessing.SetCheck(!opts.reprocessing);
+	detailedADUdtc.SetCheck(opts.detail);
+
+	datesOnly.SetCheck(opts.dateonly);
+	Flat.SetCheck(opts.flat_preparation);
+
+	return TRUE;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialogUser::DoDataExchange(CDataExchange* pDX)
+ *
+ * @brief	Exchanges data to/from the controls in this dialog. ID - Variable
+ * 			Check the .rc file and click the controls to know the correspondences.
+ * 			Variable names should help somehow.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ *
+ * @param [in,out]	pDX	If non-null, an object that manages the data exchange operation.
+ **************************************************************************************************/
+
+void PrefDialogUser::DoDataExchange(CDataExchange* pDX)
+{
+	CDialog::DoDataExchange(pDX);
+	
+	DDX_Control(pDX, IDC_CHECK_DETECTION_IMG,	ShowDetectImg);
+	DDX_Control(pDX, IDC_CHECK_MEAN_IMG,		ShowMeanImg);
+	DDX_Control(pDX, IDC_CHECK18,				Email);
+	DDX_Control(pDX, IDC_NOREPROC,				Noreprocessing);
+	DDX_Control(pDX, IDC_CHECK11,				detailedADUdtc);
+	DDX_Control(pDX, IDC_CHECK13,				datesOnly);
+	DDX_Control(pDX, IDC_CHECK_FLAT,			Flat);
+}
+
+
+// PrefDialogUser message handlers
+
+/**************************************************************************************************
+ * @fn	void PrefDialogUser::OnBnClickedOk()
+ *
+ * @brief	Save button from the preference dialog. Updates the data with the received options.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void PrefDialogUser::OnBnClickedOk()
+{
+	CString str;
+	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
+
+	opts.show_detect_image =	ShowDetectImg.GetCheck();
+	opts.show_mean_image =		ShowMeanImg.GetCheck();
+
+	opts.email =				Email.GetCheck();
+	opts.reprocessing = !Noreprocessing.GetCheck();
+	opts.detail =				detailedADUdtc.GetCheck();
+
+	opts.dateonly =				datesOnly.GetCheck();
+	opts.flat_preparation = Flat.GetCheck();
+
+	WriteIni();
+	CDialog::OnOK(); 
+}
+
+
+/**************************************************************************************************
+ * @fn	void PrefDialogUser::OnBnClickedButton1()
+ *
+ * @brief	Sets the default parametres of the preference dialog.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ **************************************************************************************************/
+
+void PrefDialogUser::OnBnClickedButton1()
+{
+	strcpy(opts.darkfilename, "darkfile.tif");
+
+	//Explorer.SetCheck(1);
+
+	ShowDetectImg.SetCheck(TRUE);
+	ShowMeanImg.SetCheck(FALSE);
+
+	Email.SetCheck(TRUE);
+	Noreprocessing.SetCheck(FALSE);
+	detailedADUdtc.SetCheck(FALSE);
+
+	datesOnly.SetCheck(FALSE);
+	Flat.SetCheck(FALSE);
+
+	// Apply changes
+	PrefDialogUser::OnBnClickedOk();
+}
 
 // SendEmailDlg dialog
 
@@ -2192,17 +2365,11 @@ BOOL SendEmailDlg::OnInitDialog()
 	int y_size = 430-36;
 	CSize CSize_min = CSize(x_size, y_size);
 	bOk = m_resizer.SetMinimumSize(_T("_root"), CSize_min);
-	//bOk = m_resizer.SetMinimumSize(_T("_root"), CSize(x_size, y_size));
 	ASSERT(bOk);
-
-	//   bOk = m_resizer.SetMaximumSize(_T("_root"), CSize(700, 700));
-	//   ASSERT(bOk);
 
 	m_resizer.SetShowResizeGrip(TRUE);
 	bOk = m_resizer.InvokeOnResized();
 	ASSERT(bOk);
-
-	//end
 
 	for (std::string msg : messages) {
 		std::wstring wmsg = std::wstring(msg.begin(), msg.end());
@@ -2217,13 +2384,11 @@ void SendEmailDlg::OnBnClickedButton1()
 {
 	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 	extern char impact_detection_dirname[MAX_STRING];
-//	extern char zip_detection_dirname[MAX_STRING];
 	extern char zip_detection_location[MAX_STRING];
 	extern char zipfile[MAX_STRING];
 	extern char log_detection_dirname[MAX_STRING];
 
 	wchar_t	wimpact_detection_dirname[MAX_STRING];
-	//mbstowcs(wimpact_detection_dirname, impact_detection_dirname, strlen(impact_detection_dirname) + 1);//Plus null
 	size_t ReturnValue;
 	mbstowcs_s(&ReturnValue, wimpact_detection_dirname, strlen(impact_detection_dirname) + 1, impact_detection_dirname, strlen(impact_detection_dirname));
 	// email start
@@ -2236,11 +2401,7 @@ void SendEmailDlg::OnBnClickedButton1()
 	}
 
 	// Zip post-processing
-//	if (strlen(zip_detection_dirname) > 0) {
 	if (strlen(zip_detection_location) > 0) {
-			//		wchar_t wzip_detection_dirname[MAX_STRING];
-//		mbstowcs(wzip_detection_dirname, zip_detection_dirname, strlen(zip_detection_dirname) + 1);//Plus null
-
 		wchar_t wzip_detection_location[MAX_STRING];
 		mbstowcs(wzip_detection_location, zip_detection_location, strlen(zip_detection_location) + 1);//Plus null
 		ShellExecute(NULL, L"explore", wzip_detection_location, NULL, NULL, SW_SHOWNORMAL);
@@ -2346,32 +2507,6 @@ void ProgressDialog::DoDataExchange(CDataExchange* pDX)
  /*	Action of button to check detection image folder and send zip file                        */
 /**********************************************************************************************/
 
-
-
-//******************************************************************************************************************************************************************************************************************************************************************************************
-// Empty functions                                              
-//******************************************************************************************************************************************************************************************************************************************************************************************
-
-void CDeTeCtMFCDlg::OnStnClickedStaticComputing()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-}
-
-void CDeTeCtMFCDlg::OnBnClickedCheck2()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-}
-
-void CDeTeCtMFCDlg::OnBnClickedCheck1()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-}
-
-void CDeTeCtMFCDlg::OnBnClickedCheck3()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-}
-
 /**************************************************************************************************
  * @fn	void CDeTeCtMFCDlg::OnLbnSelchangeList1()
  *
@@ -2410,14 +2545,6 @@ void SendEmailDlg::OnStnClickedStaticf()
 	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 }
 
-
-
-void CDeTeCtMFCDlg::OnStnClickedStaticComputing2()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-}
-
-
 void CDeTeCtMFCDlg::OnBnClickedOk3()
 {
 	OnFileOpenFolder();
@@ -2435,7 +2562,6 @@ void CDeTeCtMFCDlg::OnBnClickedOk2()
 	OnFileOpenfile();
 }
 
-
 void CDeTeCtMFCDlg::OnBnClickedCheckAuto()
 {
 	if (opts.interactive) {
@@ -2446,7 +2572,6 @@ void CDeTeCtMFCDlg::OnBnClickedCheckAuto()
 	}
 	CDeTeCtMFCDlg::getAuto()->SetCheck(!opts.interactive);
 }
-
 
 void CDeTeCtMFCDlg::OnBnClickedCheckExit()
 {
@@ -2462,7 +2587,6 @@ void CDeTeCtMFCDlg::OnBnClickedCheckExit()
 
 void CDeTeCtMFCDlg::OnBnClickedCheckShutdown()
 {
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 	if (opts.shutdown) {
 		opts.shutdown = FALSE;
 	}
@@ -2486,16 +2610,4 @@ void CDeTeCtMFCDlg::OnDeltaposSpinInstances(NMHDR *pNMHDR, LRESULT *pResult)
 	//DisplayInstanceType(); //too long (~1s) due to count of child process number
 	CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(processor_count).c_str());
 	*pResult = 0;
-}
-
-
-void PrefDialog::OnBnClickedCheck13()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-}
-
-
-void PrefDialog::OnBnClickedCheck11()
-{
-	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 }

@@ -125,9 +125,7 @@ void init_string(char *variable)
 
 char *lcase(const char *src, char *dst)
 {
-	size_t len;
-
-	len = strlen(src);
+	size_t len = strlen(src);
 
 	if (len>=MAX_STRING) {
 		fprintf(stderr,"ERROR in lcase: incorrect length %zi\n",len);

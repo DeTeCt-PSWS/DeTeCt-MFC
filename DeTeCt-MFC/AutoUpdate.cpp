@@ -26,6 +26,9 @@ MODIFIED by MARC DELCROIX 05/2021
 #include <fstream>
 #include "common2.h"
 
+#include "processes_queue.hpp"
+BOOL			RemoveFromIni(const CString line_to_remove);
+
 //#pragma warning(disable:4477 4313 4840 4189)
 
 // Utilities
@@ -189,7 +192,7 @@ BOOL AutoUpdate::SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CStr
 		}
 	}
 	else {
-		(*log_cstring_lines).push_back((CString)"Info: cannot download configuration file " + m_VersionsFullPath);
+		(*log_cstring_lines).push_back((CString)"Warning: cannot download update configuration file, please check your internet connection."); // + m_VersionsFullPath);
 		return FALSE;
 	}
 }
@@ -535,6 +538,19 @@ BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
 		WriteIni();
 		update = TRUE;
 	}
+	version_update.Major = 3;
+	version_update.Minor = 5;
+	version_update.Revision = 0;
+	version_update.SubRevision = 0;
+	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+		RemoveFromIni(L";Option file");
+		RemoveFromIni(L"; debug");
+		RemoveFromIni(L"debug=");
+		RemoveFromIni(L"; display dates only");
+		RemoveFromIni(L"dateonly =");
+		update = TRUE;
+	}
+
 	return update;
 }
 
@@ -566,3 +582,38 @@ SG_Version AutoUpdate::SG_Version_from_ini(const char *SG_Version_string) {
 
 //#pragma warning(default:4477 4313 4840 4189)
 
+BOOL RemoveFromIni(const CString line_to_remove) {
+	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
+	HANDLE	FileHandle = INVALID_HANDLE_VALUE;
+
+	FileHandle = CreateFileW(DeTeCtIniFilename, GENERIC_READ, 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+
+	std::vector<CString> cstring_lines;
+	BOOL file_to_be_updated = FALSE;
+	CString line = L"";
+
+	SetFilePointer(FileHandle, 0, NULL, FILE_BEGIN);
+	do {
+		line = GetLine(FileHandle);
+		if (line.GetLength() > 1) {
+			if (line.Find(line_to_remove, 0) != 0) cstring_lines.push_back(line);
+			else file_to_be_updated = TRUE;
+		}
+	} while (line.GetLength() > 0);
+	CloseHandle(FileHandle);
+
+	if (file_to_be_updated) {
+		DWORD	dwBytesWritten = 0;
+
+		FileHandle = CreateFileW(DeTeCtIniFilename, (GENERIC_READ | GENERIC_WRITE), 0, NULL, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+		SetFilePointerEx(FileHandle, { 0 }, NULL, FILE_BEGIN);
+		SetEndOfFile(FileHandle);
+		std::for_each(cstring_lines.begin(), cstring_lines.end(), [&](const CString cstring_line) {
+			CT2A line(cstring_line + _T("\n"));
+			WriteFile(FileHandle, line, cstring_line.GetLength() + 1, &dwBytesWritten, NULL);
+			});
+		CloseHandle(FileHandle);
+		return TRUE;
+	}
+	else return FALSE;
+}

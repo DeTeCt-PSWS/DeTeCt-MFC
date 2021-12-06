@@ -467,6 +467,69 @@
     <Image Include="res\ASICap.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\critical.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\information.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\information.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\question.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\question.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\critical.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\bitmap2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\information.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\critical.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\question.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\bitmap6.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small2.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small2.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small3.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DeTeCt.exe.manifest" />

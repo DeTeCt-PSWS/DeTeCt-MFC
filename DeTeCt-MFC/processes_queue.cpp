@@ -29,7 +29,6 @@ void	ReleaseHandle(HANDLE* pFileHandle);
 BOOL	OpenQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle, const DWORD dwDesiredAccess, const DWORD dwShareMode, const DWORD dwCreationDisposition);		//internal
 BOOL	IsItemAlreadyQueued(const CString objectname, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end);			//internal	R--
 BOOL	PopFileFromQueue(CString* objectname, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end);										//internal	--D
-CString	GetLine(HANDLE QueueFileHandle);
 
 int		DetectInstancesNumber();
 int		ProcessChildren(BOOL kills);
@@ -766,27 +765,6 @@ BOOL PopFileFromQueue(CString* pObjectname, const CString QueueFilename, HANDLE*
 		return FALSE;
 	}
 }
-
-CString GetLine(HANDLE QueueFileHandle) //ok
-{
-	char	line[MAX_STRING];
-	char	singlechar[MAX_STRING];
-	DWORD	dwsinglecharRead = 0;
-	init_string(line);
-	init_string(singlechar);
-	do {
-		if (ReadFile(QueueFileHandle, singlechar, 1, &dwsinglecharRead, NULL)) {
-			if (singlechar[0] != '\n') strcat(line, singlechar);
-		}
-		else {
-			CString cstring_line(line);
-			return cstring_line;
-		}
-	} while ((dwsinglecharRead>0) && (singlechar[0] != '\n'));
-	CString cstring_line(line);
-	return cstring_line;
-}
-
 
 // ************** Process functions **********
 
