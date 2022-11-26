@@ -468,7 +468,13 @@ void SetProcessingFileProcessedFromQueue(const CString objectname_cstring, const
 
 BOOL GetProcessedFileFromQueue(CString *processed_filename, CString *processed_filename_acquisition, CString *processed_message, Rating_type *processed_rating, double *duration, int *nframe_child, int *fps_int_child, const CString QueueFilename) //KO
 {
-	if (!filesys::exists(CString2string(QueueFilename))) exit(EXIT_FAILURE);  	// exits DeTeCt if Queuefile does not exists
+	if (!filesys::exists(CString2string(QueueFilename))) 
+	{
+		 char msgtext[MAX_STRING] = { 0 };
+		char tmpline[MAX_STRING];
+		snprintf(msgtext, MAX_STRING, "cannot find acquisition queue file %s", CString2char(QueueFilename, tmpline));
+		ErrorExit(TRUE, "queue file not found", "GetProcessedFileFromQueue()", msgtext);  	// exits DeTeCt if Queuefile does not exists
+	}
 	CString	processed_line;
 	BOOL	status;
 	HANDLE	QueueFileHandle		= INVALID_HANDLE_VALUE;

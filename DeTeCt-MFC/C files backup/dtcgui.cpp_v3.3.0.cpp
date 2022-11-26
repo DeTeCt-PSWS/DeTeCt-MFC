@@ -524,7 +524,7 @@ int detect(std::vector<std::string> current_file_list, OPTS *popts, std::string 
 	if (!popts->autostakkert) log_directory = scan_folder_path;
 	else {
 		//log directory when autostakkert mode or multi instance mode
-		log_directory = CString2string(DeTeCt_exe_folder());;
+		log_directory = CString2string(DeTeCt_exe_folder());
 	}
 	std::string log_consolidated(log_directory);	// Location where log will be written
 	std::string log(log_directory);					// Location where consolidated log will be written
@@ -2484,8 +2484,8 @@ if (popts->debug) LogString(_T("Check queue: parent=") + (CString)std::to_string
 		char suffix_char[MAX_STRING];
 		char planet_char[MAX_STRING] = "";
 
-		if (planet_jupiter > 0) strcat(planet_char, "_jupiter");;
-		if (planet_saturn > 0) strcat(planet_char, "_saturn");;
+		if (planet_jupiter > 0) strcat(planet_char, "_jupiter");
+		if (planet_saturn > 0) strcat(planet_char, "_saturn");
 
 		jd_to_date(start_time_min, &second_min, &minute_min, &hour_min, &day_min, &month_min, &year_min);
 		jd_to_date(start_time_max, &second_max, &minute_max, &hour_max, &day_max, &month_max, &year_max);

@@ -25,6 +25,7 @@ using namespace std;
 
 std::string full_version;
 std::string app_title;
+std::string message[2048];
 
 // CDeTeCtMFCApp
 
@@ -79,7 +80,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	std::string month_string;
 	std::string day;
 	std::string months[] = { "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec" };
-	char DeTeCtNameChar[MAX_STRING];
+	char DeTeCtNameChar[MAX_STRING] = { 0 };
 	int index_message = 0;
 	srand((unsigned int)time(NULL));
 
@@ -87,6 +88,83 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// **************** INIT ******************
 	// ****************************************
 
+//init_opts
+	opts.filename[MAX_STRING] = { 0 };
+	opts.ofilename[MAX_STRING] = { 0 };
+	opts.darkfilename[MAX_STRING] = { 0 };
+	opts.ovfname[MAX_STRING] = { 0 };
+	opts.dirname[MAX_STRING] = { 0 };
+	opts.impactdirname[MAX_STRING] = { 0 };
+	opts.WarningsFilename[MAX_STRING] = { 0 };
+	opts.ErrorsFilename[MAX_STRING] = { 0 };
+	opts.zipname[MAX_STRING] = { 0 };
+	opts.nsaveframe = 0;	// Frame number to <ofilename>
+	opts.ostype = 0;	// Source video type to extract frame
+	opts.ovtype = 0;	// Output video type to create
+
+// options?
+	opts.timeImpact = 0;				// seconds
+	opts.incrLumImpact = 0;				// mean value factor
+	opts.incrFrameImpact = 0;				// Minimum number of frames for impact
+	opts.impact_duration_min = 0;				// Min duration for impact
+	opts.radius = 0;				// Impact radio (pixels)
+	opts.nframesROI = 0;				// Number of frames for ROI calculation
+	opts.nframesRef = 0;				// Number of frames for ROI calculation
+	opts.wROI = 0; 				// ROI width  (CM centered)
+	opts.hROI = 0;				// ROI height (CM centered)
+	opts.bayer = 0;				//debayering code
+	opts.medSize = 0;				// Median buffer size
+	opts.facSize = 0; 				// Size factor (ROI)
+	opts.secSize = 0; 				// Security factor (ROI)
+	opts.ROI_min_px_val = 0; 				// Minimum value of pixel to take into account pixels for ROI calculation
+	opts.ROI_min_size = 0; 				// Minimum valid pixel size for a ROI 
+	opts.threshold = 0;
+	opts.learningRate = 0;				// "Alpha Blending" learning rate
+	opts.histScale = 0;				// Histogram scale
+	opts.wait = 0;				// milliseconds
+	opts.thrWithMask = 0;				// Use Mask (!=0) or not (0) for frame reference
+	opts.viewROI = FALSE; 			// View ROI
+	opts.viewTrk = FALSE; 			// View planet tracking
+	opts.viewDif = FALSE; 			// View differential frame
+	opts.viewRef = FALSE; 			// View reference frame
+	opts.viewMsk = FALSE; 			// View mask
+	opts.viewThr = FALSE; 			// View threshold
+	opts.viewSmo = FALSE;			// View frame after filter application
+	opts.viewHis = FALSE;			// View differential frame histogram
+	opts.viewRes = FALSE;			// View final frame
+	opts.verbose = FALSE;
+	opts.debug = FALSE;			// debug mode with more information
+	opts.videotest = FALSE;			// Test input video file
+	opts.ADUdtconly = FALSE;			// Use ADUdtc algorithm only
+	opts.detail = FALSE;			// Use ADUdtc algorithm only with 2 more images as output
+	opts.zip = TRUE;				// Creates zip of impact_detection folder at the end of processing
+	opts.email = TRUE;				// Send email at the end of processing
+	opts.allframes = FALSE;			// Save all intermediate mac frames from ADUdtc algorithm
+	opts.impact_distance_max = 0;				// Maximum value for distance between old algorithm and max in detection image for being a possible impact
+	opts.impact_max_avg_min = 0;				// Minimum value for max - mean value of dtc_max-mean image for being a possible impact
+	opts.impact_confidence_min = 0;				// Minimum value for confidence for being a possible impact
+	opts.minframes = 0;				// Minimum # of frames to start processing
+	opts.filter = { 0, {0,0,0,0} };
+	opts.dateonly = FALSE;			// Display date information and stops processing
+	opts.ignore = FALSE;			// Ignore incorrect frames
+	opts.maxinstances = 1;				// Maximum number of DeTeCt instances running in parallel
+	opts.reprocessing = FALSE;			// Reprocessing files already in DeTeCt.log
+	opts.interactive = FALSE;			// Normal interactive mode or automatic mode
+	opts.autoexit = FALSE;			// Automatic exit when processing done
+	opts.shutdown = FALSE;			// Automatic PC shutdownn when auto exit
+	opts.flat_preparation = FALSE;			// Flag to create flat
+	opts.clean_dir = FALSE;			// Cleans directory before processing
+	opts.show_detect_image = TRUE;				// show detection image
+	opts.show_mean_image = FALSE;			// show mean image
+// Status
+	opts.interactive_bak = FALSE;			// Backup of interactive status
+	opts.autostakkert = FALSE;			// Launched from autostakkert
+	opts.autostakkert_PID = 0;				// Parent autostakkert PID
+	opts.detect_PID = 0;				// Parent detect PID
+	opts.version[MAX_STRING] = { 0 };
+	opts.DeTeCtQueueFilename[MAX_STRING] = { 0 };
+	opts.LogConsolidatedDirname[MAX_STRING] = { 0 };
+	opts.parent_instance = FALSE;
 
 	DeTeCtFileName(DeTeCtNameChar);
 	std::string DeTeCtName(DeTeCtNameChar); // "DeTeCt.exe"
@@ -105,8 +183,8 @@ BOOL CDeTeCtMFCApp::InitInstance()
 
 	// Checks if DeTeCt has been launched by AutoStakkert
 	if (IsParentAutostakkert(&opts.autostakkert_PID)) {
-		opts.message[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
-		opts.message[index_message] = "\0";
+		message_lines[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
+		message_lines[index_message] = "\0";
 		opts.autostakkert = TRUE;
 		opts.parent_instance = FALSE;
 	}
@@ -172,7 +250,6 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// Free memory allocated for CommandLineToArgvW arguments.
 	LocalFree(szArglist);
 
-	//	opts.message[index_message] = "\0";
 	std::for_each(DeTeCtName.begin(), DeTeCtName.end(), [](char& c) {
 		c = (char) ::tolower(c);
 		});
@@ -210,16 +287,16 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					int processor_count = std::thread::hardware_concurrency();
 					if (opts.maxinstances > processor_count) {
 						opts.maxinstances = processor_count;
-						opts.message[index_message++] = "WARNING : number " + param + " of maxinstances greater than number of processors, using " + std::to_string(processor_count) + " number of processors";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "WARNING : number " + param + " of maxinstances greater than number of processors, using " + std::to_string(processor_count) + " number of processors";
+						message_lines[index_message] = "\0";
 					}
 					else if (opts.maxinstances < 1) opts.maxinstances = 1;
 
 				}
 				else {
 					opts.maxinstances = 1;
-					opts.message[index_message++] = "WARNING : number " + param + " of maxinstances is not correct, using default value";
-					opts.message[index_message] = "\0";
+					message_lines[index_message++] = "WARNING : number " + param + " of maxinstances is not correct, using default value";
+					message_lines[index_message] = "\0";
 				}
 			}
 			else if (param_dtcpid == TRUE) {
@@ -230,12 +307,12 @@ BOOL CDeTeCtMFCApp::InitInstance()
 				if ((has_only_digits) && (number > 0)) {
 					param_used = TRUE;
 					opts.detect_PID = number;
-					opts.message[index_message++] = "Using : PID " + param + " as parent DeTeCt ID";
-					opts.message[index_message] = "\0";
+					message_lines[index_message++] = "Using : PID " + param + " as parent DeTeCt ID";
+					message_lines[index_message] = "\0";
 				}
 				else {
-					opts.message[index_message++] = "WARNING : number " + param + " not a valid process ID";
-					opts.message[index_message] = "\0";
+					message_lines[index_message++] = "WARNING : number " + param + " not a valid process ID";
+					message_lines[index_message] = "\0";
 				}
 			} else if (param_aspid == TRUE) {
 					param_aspid = FALSE;
@@ -245,12 +322,12 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					if ((has_only_digits) && (number > 0)) {
 						param_used = TRUE;
 						opts.autostakkert_PID = number;
-						opts.message[index_message++] = "Using : PID " + param + " as parent Autostakkert ID";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "Using : PID " + param + " as parent Autostakkert ID";
+						message_lines[index_message] = "\0";
 					}
 					else {
-						opts.message[index_message++] = "WARNING : number " + param + " not a valid process ID";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "WARNING : number " + param + " not a valid process ID";
+						message_lines[index_message] = "\0";
 					}
 				}
 			// Processes command line options
@@ -260,21 +337,21 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					DBOUT("option : " << param.c_str() << "\n");
 					if (starts_with(param, "-auto")) opts.interactive = FALSE;												// -automatic processing mode
 					else if ((starts_with(param, "-inter")) || (starts_with(param, "-noauto")))  opts.interactive = TRUE;	// -interactive / -noautomatic
-					else if (starts_with(param, "-exit")) opts.exit = TRUE;													// -exit exits when done
-					else if (starts_with(param, "-noexit")) opts.exit = FALSE;												// -exit exits when done
+					else if (starts_with(param, "-exit")) opts.autoexit = TRUE;													// -exit exits when done
+					else if (starts_with(param, "-noexit")) opts.autoexit = FALSE;												// -exit exits when done
 					else if (starts_with(param, "-shut"))	opts.shutdown = TRUE;											// -shutdown mode
 					else if (starts_with(param, "-noshut")) opts.shutdown = FALSE;											// -noshutdown mode
 					else if (starts_with(param, "-noreproc")) {
 						opts.reprocessing = FALSE;																			// -noreprocessing
-						opts.message[index_message++] = "No reprocessing of files already processed";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "No reprocessing of files already processed";
+						message_lines[index_message] = "\0";
 					}
 					else if (starts_with(param, "-reproc")) opts.reprocessing = TRUE;										// -reprocessing
 					else if (starts_with(param, "-zip")) opts.zip = TRUE;
 					else if (starts_with(param, "-nozip")) {
 						opts.zip = FALSE;
-						opts.message[index_message++] = "No detection zip file will be generated";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "No detection zip file will be generated";
+						message_lines[index_message] = "\0";
 					}
 					else if (starts_with(param, "-maxinst")) param_instances = TRUE;										// -maxinstances
 					else if (starts_with(param, "-dtcpid")) param_dtcpid = TRUE;											// fix detect parent PID (DEV only)
@@ -283,33 +360,33 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					else if (starts_with(param, "-asact")) {
 						opts.autostakkert = TRUE;																			// simulate AutoStakkert launch (DEV only)
 
-						opts.message[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
+						message_lines[index_message] = "\0";
 						opts.interactive = FALSE; // By default (but not mandatory), auto mode on when launched from AutoStakkert
 						//opts.reprocessing = FALSE; // By default (but not mandatory), noreprocessing on when launched from AutoStakkert - implemented in function using reprocessing
 					}
 					else if (starts_with(param, "-debug")) {
 						opts.debug = TRUE;																					// debug info mode (DEV only)
-						opts.message[index_message++] = "DEBUG mode on";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "DEBUG mode on";
+						message_lines[index_message] = "\0";
 					}
 					else if (starts_with(param, "-nodebug")) opts.debug = FALSE;											// debug info mode (DEV only)
 					else if (starts_with(param, "-help")) {
-						opts.message[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
-						opts.message[index_message++] = "   -autoprocessing   automatic mode launching detection without interaction";
-						opts.message[index_message++] = "   -noreprocessing   no reprocessing acquisition files already in DeTeCt.log";
-						opts.message[index_message++] = "   -nozip                  no generation of impact detection zip file";
-						opts.message[index_message++] = "   -maxinstances nbinstances  multi_instances mode running nbinstances to process the files in parallel";
-						opts.message[index_message++] = "   -exit                automatic exit when processing done without interaction";
-						opts.message[index_message++] = "   -shutdown            automatic shutdown of PC when automatic exit";
+						message_lines[index_message++] = "Info : syntax : " + DeTeCtName + " [options] filename | foldername";
+						message_lines[index_message++] = "   -autoprocessing   automatic mode launching detection without interaction";
+						message_lines[index_message++] = "   -noreprocessing   no reprocessing acquisition files already in DeTeCt.log";
+						message_lines[index_message++] = "   -nozip                  no generation of impact detection zip file";
+						message_lines[index_message++] = "   -maxinstances nbinstances  multi_instances mode running nbinstances to process the files in parallel";
+						message_lines[index_message++] = "   -exit                automatic exit when processing done without interaction";
+						message_lines[index_message++] = "   -shutdown            automatic shutdown of PC when automatic exit";
 
-						opts.message[index_message++] = "   filename              name of acquisition/autostakkert session file to be processed";
-						opts.message[index_message++] = "   foldername          name of folder to be process with all its subfolders";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "   filename              name of acquisition/autostakkert session file to be processed";
+						message_lines[index_message++] = "   foldername          name of folder to be process with all its subfolders";
+						message_lines[index_message] = "\0";
 					}
 					else {
-						opts.message[index_message++] = "ERROR : " + param + " option not recognized";
-						opts.message[index_message] = "\0";
+						message_lines[index_message++] = "ERROR : " + param + " option not recognized";
+						message_lines[index_message] = "\0";
 					}
 				}
 				// Processes filesystem objets parameters (files or folders)
@@ -333,10 +410,11 @@ BOOL CDeTeCtMFCApp::InitInstance()
 								if ((starts_with(object, ".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
 									//CT2CA tmp_conv(DeTeCt_exe_folder());
 									//target_folder = std::string (tmp_conv);
-									char buffer[MAX_STRING];
+									char buffer[MAX_STRING] = { 0 };
 									if (_fullpath(buffer, object.c_str(), MAX_STRING) == NULL) {
-										fprintf(stderr, "ERROR: cannot construct full path for %s\n", object.c_str());
-										exit(EXIT_FAILURE);
+										 char msgtext[MAX_STRING] = { 0 };							
+										snprintf(msgtext, MAX_STRING, "cannot construct full path %s", object.c_str());
+										ErrorExit(TRUE, "cannot construct full path", "InitInstance()", msgtext);
 									};
 									target_file = std::string(buffer);
 								}
@@ -347,27 +425,28 @@ BOOL CDeTeCtMFCApp::InitInstance()
 								opts.filename[target_file.size()] = '\0';
 								DBOUT("file = " << opts.filename << "\n");
 								std::string tmp_string(opts.filename);
-								opts.message[index_message++] = "Using file " + tmp_string;
-								opts.message[index_message] = "\0";
+								message_lines[index_message++] = "Using file " + tmp_string;
+								message_lines[index_message] = "\0";
 							}
 							else {
-								opts.message[index_message++] = "WARNING: Extension : " + extension + " not supported";
-								opts.message[index_message] = "\0";
+								message_lines[index_message++] = "WARNING: Extension : " + extension + " not supported";
+								message_lines[index_message] = "\0";
 								DBOUT("WARNING: Extension : " << extension.c_str() << " not supported\n");
 							}
 						}
 						else {
 							DIR* folder_object;
-							//opts.message[index_message++] = "file or folder " + object;
+							//message_lines[index_message++] = "file or folder " + object;
 							if ((folder_object = opendir(object.c_str()))) {
 								//converts relative path to absolute path (does not work from MSVC debug as exe launched from MFC directory)
 								if ((starts_with(object, ".")) || !((starts_with(object, "\\")) || (object.find(":\\") == 1))) {
 									//CT2CA tmp_conv(DeTeCt_exe_folder());
 									//target_folder = std::string (tmp_conv);
-									char buffer[MAX_STRING];
+									char buffer[MAX_STRING] = { 0 };
 									if (_fullpath(buffer, object.c_str(), MAX_STRING) == NULL) {
-										fprintf(stderr, "ERROR: cannot construct full path for %s\n", object.c_str());
-										exit(EXIT_FAILURE);
+										 char msgtext[MAX_STRING] = { 0 };
+										snprintf(msgtext, MAX_STRING, "cannot construct full path %s", object.c_str());
+										ErrorExit(TRUE, "cannot construct full path", "InitInstance()", msgtext);
 									};
 									target_folder = std::string(buffer);
 								}
@@ -378,13 +457,13 @@ BOOL CDeTeCtMFCApp::InitInstance()
 								opts.dirname[target_folder.size()] = '\0';
 								DBOUT("folder = " << target_folder.c_str() << "\n");
 								std::string tmp_string(opts.dirname);
-								opts.message[index_message++] = "Using directory " + tmp_string;
-								opts.message[index_message] = "\0";
+								message_lines[index_message++] = "Using directory " + tmp_string;
+								message_lines[index_message] = "\0";
 							}
 							else {
 								DBOUT("WARNING: Object : " << object.c_str() << " not found\n");
-								opts.message[index_message++] = "ERROR : file or folder " + object + " not found";
-								opts.message[index_message] = "\0";
+								message_lines[index_message++] = "ERROR : file or folder " + object + " not found";
+								message_lines[index_message] = "\0";
 
 							}
 							closedir(folder_object);
@@ -399,17 +478,17 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// *********************** QUEUE MANAGEMENT *************************
 	// ******************************************************************
 	if (opts.debug) {
-		opts.message[index_message++] = "!Debug info: Exit=" + std::to_string(opts.exit);
-		opts.message[index_message] = "\0";
+		message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
+		message_lines[index_message] = "\0";
 	}
 
 	CreateQueueFileName();
 	if ((opts.autostakkert) && (opts.parent_instance)) app_title.append("       (from AutoStakkert!)");
 	if (opts.debug) {
 		std::string msg(opts.DeTeCtQueueFilename);
-		opts.message[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
-		opts.message[index_message++] = "!Debug info: Exit=" + std::to_string(opts.exit);
-		opts.message[index_message] = "\0";
+		message_lines[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
+		message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
+		message_lines[index_message] = "\0";
 	}
 
 	// if no additional instance possible, adds object to queue
@@ -417,7 +496,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	int		DeTeCt_processes_nb = 0;
 	if (opts.autostakkert_PID > 0)	DeTeCt_processes_nb = ParentChildrenProcessesNumber(opts.autostakkert_PID);
 	else if (opts.detect_PID > 0)	DeTeCt_processes_nb = ParentChildrenProcessesNumber(opts.detect_PID) + 1;		//count parent 
-	//else DeTeCt_processes_nb = DetectInstancesNumber();;
+	//else DeTeCt_processes_nb = DetectInstancesNumber();
 
 	DBOUT("Maximum DeTeCt processes = " << opts.maxinstances << "\n");
 	DBOUT("Number of DeTeCt processes = " << DeTeCt_processes_nb << "\n");
@@ -426,8 +505,8 @@ BOOL CDeTeCtMFCApp::InitInstance()
 		//log processes to be done and exits
 		if (strlen(opts.filename) > 0) {
 if (opts.debug) {
-	opts.message[index_message++] = "!Debug info: Queuing filename " + std::string (opts.filename);
-	opts.message[index_message] = "\0";
+	message_lines[index_message++] = "!Debug info: Queuing filename " + std::string (opts.filename);
+	message_lines[index_message] = "\0";
 }
 			CString objectname(opts.filename);
 			CString tmp;
@@ -436,18 +515,21 @@ if (opts.debug) {
 				std::string file;
 				std::string filename_acquisition;
 				int nframe = -1;
+				PIPPInfo pipp_info;
 
 				file = std::string(opts.filename);
-				if ((Is_Capture_OK_from_File(file, &filename_acquisition, &nframe, &ss))
+				if ((Is_Capture_OK_from_File(file, &filename_acquisition, &nframe, &ss)) &&
 					// ********* Error if acquisition has not enough frames
-					&& (Is_Capture_Long_Enough(file, nframe, &ss))
-					// ********* Ignores dark, pipp, winjupos derotated files
-					&& (!Is_Capture_Special_Type(file, &ss))) {
+					(Is_Capture_Long_Enough(file, nframe, &ss)) &&
+					// ********* Ignores if required dark, pipp, winjupos derotated files
+					(!Is_Capture_Special_Type(file, &ss)) &&
+					// ********* Ignores PIPP with no integrity
+					(!Is_PIPP(file) || ((Is_PIPP(file) && Is_PIPP_OK(file, &pipp_info, &ss))))) {
 					std::string folder_path;
 					if (!opts.autostakkert) folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
 					else {
 						//log directory when autostakkert mode or multi instance mode
-						folder_path = CString2string(DeTeCt_exe_folder());;
+						folder_path = CString2string(DeTeCt_exe_folder());
 					}
 					//std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\")); 
 					CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
@@ -461,8 +543,8 @@ if (opts.debug) {
 		}
 		else if (strlen(opts.dirname) > 0) {
 if (opts.debug) {
-	opts.message[index_message++] = "!Debug info: Queuing directory " + std::string(opts.dirname);
-	opts.message[index_message] = "\0";
+	message_lines[index_message++] = "!Debug info: Queuing directory " + std::string(opts.dirname);
+	message_lines[index_message] = "\0";
 }
 			CString objectname(opts.dirname);
 			CString tmp;
@@ -478,14 +560,14 @@ if (opts.debug) {
 		CString objectname;
 		CString tmp;
 if (opts.debug) {
-	opts.message[index_message++] = "Getting file from queue";
-	opts.message[index_message] = "\0";
+	message_lines[index_message++] = "Getting file from queue";
+	message_lines[index_message] = "\0";
 }
 		if (GetFileFromQueue(&objectname, (CString)opts.DeTeCtQueueFilename)) {
 if (opts.debug) {
 	CT2A char_objectname(objectname);
-	opts.message[index_message++] = "Fetched file from queue" + std::string(char_objectname);
-	opts.message[index_message] = "\0";
+	message_lines[index_message++] = "Fetched file from queue" + std::string(char_objectname);
+	message_lines[index_message] = "\0";
 }
 			std::ifstream file(objectname);
 			CT2A tmpo(objectname);
@@ -493,8 +575,8 @@ if (opts.debug) {
 				//opts.filename = new char[strlen(tmpo)+1];  // exception read access
 				strcpy(opts.filename, tmpo);
 				opts.filename[strlen(tmpo)] = '\0';
-				opts.message[index_message++] = "Using file " + std::string(tmpo);
-				opts.message[index_message] = "\0";
+				message_lines[index_message++] = "Using file " + std::string(tmpo);
+				message_lines[index_message] = "\0";
 			}
 			else {
 				DIR *folder_object;
@@ -503,8 +585,8 @@ if (opts.debug) {
 					strcpy(opts.dirname, tmpo);
 					opts.dirname[strlen(tmpo)] = '\0';
 					closedir(folder_object);
-					opts.message[index_message++] = "Using directory " + std::string(tmpo);
-					opts.message[index_message] = "\0";
+					message_lines[index_message++] = "Using directory " + std::string(tmpo);
+					message_lines[index_message] = "\0";
 				}
 				else DBOUT("parameter = " << objectname << " not found\n");
 			}
@@ -513,8 +595,8 @@ if (opts.debug) {
 		else if (opts.autostakkert_PID > 0) return FALSE; // No file for autostakkert child
 		else { // No file for child
 			if (opts.debug) {
-				opts.message[index_message++] = "!Degug info : Can't fetch file ...";
-				opts.message[index_message] = "\0";
+				message_lines[index_message++] = "!Degug info : Can't fetch file ...";
+				message_lines[index_message] = "\0";
 				//if (!opts.parent_instance) return FALSE;
 			}
 			if (!opts.parent_instance) return FALSE;
@@ -526,10 +608,19 @@ if (opts.debug) {
 	//clock_t start = clock(); clock_t end = clock();
 	if (opts.debug) {
 		std::string msg(opts.DeTeCtQueueFilename);
-		opts.message[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
-		opts.message[index_message++] = "!Debug info: Exit=" + std::to_string(opts.exit);
-		opts.message[index_message] = "\0";
+		message_lines[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
+		message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
+		message_lines[index_message] = "\0";
 	}
+
+// **********************************************************
+// *********************** TEST *************************
+// **********************************************************
+
+	//DBOUT("DBOUT test " << "\n");	// works
+	//fprintf(stderr, "stderr test\n"); // does not work
+	//fprintf(stdout, "stdout test\n"); // does not work
+	//Warning(WARNING_MESSAGE_BOX, "Warning test", "main()", "Warning display test"); // works
 
 // **********************************************************
 // *********************** MFC INIT *************************
@@ -609,7 +700,7 @@ void CreateQueueFileName() {
 		}
 		else {
 			opts.parent_instance = FALSE;
-			opts.exit = TRUE;		//automatic exit in child mode
+			opts.autoexit = TRUE;		//automatic exit in child mode
 			opts.shutdown = FALSE;	//never shutdown in child mode, should be done only in parent mode!
 		}
 		opts.interactive = FALSE;	// By default (mandatory), auto mode on when launched from AutoStakkert
@@ -629,7 +720,7 @@ void CreateQueueFileName() {
 		opts.parent_instance = FALSE;
 
 		opts.interactive = FALSE;
-		opts.exit = TRUE;		//automatic exit in child mode
+		opts.autoexit = TRUE;		//automatic exit in child mode
 		opts.shutdown = FALSE;	//never shutdown in child mode, should be done only in parent mode!
 	}
 	else if (opts.maxinstances > 1) {				// multi-instances mode, parent instance

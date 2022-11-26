@@ -1,5 +1,6 @@
 #pragma once
 #include "stdafx.h"
+#include "dtc.h"
 //#include <vector> // not needed
 //#include <string> // not needed
 
@@ -12,6 +13,7 @@
 namespace filesys = std::experimental::filesystem;
 
 extern std::string full_version;
+extern "C" OPTS opts;
 
 char						*CString2char(const CString source, char *destination);
 CString						char2CString(const char *source, CString *destination);
@@ -21,6 +23,7 @@ bool						starts_with(const std::string& s1, const std::string& s2);
 bool						replace(std::string& str, const std::string& from, const std::string& to);
 bool						duplicate_txtfile(const CString InputFileName, const CString OutputFileName);
 CString						GetLine(HANDLE QueueFileHandle);
+std::string					StringPlural(const int number);
 
 void						StreamDeTeCtOSversions(std::wstringstream *ss);
 void						GetOSversion(std::string *pos_version);

@@ -77,15 +77,13 @@ std::vector<std::string> read_txt(std::string path) {
 	std::for_each(wstr.begin(), wstr.end(), [](char& c) {
 		c = (char) ::tolower(c);
 	});
-}*/
+}*/ 
 
 CString GetLine(HANDLE QueueFileHandle) //ok
 {
-	char	line[MAX_STRING];
-	char	singlechar[MAX_STRING];
+	char	line[MAX_STRING]		= { 0 };
+	char	singlechar[MAX_STRING]	= { 0 };
 	DWORD	dwsinglecharRead = 0;
-	init_string(line);
-	init_string(singlechar);
 	do {
 		if (ReadFile(QueueFileHandle, singlechar, 1, &dwsinglecharRead, NULL)) {
 			if (singlechar[0] != '\n') strcat(line, singlechar);
@@ -99,7 +97,23 @@ CString GetLine(HANDLE QueueFileHandle) //ok
 	return cstring_line;
 }
 
+std::string	StringPlural(const int number)
+{
+	if (number > 0) return "s"; else return "";
+}
 
+/**********************************************************************************************/
+//#include <iostream>
+//#include <string>
+
+bool isNumeric(std::string const& str)
+{
+	auto it = str.begin();
+	while (it != str.end() && std::isdigit(*it)) {
+		it++;
+	}
+	return !str.empty() && it == str.end();
+}
 // ************************************************************
 // ******************* OS functions ***************************
 // ************************************************************
@@ -219,8 +233,8 @@ bool rmdir_force(const char *directory_name) {
 	bool	status = TRUE;
 	int		status_int = 0;
 	bool	return_value = TRUE;
-	char	filename[MAX_STRING];
-	char	dirname[MAX_STRING];
+	char	filename[MAX_STRING]	= { 0 };
+	char	dirname[MAX_STRING]	= { 0 };
 
 	if (!(directory = opendir(directory_name))) {
 		closedir(directory);

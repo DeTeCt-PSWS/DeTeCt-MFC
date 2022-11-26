@@ -10,6 +10,7 @@
 
 #include "common.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <ctype.h>
 
@@ -24,104 +25,9 @@ extern "C" {
 
 //#include <opencv2/imgproc.hpp> //TEST opencv3
 
-/**********************************************************************************************//**
-* @fn	DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
-*
-* @brief	Dtc capture from file. Originally meant to use new functions, but have been failing:
-* 			cv::VideoCapture seems to throw exceptions.
-* 			TO-DO: Check VideoCapture errors
-*
-* @author	Jon
-* @date	2017-05-12
-*
-* @param 		  	fname	   	Filename.
-* @param [in,out]	pframecount	If non-null, the pframecount.
-*
-* @return	Null if it fails, else a pointer to a DtcCapture.
-**************************************************************************************************/
+//internal functions
 
-DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
-{
-	char ext[EXT_MAX];
-	DtcCapture *capt;
-
-	get_fileextension(fname, ext, EXT_MAX);
-	lcase(ext, ext);
-	capt = (DtcCapture *)malloc(sizeof(DtcCapture));
-	if (capt == NULL) {
-		assert(capt != NULL);
-	}
-	else {
-		/*capt->pCaptureInfo = (DtcCaptureInfo*)malloc(sizeof(DtcCaptureInfo));
-
-		if (capt->pCaptureInfo == NULL) {
-			assert(capt->pCaptureInfo != NULL);
-		}*/
-		if (opts.debug) { fprintf(stderr, "!Debug info: dtcCaptureFromFile: capt @ %p\n", capt); }
-		if (!strcmp(ext, "ser")) {
-			capt->type = CAPTURE_SER;
-			capt->u.sercapture = NULL;
-			if (!(capt->u.sercapture = serCaptureFromFile(fname)))
-			{
-				free(capt);
-				capt = NULL;
-				OutputDebugString(L"ERROR in dtcCaptureFromFile processing ser file\n");
-				//fprintf(stderr, "ERROR in dtcCaptureFromFile processing ser file %s\n", fname);
-				exit(EXIT_FAILURE);
-			}
-			capt->framecount = (int)capt->u.sercapture->header.FrameCount;
-			if (capt->u.sercapture->header.PixelDepth > 8)
-				serFixPixelDepth(capt->u.sercapture, 0);
-			serPrintHeader(capt->u.sercapture);
-		}
-		else if ((!strcmp(ext, "fit")) || (!strcmp(ext, "fits"))) {
-			capt->type = CAPTURE_FITS;
-			capt->u.filecapture = NULL;
-			if (!(capt->u.filecapture = FileCaptureFromFile(fname, pframecount, capt->type)))
-			{
-				free(capt);
-				capt = NULL;
-				fprintf(stderr, "ERROR in dtcCaptureFromFile processing fits file %s\n", fname);
-				exit(EXIT_FAILURE);
-			}
-			capt->framecount = (int)capt->u.filecapture->FrameCount;
-		}
-		else if ((!strcmp(ext, "bmp")) || (!strcmp(ext, "dib")) || (!strcmp(ext, "jpeg")) || (!strcmp(ext, "jpg")) || (!strcmp(ext, "jpe")) || (!strcmp(ext, "jp2")) || (!strcmp(ext, "png")) || (!strcmp(ext, "pbm")) || (!strcmp(ext, "pgm")) || (!strcmp(ext, "ppm")) || (!strcmp(ext, "sr")) || (!strcmp(ext, "ras")) || (!strcmp(ext, "tiff")) || (!strcmp(ext, "tif"))) {
-			capt->type = CAPTURE_FILES;
-			capt->u.filecapture = NULL;
-			if (!(capt->u.filecapture = FileCaptureFromFile(fname, pframecount, capt->type)))
-			{
-				free(capt);
-				capt = NULL;
-				fprintf(stderr, "ERROR in dtcCaptureFromFile processing fits file %s\n", fname);
-				exit(EXIT_FAILURE);
-			}
-			capt->framecount = (int)capt->u.filecapture->FrameCount;
-		}
-		else {
-			capt->type = CAPTURE_CV;
-			capt->u.capture = NULL;
-			//if (!(capt->u.capture = cvCreateFileCapture(fname, CV_LOAD_IMAGE_ANYCOLOR))) {
-			/*capt->u.capture = cvCaptureFromFile(fname); 
-			if (capt->u.capture == NULL) {*/
-			//if ((capt->u.capture = cvCaptureFromFile(fname)) != 0) {
-			if (!(capt->u.capture = cvCaptureFromFile(fname))) {
-
-				//if (!(capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname)))) {
-				//free(capt->u.capture);
-				free(capt);
-				capt = NULL;
-				fprintf(stderr, "ERROR in dtcCaptureFromFile opening file %s\n", fname);
-				exit(EXIT_FAILURE);
-			}
-			capt->framecount = (int)(dtcGetCaptureProperty(capt, CV_CAP_PROP_FRAME_COUNT));
-		}
-		(*pframecount) = capt->framecount;
-		//initDtcCaptureInfo(capt->pCaptureInfo);
-		initDtcCaptureInfo(&capt->CaptureInfo);
-	}
-	return capt;
-}
+//exposed functions
 
 /**********************************************************************************************//**
 * @fn	cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror)
@@ -247,8 +153,9 @@ void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
 	default: // CAPTURE_CV	
 		dtcReleaseCapture(*pcapture);
 		if (!(*pcapture = dtcCaptureFromFile2(fname, &framecount))) {
-			fprintf(stderr, "ERROR in dtcReinitCaptureRead2 opening file %s\n", fname);
-			exit(EXIT_FAILURE);
+			 char msgtext[MAX_STRING] = { 0 };
+			snprintf(msgtext, MAX_STRING, "cannot open file %s", fname);
+			ErrorExit(TRUE, "cannot reinitialize capture", "dtcReinitCaptureRead2()", msgtext);
 		}
 		break;
 	}
@@ -259,22 +166,25 @@ void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
 
 void dtcReleaseCapture(DtcCapture *capture)
 {
-	switch (capture->type)
-	{
-	case CAPTURE_SER:
-		/*fprintf(stderr,"dtcReleaseCapture: Releasing ser capture\n");
-		fprintf(stderr, "dtcReleaseCapture: Image pointer %d\n", capture->u.sercapture->image);*/
-		serReleaseCapture(capture->u.sercapture);
-		break;
-	case CAPTURE_FITS:
-	case CAPTURE_FILES:
-		fileReleaseCapture(capture->u.filecapture);
-		break;
-	default: // CAPTURE_CV
-		//capture->u.videocapture->release();
-		cvReleaseCapture(&capture->u.capture);
+	if (capture != NULL) {
+		switch (capture->type)
+		{
+		case CAPTURE_SER:
+			/*fprintf(stdout,"dtcReleaseCapture: Releasing ser capture\n");
+			fprintf(stdout, "dtcReleaseCapture: Image pointer %d\n", capture->u.sercapture->image);*/
+			if (&capture->u.capture != NULL) serReleaseCapture(capture->u.sercapture);
+			break;
+		case CAPTURE_FITS:
+		case CAPTURE_FILES:
+			if (&capture->u.capture != NULL) fileReleaseCapture(capture->u.filecapture);
+			break;
+		default: // CAPTURE_CV
+			//capture->u.videocapture->release();
+			if (&capture->u.capture != NULL) cvReleaseCapture(&capture->u.capture);
+		}
+		//free(capture->pCaptureInfo);
+		capture = NULL;
 	}
-	//free(capture->pCaptureInfo);
 }
 
 /**********************************************************************************************//**
@@ -336,10 +246,201 @@ BOOL Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acqu
 		return FALSE;
 	}
 	else {
-		dtcReleaseCapture(pCapture);
-		return TRUE;
+dtcReleaseCapture(pCapture);
+return TRUE;
 	}
 }
+
+/**********************************************************************************************/
+/**
+* @fn		Is_PIPP(const std::string file)
+*
+* @brief	Returns if file is PIPP video
+*
+* @author	Marc
+* @date	2022-07-31
+*
+* @param [in]		file						string of capture filename
+* @return true if file is a PIPP video, false otherwise
+**************************************************************************************************/
+BOOL Is_PIPP(const std::string file)
+{
+	if (file.find(PIPP_STRING) == std::string::npos) return FALSE;	// Not a PIPP file
+	else return TRUE;
+}
+
+/**********************************************************************************************/
+/**
+* @fn	BOOL Is_PIPP_OK(const std::string file, int *start_frame, int *max_nb_frames, std::wstringstream* pmessage)
+*
+* @brief	Check if PIPP file is ok (not modified by processing loosing detection potential)
+*			Returns start frame (if first frame(s) removed by PIPP)
+*			Returns (max) number of frames (if end frame(s) removed by PIPP)
+*
+* @author	Marc
+* @date	2022-07-31
+*
+* @param [in]		file						string of capture filename
+* @param [out]		start_frame					pointer to start frame
+* @param [out]		max_nb_frames				pointer to maximum number of frames taken by PIPP
+* @param [in,out]	pmessage					pointer to wstring streal of message to be displayed
+*
+* @return			True if PIPP file intergrity is ok, False otherwise (no integrity or not known)
+**************************************************************************************************/
+
+BOOL Is_PIPP_OK(const std::string file, PIPPInfo* pipp_info, std::wstringstream* pmessage)
+{
+	initPIPPInfo(pipp_info);
+	(*pipp_info).isPIPP = Is_PIPP(file);
+	if (!(*pipp_info).isPIPP) return TRUE;	// Not a PIPP file
+
+	// jupiter_ch4_1_pipp_log.txt
+	std::string pipp_log_filename = file.substr(0, file.find_last_of("\\") + 1) + "logs\\" + file.substr(file.find_last_of("\\") + 1, file.find_last_of(".") - file.find_last_of("\\") - 1) + "_log.txt";
+	std::string pipp_short_filename = file.substr(file.find_last_of("\\") + 1, file.length() - file.find_last_of("\\") + 1);
+	std::ifstream input;
+	input.open(pipp_log_filename, std::ios::binary);
+
+	if (!input) {
+		// wjupos naming  of output file 
+		// 10001-13-2418961-0757_1-jupiter_ch4_1_pipp
+		// 0001-01-01-0000_0-jupiter_ch4_1_pipp
+		// checks *-0757_1-*
+		int start_org_filename_index = 0;
+		while (start_org_filename_index < pipp_short_filename.length() - 8) {
+			if ((pipp_short_filename.substr(start_org_filename_index, 1) == "-")
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 1, 4)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 5, 1) == "_")
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 6, 1)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 7, 1) == "-")) {
+				input._close();
+				std::string pipp_log_org_filename = file.substr(0, file.find_last_of("\\") + 1) + "logs\\" + pipp_short_filename.substr(start_org_filename_index + 8, pipp_short_filename.find_last_of(".") - start_org_filename_index - 8) + "_log.txt";
+				input.open(pipp_log_org_filename, std::ios::binary);
+				if (input) {
+					(*pipp_info).log_exists = TRUE;
+					break;
+				}
+			}
+			start_org_filename_index++;
+		}
+		if (!(*pipp_info).log_exists) {
+			(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", integrity unknown (log file " << pipp_log_filename.c_str() << " not found)\n";
+			return FALSE; // No pipp log file
+		}
+	}
+	(*pipp_info).log_exists = TRUE;
+	std::string line;
+	bool capture_file_next = FALSE;
+	//int total_lines =			0;
+
+	while (std::getline(input, line)) {
+		if (line.find("-ctrf") != std::string::npos)				(*pipp_info).centered_frames		= TRUE;
+		if (line.find("-f=") != std::string::npos)					(*pipp_info).max_nb_frames = stoi(line.substr(line.find_last_of("=") + 1, line.length() - line.find_last_of("=") - 2));
+		if (line.find("-sf=") != std::string::npos)					(*pipp_info).start_frame = stoi(line.substr(line.find_last_of("=") + 1, line.length() - line.find_last_of("=") - 2));
+		if (line.find("-ifd=") != std::string::npos)				(*pipp_info).input_frames_dropped	= stoi(line.substr(line.find_last_of("=") + 1, line.length() - line.find_last_of("=") - 2));
+		if (line.find("-drop=") != std::string::npos)				(*pipp_info).output_frames_dropped	= stoi(line.substr(line.find_last_of("=") + 1, line.length() - line.find_last_of("=") - 2));
+		if (line.find("-q") != std::string::npos) {
+			(*pipp_info).quality = TRUE;
+			if (isNumeric((line.substr(line.find_last_of("-q") + 2, line.length() - line.find_last_of("-q") - 3)))) {
+				(*pipp_info).qlimit = TRUE;
+				(*pipp_info).qlimit_frames = stoi(line.substr(line.find_last_of("-q") + 2, line.length() - line.find_last_of("-q") - 3));
+			}
+		}
+		if (line.find("-nr") != std::string::npos)					(*pipp_info).qreorder = FALSE;
+		if (line.find("-wjpos_time=") != std::string::npos)			(*pipp_info).winjpos_time = stoi(line.substr(line.find_last_of("=") + 1, line.length() - line.find_last_of("=") - 2));
+		if (capture_file_next) {
+			capture_file_next = FALSE;
+			//strcpy((*pipp_info).capture_filename, line.c_str());
+			trim(line.c_str(), (*pipp_info).capture_filename);
+			std::ifstream CaptureFile((*pipp_info).capture_filename, std::ifstream::in);
+			if (CaptureFile) (*pipp_info).capture_exists = TRUE;
+			CaptureFile.close();
+		}
+		if (line.find("Source image file") != std::string::npos)	capture_file_next = TRUE;
+		if (line.find("Total input") != std::string::npos) {
+			(*pipp_info).total_input_frames = stoi(line.substr(line.find_last_of(":") + 1, line.length() - line.find_last_of(":") - 2));
+			// exotic case of q limit value too high and not effective filtering
+			if ((*pipp_info).qlimit == TRUE) {
+				if ((*pipp_info).qlimit_frames >= ((*pipp_info).total_input_frames)) (*pipp_info).qlimit = FALSE;
+				else if (((*pipp_info).max_nb_frames > 0) && ((*pipp_info).qlimit_frames >= ((*pipp_info).max_nb_frames)))		(*pipp_info).qlimit = FALSE;
+			}
+		}
+		if (line.find("Total output") != std::string::npos) {
+			std::string tmpline = line.substr(0, line.length() - 2); // bug PIPP: value followed by ":"
+			(*pipp_info).total_output_frames = stoi(tmpline.substr(tmpline.find_last_of(":") + 1, tmpline.length() - tmpline.find_last_of(":") - 1));
+		}
+		if (line.find("Frames discarded by ") != std::string::npos) (*pipp_info).total_discarded_frames += stoi(line.substr(line.find_last_of(":") + 1, line.length() - line.find_last_of(":") - 2));
+		if (line.find("Frames discarded for Input ") != std::string::npos) (*pipp_info).total_discarded_frames += stoi(line.substr(line.find_last_of(":") + 1, line.length() - line.find_last_of(":") - 2));
+	}
+	input.close();
+
+	//(*pipp_info).total_input_frames += -(*pipp_info).start_frame + 1;
+	(*pipp_info).total_frames = (*pipp_info).total_input_frames + (*pipp_info).total_discarded_frames;
+/*	if (((*pipp_info).winjpos_time >= 0) && ((*pipp_info).winjpos_time <= 2)) {
+		int start_org_filename_index = 0;
+
+		// 0001-01-01-0000_0-jupiter_ch4_1_pipp
+		// 0   45 78 01 3 567
+		while (start_org_filename_index < pipp_short_filename.length() - 17 - 3) {
+			if ((isNumeric(pipp_short_filename.substr(start_org_filename_index, 4)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 4, 1) == "-")
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 5, 2)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 7, 1) == "-")
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 8, 2)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 10, 1) == "-")
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 11, 2)))
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 13, 2)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 15, 1) == "_")
+				&& (isNumeric(pipp_short_filename.substr(start_org_filename_index + 16, 1)))
+				&& (pipp_short_filename.substr(start_org_filename_index + 17, 1) == "-")) {
+				int y = stoi(pipp_short_filename.substr(start_org_filename_index + 0, 4));
+				int m = stoi(pipp_short_filename.substr(start_org_filename_index + 5, 2));
+				int d = stoi(pipp_short_filename.substr(start_org_filename_index + 8, 2));
+				int hour = stoi(pipp_short_filename.substr(start_org_filename_index + 11, 2));
+				int min = stoi(pipp_short_filename.substr(start_org_filename_index + 13, 2));
+				double sec = stoi(pipp_short_filename.substr(start_org_filename_index + 16, 1)) * 6.0;
+				double jd = gregorian_calendar_to_jd(y, m, d, hour, min, sec);
+				switch ((*pipp_info).winjpos_time) {
+				case 0:
+					(*pipp_info).mid_time = jd;
+					break;
+				case 1:
+					(*pipp_info).start_time = jd;
+					break;
+				case 2:
+					(*pipp_info).start_time = jd;
+					break;
+				}
+			}
+			start_org_filename_index++;
+		}
+	}*/
+
+	if ((*pipp_info).quality) {
+		if ((*pipp_info).qreorder) {
+			(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", no integrity (frames reordered according to their quality)\n";
+			return FALSE; // Reordering of frames
+		}
+		else if ((*pipp_info).qlimit) {
+			(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", no integrity (frames filtered according to their quality)\n";
+			return FALSE; // Filtering of frames
+		}
+	}
+//if ((*pipp_info).total_output_frames != (*pipp_info).total_input_frames) {
+	if (((*pipp_info).input_frames_dropped + (*pipp_info).output_frames_dropped)  > 0) {
+		(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", no integrity (" << ((*pipp_info).input_frames_dropped + (*pipp_info).output_frames_dropped) << " frame";
+		if (((*pipp_info).input_frames_dropped + (*pipp_info).output_frames_dropped) > 1) (*pmessage) << "s";
+		(*pmessage) << " dropped)\n";
+		return FALSE; // Frames dropped
+	}
+/*	if ((*pipp_info).total_output_frames != (*pipp_info).total_frames) {
+		(*pmessage) << "PIPP " << pipp_short_filename.c_str() << " date to be calculated, file has been cropped by " << (*pipp_info).total_frames << " frame";
+		if ((*pipp_info).total_frames > 1) (*pmessage) << "s";
+		(*pmessage) << "\n";
+		return TRUE; // Cropped movie, time to be recalculated, check wjpos in case of PIPP renamming
+	}*/
+	return TRUE;
+}
+
 
 /**********************************************************************************************//**
 * @fn	BOOL Is_Capture_Long_Enough(const std::string file, const int nframe, std::wstringstream *pmessage)
@@ -480,3 +581,4 @@ BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, cons
 	}
 	return TRUE;
 }
+

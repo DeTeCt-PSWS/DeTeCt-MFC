@@ -114,7 +114,7 @@ CvPoint dtcGetGrayMatCM(CvMat *mat)
 CvRect dtcGetImageROIcCM(IplImage *img, CvPoint cm, int medsize, double fact, double secfact)
 {
 	uchar *src, *tsrc;
-	int x, y, i, j;
+	int x = 0, y, i, j;
 	double *tbuf	= NULL;
 	double *mbuf	= NULL;
 	int posmed;
@@ -202,7 +202,7 @@ CvRect dtcGetImageROIcCM(IplImage *img, CvPoint cm, int medsize, double fact, do
 CvRect dtcGetGrayImageROIcCM(IplImage *img, CvPoint cm, int medsize, double fact, double secfact)
 {
 	uchar *src, *tsrc;
-	int x, y, i, j;
+	int x = 0, y, i, j;
 	double *tbuf;
 	double *mbuf;
 	int posmed;

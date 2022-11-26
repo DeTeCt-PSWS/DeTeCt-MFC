@@ -105,7 +105,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	uchar *src, *tsrc;
 	int x, y, i, j;
 	double *tbuf;
-	double *mbuf;
+	double *mbuf = NULL;
 	int posmed;
 	int xmin, xmax, ymin, ymax;
 	double val;
@@ -118,8 +118,10 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 
 	if ((tbuf = (double*)calloc((size_t) (ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
-		perror("ERROR in dtcGetGrayImageROI allocating memory");
-		exit(EXIT_FAILURE);
+		perror("ERROR in dtcGetGrayImageROIcCM allocating memory");
+		 char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
+		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayImageROIcCM()", msgtext);
 	} else {
 		assert(tbuf != NULL);
 		assert(mbuf != NULL);
@@ -257,7 +259,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 	uchar *src, *tsrc;
 	int x, y, i, j;
 	double *tbuf;
-	double *mbuf;
+	double *mbuf = NULL;
 	int posmed;
 	int xmin, xmax, ymin, ymax;
 	double val;
@@ -270,8 +272,10 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 
 	if ((tbuf = (double*)calloc((size_t)(ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
-		perror("ERROR in dtcGetGrayImageROI allocating memory");
-		exit(EXIT_FAILURE);
+		perror("ERROR in dtcGetGrayImageROIcCM2 allocating memory");
+		 char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
+		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayImageROIcCM2()", msgtext);
 	}
 	else {
 		assert(tbuf != NULL);
@@ -434,7 +438,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 	uchar *src, *tsrc;
 	int x, y, i, j;
 	double *tbuf;
-	double *mbuf;
+	double *mbuf = NULL;
 	int posmed;
 	int xmin, xmax, ymin, ymax;
 	double val;
@@ -466,7 +470,9 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 	if ((tbuf = (double*)calloc((size_t)(ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
 		perror("ERROR in dtcGetGrayImageROI allocating memory");
-		exit(EXIT_FAILURE);
+		 char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
+		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayImageROI()", msgtext);
 	}
 	else {
 		assert(tbuf != NULL);
@@ -542,7 +548,7 @@ cv::Rect dtcGetGrayMatROIcCM(cv::Mat *img, cv::Point cm, int medsize, double fac
 	float *src, *tsrc;
 	int x, y, i, j;
 	double *tbuf;
-	double *mbuf;
+	double *mbuf = NULL;
 	int posmed;
 	int xmin, xmax, ymin, ymax;
 	double val;
@@ -556,9 +562,11 @@ cv::Rect dtcGetGrayMatROIcCM(cv::Mat *img, cv::Point cm, int medsize, double fac
 
 	if ((tbuf = (double *)calloc(medsize, sizeof(double))) == NULL ||
 		(mbuf = (double *)calloc(MAX(width, height), sizeof(double))) == NULL) {
-		//perror("EROOR in dtcGetGrayMatImageROI allocating memory");
-		DBOUT("ERROR in dtcGetGrayMatImageROI allocating memory\n");
-		exit(EXIT_FAILURE);
+		//perror("EROOR in dtcGetGrayMatROIcCM allocating memory");
+		DBOUT("ERROR in dtcGetGrayMatROIcCM allocating memory\n");
+		 char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
+		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayMatROIcCM()", msgtext);
 	} else {
 		assert(tbuf != NULL);
 		assert(mbuf != NULL);
@@ -691,9 +699,10 @@ cv::Mat dtcGetGrayMat(cv::Mat *frame, DtcCapture *capture)
 			frame_to_gray.copyTo(gray);
 		}
 	} else {
-		gray.release();
-		gray = NULL;
-		exit(EXIT_FAILURE);
+		//gray.release();
+		//gray = NULL;
+		//exit(EXIT_FAILURE);
+		frame_to_gray.copyTo(gray);		 //return original if no correct channel
 //		return cv::Mat();
 	}
 	frame_to_gray.release();

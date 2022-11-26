@@ -113,14 +113,8 @@ typedef struct _SerCapture SerCapture;
 SerCapture 		*serCaptureFromFile(const char *fname);
 void 			serReinitCaptureRead(SerCapture *sc,const char *fname);
 void 			serReadTimeStamps(SerCapture *sc);
-unsigned char 	*serQueryTimeStamp(SerCapture *sc);
 void 			serReleaseCapture(SerCapture *sc);
 
-size_t 			serTimeStampRead(unsigned char *pTimeStamp, const size_t size, const size_t num, FILE *f);
-
-double 			serDateTime_JD(unsigned char *headerfield);
-
-void 			serPrintStr(char *p, int sz);
 void 			serPrintHeader(SerCapture *sc);
 
 /*
@@ -129,7 +123,6 @@ void 			serPrintHeader(SerCapture *sc);
 *  serQueryFrameData replaces serQueryFrame
 *  The matrix is now created in wrapper2.cpp
 */
-size_t				serFrameRead(SerCapture* sc);
 void				*serQueryFrameData(SerCapture *sc, const int ignore, int *perror);
 void				serFixPixelDepth(SerCapture *sc, int frame_number);
 

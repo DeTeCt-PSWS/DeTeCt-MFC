@@ -173,7 +173,7 @@ int itemcmp(const void *a, const void *b)
 	nb_impact=0;
 	if (list->size<=0) return 0;
 	if (!(ord = (ITEM **) calloc(list->size, sizeof (ITEM *)))) {
-			fprintf(stderr, "ERROR in detect_impact: get_max_list: cannot reserve memory\n");
+			//fprintf(stderr, "ERROR in detect_impact: get_max_list: cannot reserve memory\n");
 		OutputDebugString(L"ERROR in detect_impact: get_max_list: cannot reserve memory\n");
 			exit(EXIT_FAILURE);
 	}

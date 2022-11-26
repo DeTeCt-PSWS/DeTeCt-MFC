@@ -169,7 +169,7 @@ void dtcWriteWholeLog(std::string location, const char *dtcexename, const double
 	GetOSversion(&os_version);
 	output_file.close();
 	if (output_file.is_open() != 0) {
-		fprintf(stderr, "ERROR in dtcWriteLog closing file %s\n", dtclogfilename);
+//		fprintf(stderr, "ERROR in dtcWriteLog closing file %s\n", dtclogfilename);
 		exit(EXIT_FAILURE);
 	}
 
@@ -338,18 +338,21 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 
 	CString output_filename = DeTeCt_additional_filename_from_folder(CString(location.c_str()), DTC_LOG_SUFFIX);
 	
-	if (!filesys::exists(CString2string(output_filename))) exit(EXIT_FAILURE);
-	
+	if (!filesys::exists(CString2string(output_filename))) {
+		 char msgtext[MAX_STRING] = { 0 };
+		char tmpline[MAX_STRING];
+										
+		snprintf(msgtext, MAX_STRING, "cannot find log file %s", CString2char(output_filename, tmpline));
+		ErrorExit(TRUE, "cannot find log file", "dtcWriteLog2()", msgtext);
+	}
 	*pwaitms += NbWaitedUnlockedFile(output_filename, FILEACCESS_WAIT_MS);
 	std::ofstream output_file(output_filename, std::ios_base::app);
 
 	std::string os_version = "";
 	GetOSversion(&os_version);
 
-	char str_tmp[MAX_STRING];
-	char str_tmp2[MAX_STRING];
-	init_string(str_tmp);
-	init_string(str_tmp2);
+	char str_tmp[MAX_STRING]	= { 0 };
+	char str_tmp2[MAX_STRING]	= { 0 };
 
 	if ((video_info.confidence < 0) && (video_info.nb_impact < 0)) {
 		output_file << "Error   ";
@@ -405,7 +408,8 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 	output_file << str_trail_fill(str_tmp2, " ", 96, str_tmp) << "; ";
 	//output_file << std::setfill(' ') << std::setw(18) << os_version.c_str() << "; ";
 	output_file << str_trail_fill(os_version.c_str(), " ", 18, str_tmp) << "; ";
-	if (!opts.dateonly) {
+	//if (!opts.dateonly) {
+	if ((!opts.dateonly) && (&CaptureInfo != NULL)) {
 		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.mean_stat[0] << ";";
 		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.mean_stat[1] << ";";
 		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.mean_stat[2] << "; ";

@@ -63,11 +63,12 @@ void fitsGet_info(FileCapture *fc, const char *fname, double *date)
 	hgeti4(buffer, "NAXIS1", &fc->ImageWidth);
 	hgeti4 (buffer,"NAXIS2", &fc->ImageHeight);
 	hgeti4 (buffer,"BITPIX", &fc->PixelDepth);
-										if (debug_mode) { fprintf(stderr, "fitsGet_info: Header length %d, char %d, row %d, pixeldepth %d \n", nbhead,fc->ImageWidth, fc->ImageHeight, fc->PixelDepth); }
+										if (debug_mode) { fprintf(stdout, "fitsGet_info: Header length %d, char %d, row %d, pixeldepth %d \n", nbhead,fc->ImageWidth, fc->ImageHeight, fc->PixelDepth); }
 	if (fread(buffer, sizeof (char), nbhead, fc->fh) != (size_t) nbhead)
 	{
-		fprintf(stderr, "ERROR in fitsGet_info reading %s fits header\n", fname);
-		exit(EXIT_FAILURE);		
+		 char msgtext[MAX_STRING] = { 0 };										
+		snprintf(msgtext, MAX_STRING, "wrong fits header size in %s", fname);
+		ErrorExit(TRUE, "wrong fits header size", "fitsGet_info()", msgtext);
 	}
 	fc->header_size=nbhead;
 
@@ -81,9 +82,9 @@ double fitsJD_date(char *buffer)
 	double date;
 	int delta_time_hour;
 	int delta_time_min;
-	char value[MAX_STRING];
-	char month_letter[MAX_STRING];
-	char tmpline[MAX_STRING];
+	char value[MAX_STRING]			= { 0 };
+	char month_letter[MAX_STRING]	= { 0 };
+	char tmpline[MAX_STRING]		= { 0 };
 	delta_time_hour=0;
 	delta_time_min=0;
 	date = 0;
@@ -91,13 +92,13 @@ double fitsJD_date(char *buffer)
 	jd=gregorian_calendar_to_jd(1,1,1,0,0,0.0);
 	if (hgetdate (buffer,"DATE-OBS", &date)==1) {       /* '2012-08-04T06:23:14.618' */
 														/* '2015-04-20T21:36:08' */
-									if (debug_mode) { fprintf(stderr, "fitsJD_date: First DATE-OBS %f\n", date); }
+									if (debug_mode) { fprintf(stdout, "fitsJD_date: First DATE-OBS %f\n", date); }
 		jd = gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0) + (gregorian_calendar_to_jd((int)fabs(date) + 1, 1, 1, 0, 0, 0.0) - gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0))*(date - (int)fabs(date));
 	} else if (ksearch (buffer,"TIMESTMP")) {      /* 08/08/2012 04:49:17.751 */
 		strcpy(value,hgetc (buffer,"TIMESTMP"));
 		replace_str(value, "'", "");
 		jd=gregorian_calendar_to_jd(atoi(mid(value,6,4,tmpline)),atoi(mid(value,3,3,tmpline)),atoi(mid(value,0,2,tmpline)),atoi(mid(value,11,2,tmpline)),atoi(mid(value,14,2,tmpline)),strtod(mid(value,17,6,tmpline),NULL));
-									if (debug_mode) { fprintf(stderr, "fitsJD_date: First TIMESTMP %s\n", value); }
+									if (debug_mode) { fprintf(stdout, "fitsJD_date: First TIMESTMP %s\n", value); }
 											
 	} else if (ksearch (buffer,"SIMPLE")) {             /*  SIMPLE  =                    T / Java FITS: Thu Jun 03 05:51:20 CST 2010 */
 														/*   1        0         0         0         012     890         01234     01  */
@@ -692,7 +693,7 @@ double fitsJD_date(char *buffer)
 			if ((isnum(mid(value,68,4,tmpline))) & (month_nb(month_letter)>0) & (isnum(mid(value,52,2,tmpline))) & (isnum(mid(value,55,2,tmpline))) & (isnum(mid(value,58,2,tmpline))) & (isnum(mid(value,61,2,tmpline)))) {
 				jd=gregorian_calendar_to_jd(atoi(mid(value,68,4,tmpline)),month_nb(month_letter),atoi(mid(value,52,2,tmpline)),atoi(mid(value,55,2,tmpline))-delta_time_hour,atoi(mid(value,58,2,tmpline))-delta_time_min,strtod(mid(value,61,2,tmpline),NULL));
 			}
-										if (debug_mode) { fprintf(stderr, "fitsJD_date: First SIMPLE = %s\n", value); }
+										if (debug_mode) { fprintf(stdout, "fitsJD_date: First SIMPLE = %s\n", value); }
 		} else if (strcmp(left(value,42,tmpline),"SIMPLE  =                    T / C# FITS: ")==0) { 														
 																											/*  SIMPLE  =                    T / C# FITS: 09/11/2014 15:23:22 */
 																											/*   1        0         0         0         012  5  8 0  3  6  90 */
@@ -701,7 +702,7 @@ double fitsJD_date(char *buffer)
 			}
 		} else if (hgetdate(buffer, "DATE", &date) == 1) {       /* '2012-08-04T06:23:14.618' */
 			/* '2015-04-20T21:36:08' */
-			if (debug_mode) { fprintf(stderr, "fitsJD_date: First DATE %f\n", date); }
+			if (debug_mode) { fprintf(stdout, "fitsJD_date: First DATE %f\n", date); }
 			jd = gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0) + (gregorian_calendar_to_jd((int)fabs(date) + 1, 1, 1, 0, 0, 0.0) - gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0))*(date - (int)fabs(date));
 		}
 	}

@@ -48,11 +48,11 @@ struct _FileCapture2
 	int FirstFileIdx;
 	int LastValidFileIdx;
 	int LastFileIdx;
-	char filename_rac[MAX_STRING];
-	char filename_head[MAX_STRING];
-	char filename_trail[MAX_STRING];
-	char filename_ext[EXT_MAX];
-	char filename_folder[MAX_STRING];
+	char filename_rac[MAX_STRING]		= { 0 };
+	char filename_head[MAX_STRING]		= { 0 };
+	char filename_trail[MAX_STRING]		= { 0 };
+	char filename_ext[EXT_MAX]			= { 0 };
+	char filename_folder[MAX_STRING]	= { 0 };
 };
 typedef struct _FileCapture2 FileCapture2;
 

@@ -134,7 +134,7 @@ void read_winjupos_file(const std::string winjupos_derotation_filename, std::str
 		std::ifstream input(winjupos_derotation_filename, std::ios::binary);
 		char separator[] = "*WS*12345678901234";
 		int separator_len = 4;
-		char filename_char[MAX_STRING];
+		char filename_char[MAX_STRING] = { 0 };
 		filename_char[0] = '\0';
 
 		// copies all data into buffer

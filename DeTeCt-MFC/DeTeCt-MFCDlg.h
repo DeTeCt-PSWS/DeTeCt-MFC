@@ -198,7 +198,7 @@ public:
 	afx_msg void OnFileOpenfile();
 	afx_msg void OnFileResetFileList();
 	afx_msg void OnFileClearExecutionLog();
-	afx_msg void OnFileClearImpactFiles();
+	afx_msg void OnFileCleanImpactFiles();
 	std::string scan_folder_path = {};
 	std::wstring max_mean_folder_path = {};
 	afx_msg void OnGetMinMaxInfo(MINMAXINFO* lpMMI);

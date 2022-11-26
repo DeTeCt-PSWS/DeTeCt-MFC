@@ -15,7 +15,7 @@ UINT __cdecl impactDetection(LPVOID pParam) {
 //	return detect(params->file_list, &params->opts, params->scan_folder_path);
 //	return detect(params->file_list, params->popts, params->scan_folder_path);
 	
-	char buffer[MAX_STRING];
+	char buffer[MAX_STRING] = { 0 };
 	sprintf_s(buffer, MAX_STRING, "impactDetection:	popts   : %p	popts->ignore	:	%i\n", ((ImpactDetectParams*)pParam)->popts, (((ImpactDetectParams*)pParam)->popts)->ignore);
 	OutputDebugStringA(buffer);
 	sprintf_s(buffer, MAX_STRING, "impactDetection:	opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);

@@ -60,7 +60,6 @@ struct _DtcCaptureInfo {
 
 typedef struct _DtcCaptureInfo DtcCaptureInfo;
 
-
 struct _DtcCapture
 {
 	CaptureType				type;
@@ -78,11 +77,38 @@ struct _DtcCapture
 
 typedef struct _DtcCapture DtcCapture;
 
+struct _PIPPInfo {
+	BOOL	isPIPP;
+	BOOL	log_exists;
+	char	capture_filename[MAX_STRING];
+	BOOL	capture_exists;
+	BOOL	centered_frames;
+	int		input_frames_dropped;
+	int		output_frames_dropped;
+	int		start_frame;
+	int		max_nb_frames;
+	int		winjpos_time;
+	BOOL	quality;
+	BOOL	qlimit;
+	int		qlimit_frames;
+	BOOL	qreorder;
+	int		total_frames;
+	int		total_input_frames;
+	int		total_output_frames;
+	int		total_discarded_frames;
+//	double  start_time;
+//	double  mid_time;
+};
+typedef struct _PIPPInfo PIPPInfo;
+
+
 /****************************************************************************************************/
 /*									Procedures and functions										*/
 /****************************************************************************************************/
 
+DtcCapture* dtcCaptureFromFile2(const char* fname, int* pframecount);
 double 		dtcGetCaptureProperty(DtcCapture *capture, int property_id);
 void		initDtcCaptureInfo(DtcCaptureInfo* pCaptureInfo);
+void		initPIPPInfo(PIPPInfo* pipp_info);
 
 #endif /* __WRAPPER_H__ */

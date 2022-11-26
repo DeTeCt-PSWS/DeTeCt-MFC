@@ -1,12 +1,13 @@
 #ifndef __DTC_H__
 #define __DTC_H__
 
-//#include "common.h"
+#include "common.h"
 #include "cmdline.h"
+#include <windows.h>
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.5.1"
+#define VERSION_NB		"3.6.0"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -42,6 +43,8 @@
 #define DTC_INI_SUFFIX			L".ini"
 #define DTC_LOG_SUFFIX			L".log"
 #define OUTPUT_FILENAME			L"output"
+#define WARNINGS_FILENAME		L"output_warnings"
+#define ERRORS_FILENAME			L"output_errors"
 
 #define DTC_QUEUE_PREFIX		"_processes_queue"
 #define DTC_MAX_FRAME_PREFIX	"_dtc_max_frame"
@@ -53,7 +56,7 @@
 #define WJ_DEROT_STRING			"-DeRot."
 #define WJ_DEROT_EXT			"drs.xml"
 #define WJ_DEROT_EXT_OLD		"drs"
-#define PIPP_STRING				"_pipp."
+#define PIPP_STRING				"_pipp"
 #define DARK_STRING				"dark"
 #define IGNORE_WJ_DEROTATION	FALSE
 #define IGNORE_PIPP				FALSE
@@ -69,5 +72,99 @@ extern int debug_mode;
 
 enum _Planet_type { Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptun, Notdefined };
 typedef enum _Planet_type Planet_type;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+struct options {
+	// variables
+		/*char			*filename = nullptr;
+		char			*ofilename = nullptr;
+		char			*ovfname = nullptr;
+		char			*sfname;
+		char			*dirname = nullptr;*/
+	char			filename[MAX_STRING];
+	char			ofilename[MAX_STRING];
+	char			darkfilename[MAX_STRING];
+	//std::string			message[MAX_STRING];
+	char			ovfname[MAX_STRING];
+	char			dirname[MAX_STRING];
+	char			impactdirname[MAX_STRING];
+	char			zipname[MAX_STRING];
+	int				nsaveframe;	// Frame number to <ofilename>
+	int				ostype;	// Source video type to extract frame
+	int				ovtype;	// Output video type to create
+
+// options?
+	double			timeImpact;				// seconds
+	double			incrLumImpact;				// mean value factor
+	int				incrFrameImpact;				// Minimum number of frames for impact
+	double			impact_duration_min;				// Min duration for impact
+	double			radius;				// Impact radio (pixels)
+	unsigned long	nframesROI;				// Number of frames for ROI calculation
+	unsigned long	nframesRef;				// Number of frames for ROI calculation
+	unsigned long	wROI; 				// ROI width  (CM centered)
+	unsigned long	hROI;				// ROI height (CM centered)
+	int				bayer;				//debayering code
+	double			medSize;				// Median buffer size
+	double			facSize; 				// Size factor (ROI)
+	double			secSize; 				// Security factor (ROI)
+	int				ROI_min_px_val; 				// Minimum value of pixel to take into account pixels for ROI calculation
+	int				ROI_min_size; 				// Minimum valid pixel size for a ROI 
+	double			threshold;
+	double			learningRate;				// "Alpha Blending" learning rate
+	double			histScale;				// Histogram scale
+	int				wait;				// milliseconds
+	int				thrWithMask;				// Use Mask (!=0) or not (0) for frame reference
+	bool			viewROI; 			// View ROI
+	bool			viewTrk; 			// View planet tracking
+	bool			viewDif; 			// View differential frame
+	bool			viewRef; 			// View reference frame
+	bool			viewMsk; 			// View mask
+	bool			viewThr; 			// View threshold
+	bool			viewSmo;			// View frame after filter application
+	bool			viewHis;			// View differential frame histogram
+	bool			viewRes;			// View final frame
+	bool			verbose;
+	bool			debug;			// debug mode with more information
+	bool			videotest;			// Test input video file
+	bool			ADUdtconly;			// Use ADUdtc algorithm only
+	bool			detail;			// Use ADUdtc algorithm only with 2 more images as output
+	bool			zip;				// Creates zip of impact_detection folder at the end of processing
+	bool			email;				// Send email at the end of processing
+	bool			allframes;			// Save all intermediate mac frames from ADUdtc algorithm
+	double			impact_distance_max;				// Maximum value for distance between old algorithm and max in detection image for being a possible impact
+	double			impact_max_avg_min;				// Minimum value for max - mean value of dtc_max-mean image for being a possible impact
+	double			impact_confidence_min;				// Minimum value for confidence for being a possible impact
+	int				minframes;				// Minimum # of frames to start processing
+	struct Filter	filter;
+	bool			dateonly;			// Display date information and stops processing
+	bool			ignore;			// Ignore incorrect frames
+	int				maxinstances;				// Maximum number of DeTeCt instances running in parallel
+	bool			reprocessing;			// Reprocessing files already in DeTeCt.log
+	bool			interactive;			// Normal interactive mode or automatic mode
+	bool			autoexit;			// Automatic exit when processing done
+	bool			shutdown;			// Automatic PC shutdownn when auto exit
+	bool			flat_preparation;			// Flag to create flat
+	bool			clean_dir;			// Cleans directory before processing
+	bool			show_detect_image;				// show detection image
+	bool			show_mean_image;			// show mean image
+// Status
+	bool			interactive_bak;			// Backup of interactive status
+	bool			autostakkert;			// Launched from autostakkert
+	DWORD			autostakkert_PID;				// Parent autostakkert PID
+	DWORD		 	detect_PID;				// Parent detect PID
+	char			version[MAX_STRING];
+	char			DeTeCtQueueFilename[MAX_STRING];
+	char			LogConsolidatedDirname[MAX_STRING];
+	char			WarningsFilename[MAX_STRING];
+	char			ErrorsFilename[MAX_STRING];
+	bool			parent_instance;
+};
+typedef struct options OPTS;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __DTC_H__ */

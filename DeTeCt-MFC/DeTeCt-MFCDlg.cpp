@@ -32,6 +32,18 @@ with
 //#include <opencv2/imgproc.hpp> //TEST opencv3
 #include <iomanip>  // std::setprecision
 
+#define FFMPEGDLL "opencv_ffmpeg2413_64.dll"
+
+std::string message_lines[MAX_STRING];
+
+extern char impact_detection_dirname[MAX_STRING];
+extern char zip_detection_location[MAX_STRING];
+extern char zipfile[MAX_STRING];
+extern char log_detection_dirname[MAX_STRING];
+extern char email_subject_probabilities[MAX_STRING];
+extern char email_body_probabilities[MAX_STRING];
+
+
 #ifdef _DEBUG
 
 /**************************************************************************************************
@@ -230,7 +242,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_DETECTMFC_DIALOG, pParent)
 {
 	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
-	_TCHAR optionStr[MAX_STRING];
+	_TCHAR optionStr[MAX_STRING] = { 0 };
 	init_string(opts.filename); // exception read access
 	init_string(opts.ofilename); // exception read access
 	init_string(opts.ovfname); // exception read access
@@ -248,7 +260,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 						::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.4", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_duration_min = std::stod(optionStr);
 	opts.radius =		::GetPrivateProfileInt(L"impact",	L"radius",					10, DeTeCtIniFilename);
-	opts.nframesROI = 1;
+	opts.nframesROI =	15;
 	opts.nframesRef =	::GetPrivateProfileInt(L"other",	L"refmin",					50, DeTeCtIniFilename);
 	opts.bayer =		::GetPrivateProfileInt(L"other",	L"debayer",					0, DeTeCtIniFilename);
 	opts.medSize =		::GetPrivateProfileInt(L"roi",		L"medbuf",					5, DeTeCtIniFilename);
@@ -307,7 +319,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.email =		::GetPrivateProfileInt(L"processing",	L"email",				TRUE, DeTeCtIniFilename);
 	// From main window checkboxes
 	opts.interactive =	!::GetPrivateProfileInt(L"processing",	L"autoprocessing",		FALSE, DeTeCtIniFilename);
-	opts.exit =			::GetPrivateProfileInt(L"processing",	L"autoexit",			FALSE, DeTeCtIniFilename);
+	opts.autoexit =			::GetPrivateProfileInt(L"processing",	L"autoexit",			FALSE, DeTeCtIniFilename);
 	opts.shutdown =		::GetPrivateProfileInt(L"processing",	L"autoshutdown",		FALSE, DeTeCtIniFilename);
 	opts.maxinstances =	::GetPrivateProfileInt(L"processing",	L"maxinstances",		1, DeTeCtIniFilename);
 	int processor_count = std::thread::hardware_concurrency();
@@ -397,7 +409,7 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_FILE_OPENFILE, &CDeTeCtMFCDlg::OnFileOpenfile)
 	ON_COMMAND(ID_FILE_RESETFILELIST, &CDeTeCtMFCDlg::OnFileResetFileList)
 	ON_COMMAND(ID_FILE_CLEAREXECUTIONLOG, &CDeTeCtMFCDlg::OnFileClearExecutionLog)
-	ON_COMMAND(ID_FILE_CLEARIMPACTFILES, &CDeTeCtMFCDlg::OnFileClearImpactFiles)
+	ON_COMMAND(ID_FILE_CLEARIMPACTFILES, &CDeTeCtMFCDlg::OnFileCleanImpactFiles)
 	ON_WM_GETMINMAXINFO()
 	ON_BN_CLICKED(IDC_FRAME, &CDeTeCtMFCDlg::OnBnClickedFrame)
 	ON_BN_CLICKED(IDOK3, &CDeTeCtMFCDlg::OnBnClickedOk3)
@@ -442,8 +454,8 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 		Exit.EnableWindow(FALSE);
 		Shutdown.EnableWindow(FALSE);
 	}
-	Auto.SetCheck(!opts.interactive);
-	Exit.SetCheck(opts.exit);
+	Auto.SetCheck((int) (!opts.interactive));
+	Exit.SetCheck(opts.autoexit);
 	Shutdown.SetCheck(opts.shutdown);
 
 
@@ -603,8 +615,8 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	}
 
 	int index_message = 0;
-	while ((opts.message[index_message].size() > 1) && (index_message < 100)) {
-		impactDetectionLog.AddString((CString)(opts.message[index_message++].c_str()));
+	while ((message_lines[index_message].size() > 1) && (index_message < 100)) {
+		impactDetectionLog.AddString((CString)(message_lines[index_message++].c_str()));
 	}
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
@@ -630,6 +642,13 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + "ERROR : " + opts.filename + " file not found.");
 		}
 	}
+
+	std::ifstream filetest(FFMPEGDLL);
+	if (!filetest) {
+		MessageBox(_T("File ") + CString(FFMPEGDLL) + _T(" not found,\n") + CString(PROGNAME) + _T(" will not be able to open avi, mov, mpg, etc... files\n\nIt will close without processing if finding such files to analyse.\n\nTo fix this, go to menu Help->Version history to download this missing dll from the latest ") + CString(PROGNAME) + _T(" zip file available."), _T("Warning: file ") + CString(FFMPEGDLL) + _T(" not found"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+	}
+	filetest.close();
+
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -826,7 +845,7 @@ HCURSOR CDeTeCtMFCDlg::OnQueryDragIcon()
 
 void CDeTeCtMFCDlg::OnBnClickedOk()
 {
-	char buffer[MAX_STRING];
+	char buffer[MAX_STRING] = { 0 };
 	sprintf_s(buffer, MAX_STRING, "OnBnClickedOk:	opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);
 	OutputDebugStringA(buffer);
 	
@@ -908,20 +927,20 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 
 void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 {
-	extern char impact_detection_dirname[MAX_STRING];
-	extern char zip_detection_location[MAX_STRING];
-	extern char zipfile[MAX_STRING];
-	extern char log_detection_dirname[MAX_STRING];
-	extern char email_subject_probabilities[MAX_STRING];
-	extern char email_body_probabilities[MAX_STRING];
+	//extern char impact_detection_dirname[MAX_STRING];
+	//extern char zip_detection_location[MAX_STRING];
+	//extern char zipfile[MAX_STRING];
+	//extern char log_detection_dirname[MAX_STRING];
+	//extern char email_subject_probabilities[MAX_STRING];
+	//extern char email_body_probabilities[MAX_STRING];
 
 	wchar_t	wimpact_detection_dirname[MAX_STRING];
 	size_t ReturnValue;
 	mbstowcs_s(&ReturnValue, wimpact_detection_dirname, strlen(impact_detection_dirname) + 1, impact_detection_dirname, strlen(impact_detection_dirname));
 
 	// email start
-	char	mailto_command[MAX_STRING];
-	wchar_t	wmailto_command[MAX_STRING];
+	char	mailto_command[MAX_STRING]	= { 0 };
+	wchar_t	wmailto_command[MAX_STRING] = { 0 };
 	if (opts.email) {
 		strcpy(mailto_command, "mailto:delcroix.marc@free.fr?subject=Impact detection ");
 		strcat_s(mailto_command, sizeof(mailto_command), log_detection_dirname);
@@ -1041,18 +1060,21 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 
 			// Gets file acquisition name from autostakkert session file
-			int nframe = 0;
+			int nframe = -1;
+			PIPPInfo pipp_info;
 
-			if ((Is_Capture_OK_from_File(file, &filename_acquisition, &nframe, &ss))
+			if ((Is_Capture_OK_from_File(file, &filename_acquisition, &nframe, &ss)) &&
 				// ********* Error if acquisition has not enough frames
-				&& (Is_Capture_Long_Enough(file, nframe, &ss))
+				(Is_Capture_Long_Enough(file, nframe, &ss)) &&
 				// ********* Ignores dark, pipp, winjupos derotated files
-				&& (!Is_Capture_Special_Type(file, &ss))) {
+				(!Is_Capture_Special_Type(file, &ss)) &&
+				// ********* Ignores PIPP with no integrity
+				(!Is_PIPP(file) || ((Is_PIPP(file) && Is_PIPP_OK(file, &pipp_info, &ss))))) {
 				std::string folder_path;
 				if (!opts.autostakkert) folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
 				else {
 					//log directory when autostakkert mode or multi instance mode
-					folder_path = CString2string(DeTeCt_exe_folder());;
+					folder_path = CString2string(DeTeCt_exe_folder());
 				}
 				CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
 				std::string log_file(DeTeCtLogFilename);
@@ -1168,18 +1190,20 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 				std::wstringstream ss3;
 				std::string filename_acquisition;
 				int nframe = -1;
+				PIPPInfo pipp_info;
 
 				if ((Is_Capture_OK_from_File(filename, &filename_acquisition, &nframe, &ss3)) &&
-					// ********* Error if acquisition has not enough frames
-					(Is_Capture_Long_Enough(filename, nframe, &ss3)) &&
 					// ********* Ignores if less than minimum frames
-					(!Is_Capture_Special_Type(filename, &ss3))) {
+					(Is_Capture_Long_Enough(filename, nframe, &ss3)) &&
 					// ********* Ignores dark, pipp, winjupos derotated files
+					(!Is_Capture_Special_Type(filename, &ss3)) &&
+					// ********* Ignores PIPP with no integrity
+					(!Is_PIPP(filename) || ((Is_PIPP(filename) && Is_PIPP_OK(filename, &pipp_info, &ss3))))) {
 						std::string folder_path_consolidated;
 						if (!opts.autostakkert) folder_path_consolidated = std::string (folder_path.begin(), folder_path.end());
 						else {
 							//log directory when autostakkert mode or multi instance mode
-							folder_path_consolidated = CString2string(DeTeCt_exe_folder());;
+							folder_path_consolidated = CString2string(DeTeCt_exe_folder());
 						}
 						CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path_consolidated.c_str(), DTC_LOG_SUFFIX));
 						std::string log_file(DeTeCtLogFilename);
@@ -1203,7 +1227,11 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 									opts.parent_instance = TRUE;
 								}
 								CString tmp, tmp2;
-								if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) exit(EXIT_FAILURE);
+								if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
+									 char msgtext[MAX_STRING] = { 0 };
+									snprintf(msgtext, MAX_STRING, "cannot find acquisitions queue file %s", opts.DeTeCtQueueFilename);
+									ErrorExit(TRUE, "cannot finf acquisitions queue file", "OnFileOpenFolder()", msgtext);
+								}
 								else PushFileToQueue(char2CString(filename.c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));
 								if (index > 0) {// MODIFIED: if multi instances mode, keep only one acquisition in the list and the rest in the queue
 									acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
@@ -1260,7 +1288,7 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 	CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 	CDeTeCtMFCDlg::getLog()->RedrawWindow();
 	//this->RedrawWindow();
-	if (opts.clean_dir) CDeTeCtMFCDlg::OnFileClearImpactFiles();
+	if (opts.clean_dir) CDeTeCtMFCDlg::OnFileCleanImpactFiles();
 	if ((acquisition_files.file_list.size() > 0) && (!opts.interactive)) OnBnClickedOk();
 }
 
@@ -1469,7 +1497,7 @@ void CDeTeCtMFCDlg::OnFileClearExecutionLog() {
 }
 
 /**************************************************************************************************
- * @fn	OnFileClearImpactFiles()
+ * @fn	OnFileCleanImpactFiles()
  *
  * @brief	Clears execution full log window
  *
@@ -1477,19 +1505,18 @@ void CDeTeCtMFCDlg::OnFileClearExecutionLog() {
  * @date	2020-04-18
  **************************************************************************************************/
 
-void CDeTeCtMFCDlg::OnFileClearImpactFiles() {
+void CDeTeCtMFCDlg::OnFileCleanImpactFiles() {
 	bool return_value = TRUE;
-	bool status;
 
 	// test empty directory 
 	if (strlen(opts.LogConsolidatedDirname) == 0) {
-		MessageBox(_T("Please select folder first..."), _T("Clear impact files"), MB_OK + MB_ICONWARNING);
+		Warning(TRUE, "Clean impact files", "", "Please select folder first...");
 		bool interactive_status = opts.interactive;
 		opts.interactive = TRUE;
 		OnFileOpenFolder();
 		opts.interactive = interactive_status;
 		if (strlen(opts.LogConsolidatedDirname) == 0) {
-			MessageBox(_T("No folder selected"), _T("Clear impact files"), MB_OK + MB_ICONERROR);
+			Info(TRUE, "Clean impact files", "", "No folder selected, nothing to be cleaned...");
 			return;
 		}
 	}
@@ -1532,18 +1559,16 @@ void CDeTeCtMFCDlg::OnFileClearImpactFiles() {
 	} while ((entry = readdir(directory)) != 0);
 
 	if ((directory_to_be_deleted_list.size() == 0) && (file_to_be_deleted_list.size() == 0)) {
-		MessageBox(_T("Nothing to be deleted in \"") + CString(opts.LogConsolidatedDirname) + _T("\", exiting."), _T("Clear impact files"), MB_OK + MB_ICONINFORMATION);
+		MessageBox(_T("Nothing to be deleted in \"") + CString(opts.LogConsolidatedDirname) + _T("\", exiting."), _T("Clear impact files"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
 		return;
 	}
-	if (!(MessageBox(message + _T("Are you sure you want to delete those elements from \"") + CString(opts.LogConsolidatedDirname) + _T("\" ?"), _T("Clear impact files"), MB_OKCANCEL + MB_ICONQUESTION) == IDOK)) return;
+	if (!(MessageBox(message + _T("Are you sure you want to delete those elements from \"") + CString(opts.LogConsolidatedDirname) + _T("\" ?"), _T("Clear impact files"), MB_OKCANCEL + MB_ICONQUESTION + MB_SETFOREGROUND + MB_TOPMOST) == IDOK)) return;
 
 	std::for_each(directory_to_be_deleted_list.begin(), directory_to_be_deleted_list.end(), [&](const std::string dirname) {
-		status = rmdir_force(dirname.c_str());
-		if (!status) return_value = FALSE;
+		if (!rmdir_force(dirname.c_str())) return_value = FALSE;
 	});
 	std::for_each(file_to_be_deleted_list.begin(), file_to_be_deleted_list.end(), [&](const std::string filename) {
-		status = remove(filename.c_str());
-		if (!status) return_value = FALSE;
+		if (!remove(filename.c_str())) return_value = FALSE;
 	});
 }
 	
@@ -1562,7 +1587,7 @@ void CDeTeCtMFCDlg::OnFileExit()
 	
 	if (opts.parent_instance) {
 		CString message;
-		char tmp[MAX_STRING];
+		char tmp[MAX_STRING] = { 0 };
 		// interactive status was forced FALSE in autostakkert parent mode, saves the initial value if not manually modified afterwards
 		if ((opts.autostakkert) && (!opts.interactive)) opts.interactive = opts.interactive_bak;		
 		WriteIni();																				// writes parameters only if not child mode
@@ -1579,7 +1604,7 @@ void CDeTeCtMFCDlg::OnFileExit()
 		else message = message + (CString)"Impact detection not run yet.\n";
 
 		if (strlen(CString2char(message, tmp)) > 1) {
-			if (!(MessageBox(message + _T("Are you sure you want to stop and exit DeTeCt ?"), _T("Close"), MB_OKCANCEL) == IDOK)) return; // exits only with confirmation for parent instance
+			if (!(MessageBox(message + _T("Are you sure you want to stop and exit DeTeCt ?"), _T("Close"), MB_OKCANCEL + MB_SETFOREGROUND + MB_TOPMOST) == IDOK)) return; // exits only with confirmation for parent instance
 		}
 		KillsChildrenProcesses();
 		remove(opts.DeTeCtQueueFilename);
@@ -1701,7 +1726,7 @@ BOOL PrefDialog::OnInitDialog()
 	applyMask.SetCheck(opts.thrWithMask);
 
 	saveIntFramesADUdtc.SetCheck(opts.allframes);
-	NoZip.SetCheck(!opts.zip);
+	NoZip.SetCheck((int)(!opts.zip));
 	Debug.SetCheck(opts.debug);
 	CleanDir.SetCheck(opts.clean_dir);
 
@@ -2186,7 +2211,7 @@ BOOL PrefDialogUser::OnInitDialog()
 	ShowMeanImg.SetCheck(opts.show_mean_image);
 
 	Email.SetCheck(opts.email);
-	Noreprocessing.SetCheck(!opts.reprocessing);
+	Noreprocessing.SetCheck((int)(!opts.reprocessing));
 	detailedADUdtc.SetCheck(opts.detail);
 
 	datesOnly.SetCheck(opts.dateonly);
@@ -2383,17 +2408,17 @@ BOOL SendEmailDlg::OnInitDialog()
 void SendEmailDlg::OnBnClickedButton1()
 {
 	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
-	extern char impact_detection_dirname[MAX_STRING];
-	extern char zip_detection_location[MAX_STRING];
-	extern char zipfile[MAX_STRING];
-	extern char log_detection_dirname[MAX_STRING];
+	//extern char impact_detection_dirname[MAX_STRING];
+	//extern char zip_detection_location[MAX_STRING];
+	//extern char zipfile[MAX_STRING];
+	//extern char log_detection_dirname[MAX_STRING];
 
 	wchar_t	wimpact_detection_dirname[MAX_STRING];
 	size_t ReturnValue;
 	mbstowcs_s(&ReturnValue, wimpact_detection_dirname, strlen(impact_detection_dirname) + 1, impact_detection_dirname, strlen(impact_detection_dirname));
 	// email start
-	char	mailto_command[MAX_STRING];
-	wchar_t	wmailto_command[MAX_STRING];
+	char	mailto_command[MAX_STRING]	= { 0 };
+	wchar_t	wmailto_command[MAX_STRING] = { 0 };
 	if (opts.email) {
 		strcpy(mailto_command, "mailto:delcroix.marc@free.fr?subject=Impact detection ");
 		strcat_s(mailto_command, sizeof(mailto_command), log_detection_dirname);
@@ -2570,18 +2595,18 @@ void CDeTeCtMFCDlg::OnBnClickedCheckAuto()
 	else {
 		opts.interactive = TRUE;
 	}
-	CDeTeCtMFCDlg::getAuto()->SetCheck(!opts.interactive);
+	CDeTeCtMFCDlg::getAuto()->SetCheck((int) (!opts.interactive));
 }
 
 void CDeTeCtMFCDlg::OnBnClickedCheckExit()
 {
-	if (opts.exit) {
-		opts.exit = FALSE;
+	if (opts.autoexit) {
+		opts.autoexit = FALSE;
 	}
 	else {
-		opts.exit = TRUE;
+		opts.autoexit = TRUE;
 	}
-	CDeTeCtMFCDlg::getExit()->SetCheck(opts.exit);
+	CDeTeCtMFCDlg::getExit()->SetCheck(opts.autoexit);
 }
 
 

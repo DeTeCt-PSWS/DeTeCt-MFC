@@ -27,6 +27,7 @@ MODIFIED by MARC DELCROIX 05/2021
 #include "common2.h"
 
 #include "processes_queue.hpp"
+
 BOOL			RemoveFromIni(const CString line_to_remove);
 
 //#pragma warning(disable:4477 4313 4840 4189)
@@ -279,7 +280,7 @@ BOOL AutoUpdate::ReplaceTempVersion(std::vector<CString>* log_cstring_lines)
 				{
 					//wprintf(L"Info: terminated %s\n",m_SelfFileName);
 					(*log_cstring_lines).push_back((CString)"Info: terminated " + m_SelfFileName);
-					_exit(0);
+					exit(EXIT_SUCCESS);
 				}
 			}
 		}
@@ -322,9 +323,9 @@ BOOL AutoUpdate::ReplaceExeVersion(const CString ExeName, const CString NewExeNa
 {
 	CString OldExeName;
 	OldExeName = ExeName + OLDSUFFIX;
-	char OldExeNameChar[MAX_STRING];
-	char ExeNameChar[MAX_STRING];
-	char NewExeNameChar[MAX_STRING];
+	char OldExeNameChar[MAX_STRING]		= { 0 };
+	char ExeNameChar[MAX_STRING]		= { 0 };
+	char NewExeNameChar[MAX_STRING]		= { 0 };
 	CString2char(ExeName, ExeNameChar);
 	CString2char(OldExeName, OldExeNameChar);
 	CString2char(NewExeName, NewExeNameChar);
@@ -354,7 +355,7 @@ BOOL AutoUpdate::SG_VersionStringMatch(CString ExeFile, SG_Version *ver)
 	int	major		= 0;
 	int minor		= 0;
 	int revision	= 0;
-	int subrevision = 0;;
+	int subrevision = 0;
 	//int last_char = ExeFile.GetLength();
 	int i1, i2, i3, i4,i5;
 	CString curString = ExeFile;
@@ -441,7 +442,7 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 
 	if ((!opts.autostakkert) && (opts.parent_instance)) { // No update if autostakkert mode or child mode !
 		(*log_cstring_lines).push_back((CString)"Info: updating to new version " + version_CString(ver_server));
-		if (opts.interactive) MessageBox(NULL, (CString)"Updating " + m_SelfFileName + _T(" from version ") + version_CString(ver_current) + _T(" to new version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND);
+		if (opts.interactive) (NULL, (CString)"Updating " + m_SelfFileName + _T(" from version ") + version_CString(ver_current) + _T(" to new version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND);
 
 		MyCallback pCallback;
 		CString ExeName = m_SelfFullPath.Left(m_SelfFullPath.ReverseFind(_T('\\')) + 1) + UPDATEPREFIX + m_SelfFileName;
@@ -482,7 +483,7 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 				{
 					//wprintf(L"Successfully started the temp version (%s)\n", ExeName);
 					(*log_cstring_lines).push_back((CString)"Info: successfully started the temp version (" + ExeName + _T(")"));
-					_exit(0);
+					exit(EXIT_SUCCESS);
 				}
 				else
 				{
@@ -548,6 +549,17 @@ BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
 		RemoveFromIni(L"debug=");
 		RemoveFromIni(L"; display dates only");
 		RemoveFromIni(L"dateonly =");
+		update = TRUE;
+	}
+
+	version_update.Major = 3;
+	version_update.Minor = 6;
+	version_update.Revision = 0;
+	version_update.SubRevision = 0;
+	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+		opts.detail = FALSE;				// to size down zip files
+		opts.impact_confidence_min = 2.10;	// to improve detection
+		WriteIni();
 		update = TRUE;
 	}
 

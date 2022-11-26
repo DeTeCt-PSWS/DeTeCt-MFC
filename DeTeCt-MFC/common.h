@@ -4,10 +4,11 @@
 //#include <opencv2/highgui/highgui_c.h>
 #include <opencv/highgui.h>
 //#include <opencv2/highgui/highgui.hpp>
-
+#include <stdbool.h>
 #include <stdio.h>
-#define MAX_STRING	2048
-#define EXT_MAX		16
+#define MAX_STRING			2048
+#define EXT_MAX				16
+#define WARNING_MESSAGE_BOX TRUE
 
 #if defined(_MSC_VER)
 #ifdef _WIN32
@@ -45,6 +46,7 @@ extern "C" {
 	char	*mid(const char *src, size_t start, size_t length, char *dst);
 	char 	*left(const char *src, size_t length, char *dst);
 	char 	*right(const char *src, size_t length, char *dst);
+	char	*trim(const char* src, char* dst);
 	char 	*replace_str(char *str, char *orig, char *rep);
 	int 	InStr(const char *str, const char *search);
 	char* 	strrstr(const char *haystack, const char *needle);
@@ -58,7 +60,11 @@ extern "C" {
 
 	void 	get_fileextension(const char *src, char *dst, int max);
 	void 	get_folder(const char *src, char *dst);
-
+	
+	void	ErrorExit(const bool display_msgbox,	const char *title, const char* function, const char *text);
+	void	Warning(const bool display_msgbox,		const char *title, const char* function, const char *text);
+	void	Info(const bool display_msgbox,			const char* title, const char* function, const char* text);
+	
 #ifdef __cplusplus /* C++ prototypes */
 }
 #endif

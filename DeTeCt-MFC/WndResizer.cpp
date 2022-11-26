@@ -644,7 +644,7 @@ BOOL CWndResizer::SetParent(UINT uID, UINT uParentID)
 	{
 		return FALSE;
 	}
-	CPanel * pPanel = GetUIPanel(uID);;
+	CPanel * pPanel = GetUIPanel(uID);
 	if (pParent == NULL)
 	{
 		return FALSE;

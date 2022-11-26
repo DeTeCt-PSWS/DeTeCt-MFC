@@ -18,6 +18,14 @@
 #include "datation.h"
 #include "dtc.h"
 
+unsigned char*	serQueryTimeStamp(SerCapture* sc);
+size_t 			serTimeStampRead(unsigned char* pTimeStamp, const size_t size, const size_t num, FILE* f);
+double 			serDateTime_JD(unsigned char* headerfield);
+void 			serPrintStr(char* p, int sz);
+
+size_t			serFrameRead(SerCapture* sc);
+
+
 /*****************MAIN FUNCTION to get header and parameters of SER capture***************************/
 SerCapture *serCaptureFromFile(const char *fname)
 {
@@ -27,18 +35,21 @@ SerCapture *serCaptureFromFile(const char *fname)
 	char ptmp[SER_MAX_FIELD_SIZE];
 	//int nChannels, depth;
 	int depth;
-	if (debug_mode) { fprintf(stderr, "serCaptureFromFile: creation\n"); }
+	if (debug_mode) { fprintf(stdout, "serCaptureFromFile: creation\n"); }
 	sc = (SerCapture*)calloc(sizeof(SerCapture), 1);
 	if (sc == NULL) {
 		assert(sc != NULL);
 	} else {
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile:  Created sercapture %p\n", sc); }
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile:  Created sercapture %p\n", sc); }
 		if (!(sc->fh = fopen(fname, "rb")))
 		{
-			fprintf(stderr, "ERROR in serCaptureFromFile opening %s file\n", fname);
-			exit(EXIT_FAILURE);
+			char msgtext[MAX_STRING] = { 0 };
+			snprintf(msgtext,MAX_STRING, "cannot open %s ser file\n", fname);
+			Warning(WARNING_MESSAGE_BOX, "cannot open ser file", "serCaptureFromFile()", msgtext);
+			//exit(EXIT_FAILURE);
+			return NULL;
 		}
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile:  Created fh %p\n", sc->fh); }
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile:  Created fh %p\n", sc->fh); }
 
 		//_fseeki64(sc->fh, 0L, SEEK_SET);
 		_fseeki64(sc->fh, 0L, SEEK_END);
@@ -48,9 +59,12 @@ SerCapture *serCaptureFromFile(const char *fname)
 
 		if (fread(buffer, sizeof(char), SER_HEADER_SIZE, sc->fh) != SER_HEADER_SIZE)
 		{
-			fprintf(stderr, "ERROR in serCaptureFromFile reading %s ser header\n", fname);
+			char msgtext[MAX_STRING] = { 0 };
+			snprintf(msgtext,MAX_STRING, "cannot read %s ser header\n", fname);
+			Warning(WARNING_MESSAGE_BOX, "cannot read ser header", "serCaptureFromFile()", msgtext);
 			fclose(sc->fh);
-			exit(EXIT_FAILURE);
+			//exit(EXIT_FAILURE);
+			return NULL;
 		}
 
 		size_t frames_size = actual_file_size - SER_HEADER_SIZE;
@@ -156,7 +170,20 @@ SerCapture *serCaptureFromFile(const char *fname)
 		Content: Name of used telescope*/
 		memcpy(sc->header.Telescope, pread, SER_TELESCOPE_SIZE);
 		pread += SER_TELESCOPE_SIZE;
-
+			//fps=113.64gain=85exp=8.00
+			//0     6
+		double fps = 0.0;
+		char fps_search[SER_TELESCOPE_SIZE];
+		strcpy(fps_search,"fps=");
+		if (InStr(sc->header.Telescope, fps_search) >= 0) {
+			size_t i = strlen(fps_search);
+			do  {
+				if ((isdigit(sc->header.Telescope[i]) > 0) || (sc->header.Telescope[i] == '.')) i++;
+				else break;
+			} while (i < SER_TELESCOPE_SIZE);
+			char tmpstr[SER_TELESCOPE_SIZE];
+			fps = atof(mid(sc->header.Telescope, strlen(fps_search), (i - strlen(fps_search)), tmpstr));
+		}
 		/*12_DateTime
 		Format : Date / Integer_64(little - endian)
 		Length : 8 Byte
@@ -195,25 +222,25 @@ SerCapture *serCaptureFromFile(const char *fname)
 		sc->ImageBytes = sc->header.ImageWidth * sc->header.ImageHeight * sc->BytesPerPixel;
 
 		if (debug_mode) {
-			fprintf(stderr, "serCaptureFromFile: BytesPerPixel = %zd ; depth = %d\n", sc->BytesPerPixel, depth);
+			fprintf(stdout, "serCaptureFromFile: BytesPerPixel = %zd ; depth = %d\n", sc->BytesPerPixel, depth);
 		}
 
 		/*	sc->image = cvCreateImageHeader(cvSize(sc->header.ImageWidth, sc->header.ImageHeight),
 		depth, nChannels);
 		assert(sc->image != NULL);
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created image %d\n",sc->image); }
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile: Created image %d\n",sc->image); }
 		sc->image->imageData = calloc(sizeof (char), sc->ImageBytes);
 		assert(sc->image->imageData != NULL);
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created image data %d\n",sc->image->imageData); }*/
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile: Created image data %d\n",sc->image->imageData); }*/
 		if (debug_mode) {
-			fprintf(stderr, "serCaptureFromFile: Width, Height, depth, nchannels %zd,%zd,%d,%d\n",
+			fprintf(stdout, "serCaptureFromFile: Width, Height, depth, nchannels %zd,%zd,%d,%d\n",
 				sc->header.ImageWidth, sc->header.ImageHeight, depth, sc->nChannels);
 		}
 		sc->image = cvCreateImage(cvSize((int)sc->header.ImageWidth, (int)sc->header.ImageHeight), depth, sc->nChannels);
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created Image %p\n", sc->image); }
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile: Created Image %p\n", sc->image); }
 		/*	sc->TimeStamp = calloc(sizeof (char), SER_DATETIME_SIZE);
 		assert(sc->TimeStamp != NULL);
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created TimeStamp %d\n",sc->TimeStamp); }*/
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile: Created TimeStamp %d\n",sc->TimeStamp); }*/
 
 		sc->image->widthStep = (int) (sc->header.ImageWidth * sc->BytesPerPixel * sc->nChannels);
 		sc->image->imageDataOrigin = sc->image->imageData;
@@ -222,24 +249,38 @@ SerCapture *serCaptureFromFile(const char *fname)
 		sc->TimeStampExists = 0;
 		sc->ValidFrameCount = sc->header.FrameCount;
 		sc->FrameCount = sc->header.FrameCount;
+		double duration = 0.0;
+		if (fps > 0) duration = (sc->FrameCount / fps);
 
 		if (strncmp(sc->header.FileID, "PlxCapture", strlen("PlxCapture")) == 0) {
-			sc->StartTime_JD = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
-			sc->StartTimeUTC_JD = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
-			sc->EndTime_JD = serDateTime_JD(sc->header.DateTime);
-			sc->EndTimeUTC_JD = serDateTime_JD(sc->header.DateTimeUTC);
+			sc->EndTime_JD =			serDateTime_JD(sc->header.DateTime);
+			sc->EndTimeUTC_JD =			serDateTime_JD(sc->header.DateTimeUTC);
+			if (duration > 0) {
+				sc->StartTime_JD =		sc->EndTime_JD - duration / ONE_DAY_SEC;
+				sc->StartTimeUTC_JD =	sc->EndTimeUTC_JD - duration / ONE_DAY_SEC;
+			}
+			else {
+				sc->StartTime_JD =		gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+				sc->StartTimeUTC_JD =	gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+			}
 		}
 		else {
-			sc->StartTime_JD = serDateTime_JD(sc->header.DateTime);
-			sc->StartTimeUTC_JD = serDateTime_JD(sc->header.DateTimeUTC);
-			sc->EndTime_JD = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
-			sc->EndTimeUTC_JD = gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+			sc->StartTime_JD =			serDateTime_JD(sc->header.DateTime);
+			sc->StartTimeUTC_JD =		serDateTime_JD(sc->header.DateTimeUTC);
+			if (duration > 0) {
+				sc->EndTime_JD =		sc->StartTime_JD + duration / ONE_DAY_SEC;
+				sc->EndTimeUTC_JD =		sc->StartTimeUTC_JD + duration / ONE_DAY_SEC;
+			}
+			else {
+				sc->EndTime_JD =		gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+				sc->EndTimeUTC_JD =		gregorian_calendar_to_jd(1, 1, 1, 0, 0, 0);
+			}
 		}
 		if (debug_mode) {
-			fprintf(stderr, "serCaptureFromFile: end\n");
+			fprintf(stdout, "serCaptureFromFile: end\n");
 			serPrintHeader(sc);
 		}
-		if (debug_mode) { fprintf(stderr, "serCaptureFromFile: Created ser %p\n", sc); }
+		if (debug_mode) { fprintf(stdout, "serCaptureFromFile: Created ser %p\n", sc); }
 		size_t im_size = sc->byte_depth == 2 ? sizeof(uint16_t) : sizeof(uint8_t);
 		sc->frame_data = calloc(im_size, sc->ImageBytes);
 		sc->mat_type = sc->byte_depth == 2 ?
@@ -254,7 +295,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 		//sc->data_proc_same_endianness = sc->big_endian_proc == sc->header.LittleEndian;
 		sc->data_proc_same_endianness = (unsigned int)(sc->big_endian_proc) == sc->header.LittleEndian;
 		/*if (fclose(sc->fh) != 0) {
-			fprintf(stderr, "ERROR in serCaptureFromFile closing capture file\n");
+//			fprintf(stderr, "ERROR in serCaptureFromFile closing capture file\n");
 			exit(EXIT_FAILURE);
 		}*/
 	}
@@ -270,19 +311,21 @@ void serReinitCaptureRead(SerCapture *sc,const char *fname)
 	sc->frame = 0;
 	sc->TimeStamp_frame = 0;
 	rewind(sc->fh);
-					if (debug_mode) { fprintf(stderr, "serReinitCaptureRead: %s file rewinded\n", fname); }
+					if (debug_mode) { fprintf(stdout, "serReinitCaptureRead: %s file rewinded\n", fname); }
 	if (fread(buffer, sizeof (char), SER_HEADER_SIZE, sc->fh) != SER_HEADER_SIZE) {
-		fprintf(stderr, "ERROR in serReinitCaptureRead reading %s ser header\n", fname);
-		exit(EXIT_FAILURE);		
+		char msgtext[MAX_STRING] = { 0 };									
+		snprintf(msgtext, MAX_STRING, "wrong header size in %s", fname);
+		ErrorExit(TRUE, "wrong header size", "serReinitCaptureRead()", msgtext);
+		//exit(EXIT_FAILURE);		
 	}
 /*	if (!(fsetpos(sc->fh, (fpos_t) (SER_HEADER_SIZE))))
 	{
-		fprintf(stderr, "ERROR in serReinitCaptureRead reinitializing %s file\n", fname);
+//		fprintf(stderr, "ERROR in serReinitCaptureRead reinitializing %s file\n", fname);
 		exit(EXIT_FAILURE);
 	}*/
 /*	if (!(fseek(sc->fh, SER_HEADER_SIZE, SEEK_CUR)))
 	{
-		fprintf(stderr, "ERROR in serReinitCaptureRead reinitializing %s file\n", fname);
+//		fprintf(stderr, "ERROR in serReinitCaptureRead reinitializing %s file\n", fname);
 		exit(EXIT_FAILURE);
 	}*/
 }
@@ -302,12 +345,12 @@ void serReadTimeStamps(SerCapture *sc)
 	int frame_old = (int)sc->frame;
 
 							if (debug_mode) {
-												fprintf(stderr,"serReadTimeStamps: StartTime  ");
-												fprint_jd(stderr,sc->StartTime_JD);
-												fprintf(stderr,"\n");
-												fprintf(stderr,"serReadTimeStamps: StartTimeUT");
-												fprint_jd(stderr,sc->StartTimeUTC_JD);
-												fprintf(stderr,"\n\n");
+												fprintf(stdout,"serReadTimeStamps: StartTime  ");
+												fprint_jd(stdout,sc->StartTime_JD);
+												fprintf(stdout,"\n");
+												fprintf(stdout,"serReadTimeStamps: StartTimeUT");
+												fprint_jd(stdout,sc->StartTimeUTC_JD);
+												fprintf(stdout,"\n\n");
 											}
 	
 //Position to beginning of TimeStamps zone
@@ -321,9 +364,9 @@ void serReadTimeStamps(SerCapture *sc)
 			if ((starttime > JD_min) && (starttime < JD_max)) sc->StartTime_JD = starttime;
 			else sc->TimeStampExists = 0;
 											if (debug_mode) {
-												fprintf(stderr,"serReadTimeStamps: FirstFrame ");
-												fprint_jd(stderr,serDateTime_JD(sc->TimeStamp));
-												fprintf(stderr,"\n");
+												fprintf(stdout,"serReadTimeStamps: FirstFrame ");
+												fprint_jd(stdout,serDateTime_JD(sc->TimeStamp));
+												fprintf(stdout,"\n");
 											}
 		}
 		TimeStamp_nframe++;
@@ -333,15 +376,15 @@ void serReadTimeStamps(SerCapture *sc)
 			if ((endtime > JD_min) && (endtime < JD_max))	sc->EndTime_JD = endtime;
 			else sc->TimeStampExists = 0;
 			if (debug_mode) {
-												fprintf(stderr,"serReadTimeStamps: LastFrame  ");
-												fprint_jd(stderr,serDateTime_JD(sc->TimeStamp));
-												fprintf(stderr,"\n\n");
-												fprintf(stderr,"serReadTimeStamps: StartSerUT ");
-												fprint_jd(stderr,sc->StartTimeUTC_JD);
-												fprintf(stderr,"\n");
-												fprintf(stderr,"serReadTimeStamps: EndSerUT   ");
-												fprint_jd(stderr,sc->EndTimeUTC_JD);
-												fprintf(stderr,"\n");
+												fprintf(stdout,"serReadTimeStamps: LastFrame  ");
+												fprint_jd(stdout,serDateTime_JD(sc->TimeStamp));
+												fprintf(stdout,"\n\n");
+												fprintf(stdout,"serReadTimeStamps: StartSerUT ");
+												fprint_jd(stdout,sc->StartTimeUTC_JD);
+												fprintf(stdout,"\n");
+												fprintf(stdout,"serReadTimeStamps: EndSerUT   ");
+												fprint_jd(stdout,sc->EndTimeUTC_JD);
+												fprintf(stdout,"\n");
 											}
 	}
 	if (sc->TimeStampExists) {
@@ -379,27 +422,31 @@ unsigned char *serQueryTimeStamp(SerCapture *sc)
 /*****************Cleans capture***************************/			
 void serReleaseCapture(SerCapture *sc)
 {
-	/* fprintf(stderr, "serReleaseCapture: Releasing imageData %d\n", sc->image->imageData);
-	free(sc->image->imageData);*/
-											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing fh %p\n",sc->fh); }
-	if (!(fclose(sc->fh)==0)) {
-		fprintf(stderr, "ERROR in serReleaseCapture closing capture file\n");
-		exit(EXIT_FAILURE);
+	if (sc != NULL) {
+		/* fprintf(stdout, "serReleaseCapture: Releasing imageData %d\n", sc->image->imageData);
+		free(sc->image->imageData);*/
+		if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing fh %p\n", sc->fh); }
+		if (!(fclose(sc->fh) == 0)) {
+			char msgtext[MAX_STRING] = { 0 };
+			snprintf(msgtext,MAX_STRING, "cannot close capture file\n");
+			Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "serReleaseCapture()", msgtext);
+			//exit(EXIT_FAILURE);
+		}
+		/*											if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
+		free(sc->image->imageData);*/
+		if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing image %p size image %zd\n", sc->image, sizeof(*sc->image)); }
+		cvReleaseImage(&sc->image);
+		sc->image = NULL;
+		/*											if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing image header %d\n", (int) (sc->image)); }
+			cvReleaseImageHeader(&sc->image);
+													if (debug_mode) { 	fprintf(stdout, "serReleaseCapture: Releasing TimeStamp %d\n", (int) (sc->TimeStamp)); }
+			free(sc->TimeStamp);
+			sc->TimeStamp=NULL;*/
+		if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing sc %p\n", sc); }
+		free(sc);
+		sc = NULL;
+		if (debug_mode) { fprintf(stdout, "serReleaseCapture: Released sc\n"); }
 	}
-/*											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
-free(sc->image->imageData);*/
-											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing image %p size image %zd\n", sc->image, sizeof(*sc->image)); }
-	cvReleaseImage(&sc->image);
-	sc->image=NULL;
-/*											if (debug_mode) { fprintf(stderr, "serReleaseCapture: Releasing image header %d\n", (int) (sc->image)); }
-	cvReleaseImageHeader(&sc->image);
-											if (debug_mode) { 	fprintf(stderr, "serReleaseCapture: Releasing TimeStamp %d\n", (int) (sc->TimeStamp)); }
-	free(sc->TimeStamp);
-	sc->TimeStamp=NULL;*/
-											if (debug_mode) { 	fprintf(stderr, "serReleaseCapture: Releasing sc %p\n", sc); }
-	free(sc);
-	sc=NULL;
-											if (debug_mode) { 	fprintf(stderr, "serReleaseCapture: Released sc\n"); }
 }
 
 /*****************Reads current timestamp***************************/			
@@ -438,10 +485,10 @@ double serDateTime_JD(unsigned char *headerfield)
 	for (i = 2; i <= SER_DATETIME_SIZE; i++) {
 		(void) (*p++);
 	}
-/*	fprintf(stderr,"serDateTime_JD: p %d pand %d\n", (*p), ((*p)& 63));*/
+/*	fprintf(stdout,"serDateTime_JD: p %d pand %d\n", (*p), ((*p)& 63));*/
 	DateTime=((*p--)& 63);
 	for (i = SER_DATETIME_SIZE-1; i > 0; i--) {
-/*		fprintf(stderr,"serDateTime_JD: p %d\n", (*p));*/
+/*		fprintf(stdout,"serDateTime_JD: p %d\n", (*p));*/
 		DateTime=DateTime*256+(*p--);
 	}
 	DateTime=DateTime/10000000/ONE_DAY_SEC;
@@ -456,12 +503,12 @@ void serPrintStr(char *p, int sz)
 	for (int i = 0; i < sz; i++)
 	{
 		if (*p >= 32 && *p <= 126) {
-			//fprintf(stderr,"%2c ", *p++);
+			//fprintf(stdout,"%2c ", *p++);
 			output = (char*)calloc(sizeof(char), 10);
 			if (output != 0) sprintf_s(output, 10, "%c", *p++);  // warning C6387 disabling
 		}
 		else {
-			//fprintf(stderr,"%02X ", *p++);
+			//fprintf(stdout,"%02X ", *p++);
 			output = (char*)calloc(sizeof(char), 10);
 			if (output != 0) sprintf_s(output, 10, "%X", *p++); // warning C6387 disabling
 		}
@@ -477,7 +524,7 @@ void serPrintByte(unsigned char *p, int sz)
 	char output[5];
 	for (int i = 0; i < sz; i++)
 	{
-		//fprintf(stderr,"%03d ", *p++);
+		//fprintf(stdout,"%03d ", *p++);
 		sprintf_s(output, 5, "%03d", *p++);
 		OutputDebugStringA(output);
 	}
@@ -487,7 +534,7 @@ void serPrintByte(unsigned char *p, int sz)
 /*****************Prints SER header***************************/			
 void serPrintHeader(SerCapture *sc)
 {
-	char buffer[MAX_STRING];
+	char buffer[MAX_STRING] = { 0 };
 	sprintf_s(buffer, MAX_STRING, "FileID       : %s\n", sc->header.FileID);
 	OutputDebugStringA(buffer);
 	sprintf_s(buffer, MAX_STRING, "LuID         : %d\n", (int)sc->header.LuID);
@@ -640,7 +687,7 @@ size_t serFrameRead(SerCapture* sc) {
 									g = (*read_ptr8++) << 8;
 									g += *read_ptr8++;
 									r = (*read_ptr8++) << 8;
-									r += *read_ptr8;;
+									r += *read_ptr8;
 								}
 							}
 							else {
@@ -735,16 +782,19 @@ void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
 		return NULL;
 	}
 	sc->frame++;
-	if (debug_mode) { fprintf(stderr, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
+	if (debug_mode) { fprintf(stdout, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
 	if (!(bytesR = serFrameRead(sc)))
 	{
 		sc->ValidFrameCount = sc->frame - 1;
 		if (!ignore) {
-			fprintf(stderr, "ERROR in serQueryFrame reading frame #%zd\n", sc->frame);
-			exit(EXIT_FAILURE);
+			 char msgtext[MAX_STRING] = { 0 };										
+			snprintf(msgtext, MAX_STRING, "cannot read ser frame %zd", sc->frame);
+			ErrorExit(TRUE, "cannot read ser frame", "serQueryFrame()", msgtext);
 		} else {
 			(*perror) = 1;
-			fprintf(stderr, "WARNING in serQueryFrame: ignoring error reading frame #%zd and above (%zd missing till frame #%zd)\n", sc->frame, sc->header.FrameCount - sc->ValidFrameCount, sc->header.FrameCount);
+			 char msgtext[MAX_STRING] = { 0 };	
+			snprintf(msgtext, MAX_STRING, "cannot read ser frame #%zd and above (%zd missing till frame #%zd)", sc->frame, sc->header.FrameCount - sc->ValidFrameCount, sc->header.FrameCount);
+			Warning(WARNING_MESSAGE_BOX, "cannot read ser frame", "serQueryFrame()", msgtext);
 		}
 	}
 	sc->current_frame++;

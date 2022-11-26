@@ -530,6 +530,60 @@
     <Image Include="res\exclamation_small3.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="res\eco.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\eco.png">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon3.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\eco.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\eco_small.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\eco_small.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\WinJupos.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\WinJupos.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\PIPP.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\FireCapture.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Genika.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\SharpCap.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\ASICap.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\PLXCapture.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\LucamRecorder.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\ICCapture.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\wxAstroCapture.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\exclamation_small3.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <Manifest Include="DeTeCt.exe.manifest" />

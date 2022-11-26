@@ -8,7 +8,10 @@ extern "C" {
 	//#include "serfmt.h"
 	//#include "filefmt.h"
 	//#include "common.h"
+	#include "dtc.h"
+	extern "C" OPTS opts;
 }
+
 
 /*#define CAPTURE_CV		0
 #define CAPTURE_SER		1
@@ -37,14 +40,17 @@ typedef struct _DtcCapture2 DtcCapture2;*/
 	/*									Procedures and functions										*/
 	/****************************************************************************************************/
 
-	DtcCapture	*dtcCaptureFromFile2(const char *fname, int *pframecount);
 	cv::Mat 	dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror);
 	void		dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname);
 	void 		dtcReleaseCapture(DtcCapture *capture);
 
+	BOOL		Is_PIPP(const std::string file);
+	BOOL		Is_PIPP_OK(const std::string file, PIPPInfo *pipp_info, std::wstringstream* pmessage);
 	BOOL		Is_Capture_OK_from_File(const std::string file, std::string *pfilename_acquisition, int *pnframe, std::wstringstream *pmessage);
 	BOOL		Is_Capture_Long_Enough(const std::string file, const int nframe, std::wstringstream *pmessage);
 	BOOL		Is_Capture_Special_Type(const std::string file, std::wstringstream *pmessage);
 	BOOL		Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, const std::string log_filename, std::wstringstream *pmessage);
+
+	bool		isNumeric(std::string const& str);
 
 #endif /* __WRAPPER_H__ */

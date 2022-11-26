@@ -55,7 +55,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	assert(fc != NULL);
 
 	if (!(fc->fh = fopen(fname, "rb"))) {
-		fprintf(stderr, "ERROR in FileCaptureFromFile opening first file %s\n", fname);
+//		fprintf(stderr, "ERROR in FileCaptureFromFile opening first file %s\n", fname);
 		fflush(stderr);
 		free(fc);
 		fc = NULL;
@@ -66,7 +66,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	get_fileextension(fname, fc->filename_ext, EXT_MAX);
 	get_folder(fname, fc->filename_folder);
 	right(fname, strlen(fname) - strlen(fc->filename_folder) - 1, filename_root);
-	if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: Folder %s file %s\n", fc->filename_folder, fname); }
+	if (opts.debug) { fprintf(stdout, "!Debug info: FileCaptureFromFile: Folder %s file %s\n", fc->filename_folder, fname); }
 	fc->FirstFileIdx = -1;
 	fc->LastFileIdx = -1;
 	fc->LeadingZeros = 0;
@@ -132,7 +132,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		for (i = 0; i<fc->LeadingZeros; first_nb[i++] = '0');
 		first_nb[i] = '\0';
 		while ((fc->LeadingZeros>0) && (InRstr(filename_root, first_nb)<0)) {
-			//										if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: Leading zeros %d first_nb %s\n", fc->LeadingZeros, first_nb); }
+			//										if (opts.debug) { fprintf(stdout, "FileCaptureFromFile: Leading zeros %d first_nb %s\n", fc->LeadingZeros, first_nb); }
 			fc->LeadingZeros--;
 			first_nb[fc->LeadingZeros] = '\0';
 		}
@@ -166,7 +166,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 
 	fc->LastFileIdx = fc->FirstFileIdx;
 	if (fc->FirstFileIdx >= 0) {
-		//									if (opts.debug) { fprintf(stderr, "FileCaptureFromFile: File syntax %s*%s.%s (%d vs %d vs %d), leading zeros %d\n", fc->filename_head, fc->filename_trail, fc->filename_ext, strlen(fname), strlen(fc->filename_rac), strlen(fc->filename_ext),fc->LeadingZeros); }
+		//									if (opts.debug) { fprintf(stdout, "FileCaptureFromFile: File syntax %s*%s.%s (%d vs %d vs %d), leading zeros %d\n", fc->filename_head, fc->filename_trail, fc->filename_ext, strlen(fname), strlen(fc->filename_rac), strlen(fc->filename_ext),fc->LeadingZeros); }
 		// Look for last file 
 		fc->LastFileIdx = (*pframecount) - 1 + fc->FirstFileIdx;
 		if (fc->LastFileIdx<fc->FirstFileIdx) {
@@ -174,7 +174,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			do {
 				frame_idx++;
 				fileGet_filename(filename_tmp, fc, frame_idx);
-				//										if (opts.debug) { fprintf(stderr,"FileCaptureFromFile: Checking frame %d\n",frame_idx); }
+				//										if (opts.debug) { fprintf(stdout,"FileCaptureFromFile: Checking frame %d\n",frame_idx); }
 			} while (strlen(filename_tmp)>0);
 			fc->LastFileIdx = frame_idx - 1;
 		}
@@ -182,9 +182,9 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 	fc->FrameCount = fc->LastFileIdx - fc->FirstFileIdx + 1;
 	fc->ValidFrameCount = fc->FrameCount;
 	(*pframecount) = fc->FrameCount;
-	if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: First frame index %d, Last Frame index %d\n", fc->FirstFileIdx, fc->LastFileIdx); }
+	if (opts.debug) { fprintf(stdout, "!Debug info: FileCaptureFromFile: First frame index %d, Last Frame index %d\n", fc->FirstFileIdx, fc->LastFileIdx); }
 	if (fc->FrameCount <= 0) {
-		fprintf(stderr, "ERROR in FileCaptureFromFile: no frame number detected to process for file %s\n", fname);
+//		fprintf(stderr, "ERROR in FileCaptureFromFile: no frame number detected to process for file %s\n", fname);
 		fclose(fc->fh);
 		exit(EXIT_FAILURE);
 	}
@@ -211,24 +211,24 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 			fileGet_info(fc, fname, &fc->StartTime_JD);
 			if (stat(fname, &teststat_start) >= 0) {
 				fc->StartTime_JD = JD_from_time_t(teststat_start.st_mtime);
-				if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: StartTime_JD=%f\n", fc->StartTime_JD); }
+				if (opts.debug) { fprintf(stdout, "!Debug info: FileCaptureFromFile: StartTime_JD=%f\n", fc->StartTime_JD); }
 			}
 			break;
 		}
 		fc->frame = -1;
 		if (fclose(fc->fh) != 0) {
-			fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
+//			fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
 			exit(EXIT_FAILURE);
 		}
-		if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
+		if (opts.debug) { fprintf(stdout, "!Debug info: FileCaptureFromFile: ImageWidth=%d, ImageHeight=%d, BytesPerPixel=%zd, ImageBytes=%zd\n", fc->ImageWidth, fc->ImageHeight, fc->BytesPerPixel, fc->ImageBytes); }
 		if (fc->FrameCount>1) {
 			// Reads information from last file 
 			fileGet_filename(filename_tmp, fc, fc->LastFileIdx);
 			if (!(fc->fh = fopen(filename_tmp, "rb"))) {
-				fprintf(stderr, "ERROR in FileCaptureFromFile opening %s file...\n", filename_tmp);
+//				fprintf(stderr, "ERROR in FileCaptureFromFile opening %s file...\n", filename_tmp);
 				exit(EXIT_FAILURE);
 			}
-			if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: opening %s file\n", filename_tmp); }
+			if (opts.debug) { fprintf(stdout, "!Debug info: FileCaptureFromFile: opening %s file\n", filename_tmp); }
 			switch (fc->FileType) {
 			case CAPTURE_FITS:
 				fileGet_info(fc, filename_tmp, &fc->EndTimeUTC_JD);
@@ -242,13 +242,13 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				//				fileGet_info(fc, filename_tmp, &fc->EndTime_JD); 
 				if (stat(filename_tmp, &teststat_end) >= 0) {
 					fc->EndTime_JD = JD_from_time_t(teststat_end.st_mtime);
-					if (opts.debug) { fprintf(stderr, "!Debug info: FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
+					if (opts.debug) { fprintf(stdout, "!Debug info: FileCaptureFromFile: EndTime_JD=%f\n", fc->EndTime_JD); }
 				}
 				break;
 			}
 			// Cleaning 
 			if (fclose(fc->fh) != 0) {
-				fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
+//				fprintf(stderr, "ERROR in FileCaptureFromFile closing capture file\n");
 				exit(EXIT_FAILURE);
 			}
 		}
@@ -275,7 +275,7 @@ void fileReinitCaptureRead(FileCapture *fc, const char *fname)
 	fc->frame = -1;
 	if (!(fseek(fc->fh, SER_HEADER_SIZE, SEEK_SET)))
 	{
-		fprintf(stderr, "ERROR in fileReinitCaptureRead reinitializing %s file\n", fname);
+//		fprintf(stderr, "ERROR in fileReinitCaptureRead reinitializing %s file\n", fname);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -318,7 +318,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 	fileGet_filename(filename, fc, fc->frame);
 
 	if (!(fc->fh = fopen(filename, "rb"))) {
-		fprintf(stderr, "ERROR in fileQueryFrame opening %s file (frame %d/%d)\n", filename, fc->frame, fc->LastFileIdx);
+//		fprintf(stderr, "ERROR in fileQueryFrame opening %s file (frame %d/%d)\n", filename, fc->frame, fc->LastFileIdx);
 		exit(EXIT_FAILURE);
 	}
 	switch (fc->FileType) {
@@ -330,16 +330,16 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 		else {
 			if (fread(header, sizeof(char), fc->header_size, fc->fh) != fc->header_size) {
 				if (fclose(fc->fh) != 0) {
-					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
+//					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 					exit(EXIT_FAILURE);
 				}
 				free(header);
 				if (!ignore) {
-					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %zd)\n", fc->frame, fc->header_size);
+//					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %zd)\n", fc->frame, fc->header_size);
 					exit(EXIT_FAILURE);
 				}
 				else {
-					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %zd)\n", fc->frame, fc->header_size);
+//					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %zd)\n", fc->frame, fc->header_size);
 					(*perror) = 1;
 					return fc->image;
 				}
@@ -347,17 +347,17 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 			else {
 				if (!(bytesR = fitsImageRead(fc->image.data, sizeof(char)*fc->BytesPerPixel, fc->ImageBytes / fc->BytesPerPixel, fc->fh))) {
 					if (fclose(fc->fh) != 0) {
-						fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
+//						fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 						exit(EXIT_FAILURE);
 					}
 					free(header);
 					if (!ignore) {
-						fprintf(stderr, "ERROR in fileQueryFrame reading fits frame %d\n", fc->frame);
+//						fprintf(stderr, "ERROR in fileQueryFrame reading fits frame %d\n", fc->frame);
 						exit(EXIT_FAILURE);
 					}
 					else {
 						fc->ValidFrameCount--;
-						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+//						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 						(*perror) = 1;
 						return fc->image;
 					}
@@ -367,16 +367,16 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 		break;
 	case CAPTURE_FILES:
 		old_image = fc->image;
-		//			fprintf(stderr, "fileQueryFrame: reading frame %d\n", fc->frame);
+		//			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);
 		if ((fc->image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
 			if (!ignore) {
-				fprintf(stderr, "ERROR in fileQueryFrame reading frame %d\n", fc->frame);
+//				fprintf(stderr, "ERROR in fileQueryFrame reading frame %d\n", fc->frame);
 				old_image.release();
 				exit(EXIT_FAILURE);
 			}
 			else {
 				fc->ValidFrameCount--;
-				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+//				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
 				(*perror) = 1;
 				fc->image = old_image;
 				return fc->image;
@@ -391,7 +391,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 	}
 	fc->LastValidFileIdx = fc->frame;
 	if (fclose(fc->fh) != 0) {
-		fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
+//		fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -419,7 +419,7 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 {
 	cv::Mat old_image;
-	char filename[MAX_STRING];
+	char filename[MAX_STRING] = { 0 };
 	char *header;
 	size_t bytesR;
 
@@ -437,8 +437,9 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 	fileGet_filename(filename, fc, fc->frame);
 
 	if (!(fc->fh = fopen(filename, "rb"))) {
-		fprintf(stderr, "ERROR in fileQueryFrame opening %s file (frame %d/%d)\n", filename, fc->frame, fc->LastFileIdx);
-		exit(EXIT_FAILURE);
+		 char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot open %s file (frame %d/%d)", filename, fc->frame, fc->LastFileIdx);
+		ErrorExit(TRUE, "cannot open file", "fileQueryFrame2()", msgtext);
 	}
 	switch (fc->FileType) {
 	case CAPTURE_FITS:
@@ -449,16 +450,21 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 		else {
 			if (fread(header, sizeof(char), fc->header_size, fc->fh) != fc->header_size) {
 				if (fclose(fc->fh) != 0) {
-					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
-					exit(EXIT_FAILURE);
+					 char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+					//exit(EXIT_FAILURE);
 				}
 				free(header);
 				if (!ignore) {
-					fprintf(stderr, "ERROR in fileQueryFrame reading fits header frame %d (Header size different from %zd)\n", fc->frame, fc->header_size);
-					exit(EXIT_FAILURE);
+					 char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
+					ErrorExit(TRUE, "cannot read fits header", "fileQueryFrame2()", msgtext);
 				}
 				else {
-					fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits header frame #%d (Header size different from %zd)\n", fc->frame, fc->header_size);
+					 char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
+					Warning(WARNING_MESSAGE_BOX, "cannot read fits header", "fileQueryFrame2()", msgtext);
 					(*perror) = 1;
 					return fc->image;
 				}
@@ -466,17 +472,21 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 			else {
 				if (!(bytesR = fitsImageRead(fc->image.data, sizeof(char)*fc->BytesPerPixel, fc->ImageBytes / fc->BytesPerPixel, fc->fh))) {
 					if (fclose(fc->fh) != 0) {
-						fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
-						exit(EXIT_FAILURE);
+						 char msgtext[MAX_STRING] = { 0 };
+						snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+						Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
 					}
 					free(header);
 					if (!ignore) {
-						fprintf(stderr, "ERROR in fileQueryFrame reading fits frame %d\n", fc->frame);
-						exit(EXIT_FAILURE);
+						 char msgtext[MAX_STRING] = { 0 };
+						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
+						ErrorExit(TRUE, "cannot read fits frame", "fileQueryFrame2()", msgtext);
 					}
 					else {
 						fc->ValidFrameCount--;
-						fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading fits frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
+						 char msgtext[MAX_STRING] = { 0 };
+						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
+						Warning(WARNING_MESSAGE_BOX, "cannot read fits frame", "fileQueryFrame2()", msgtext);
 						(*perror) = 1;
 						return fc->image;
 					}
@@ -486,21 +496,28 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 		break;
 	case CAPTURE_FILES:
 		old_image = fc->image;
-		//			fprintf(stderr, "fileQueryFrame: reading frame %d\n", fc->frame);
+		//			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);
 		if ((fc->image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
 			if (!ignore) {
-				fprintf(stderr, "ERROR in fileQueryFrame reading frame %d\n", fc->frame);
 				old_image.release();
-				if (fclose(fc->fh) != 0) fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
-				exit(EXIT_FAILURE);
+				if (fclose(fc->fh) != 0) {
+					char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+				}
+				char msgtext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
+				ErrorExit(TRUE, "cannot read frame", "fileQueryFrame2()", msgtext);
 			}
 			else {
 				fc->ValidFrameCount--;
-				fprintf(stderr, "WARNING in fileQueryFrame: ignoring error reading frame #%d (%zd missing till frame #%zd)\n", fc->frame, fc->FrameCount - fc->ValidFrameCount, fc->FrameCount);
-				(*perror) = 1;
 				fc->image = old_image;
+				(*perror) = 1;
+				 char msgtext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
+				Warning(WARNING_MESSAGE_BOX, "cannot read frame", "fileQueryFrame2()", msgtext);
 				/*if (fclose(fc->fh) != 0) {
-					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
+//					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 					exit(EXIT_FAILURE);
 				}*/
 				return fc->image;
@@ -516,8 +533,10 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 	}
 	fc->LastValidFileIdx = fc->frame;
 	if (fclose(fc->fh) != 0) {
-		fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
-		exit(EXIT_FAILURE);
+		 char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+		Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+		//exit(EXIT_FAILURE);
 	}
 
 	return fc->image;
@@ -636,9 +655,9 @@ void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
 
 void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 {
-	char tmp_string[MAX_STRING];
-	char tmp_string2[MAX_STRING];
-	char filename_target[MAX_STRING];
+	char tmp_string[MAX_STRING]			= { 0 };
+	char tmp_string2[MAX_STRING]		= { 0 };
+	char filename_target[MAX_STRING]	= { 0 };
 	int found;
 	struct dirent *dent;
 	DIR *dir;
@@ -661,12 +680,16 @@ void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 		}
 		//	close((int) dir);
 		if (closedir(dir) != 0) {
-			fprintf(stderr, "ERROR in fileGet_filename closing directory=%s\n", fc->filename_folder);
-			exit(EXIT_FAILURE);
+			char msgtext[MAX_STRING] = { 0 };
+			snprintf(msgtext, MAX_STRING, "cannot close directory %s)", fc->filename_folder);
+			Warning(WARNING_MESSAGE_BOX, "cannot close directory", "fileGet_filename()", msgtext);
+			//exit(EXIT_FAILURE);
 		}
 	}
 	else {
-		fprintf(stderr, "ERROR in fileGet_filename opening directory=%s\n", fc->filename_folder);
+		char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot open directory %s\n", fc->filename_folder);
+		Warning(WARNING_MESSAGE_BOX, "cannot open directory", "fileGet_filename()", msgtext);
 	}
 	if (found != 1) {
 		strcpy(dest, "");
@@ -696,8 +719,8 @@ void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 void fileGenerate_number(char *dest, FileCapture2 *fc, int nb)
 {
 	int max;
-	char nbstring[MAX_STRING];
-	char tmpstring[MAX_STRING];
+	char nbstring[MAX_STRING]	= { 0 };
+	char tmpstring[MAX_STRING]	= { 0 };
 
 	strcpy(tmpstring, "");
 	max = fc->LeadingZeros;

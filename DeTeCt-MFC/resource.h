@@ -10,6 +10,7 @@
 #define IDS_ABOUTBOX                    101
 #define IDD_DETECTMFC_DIALOG            102
 #define IDR_MAINFRAME                   128
+#define IDR_DETECT                      128
 #define IDR_MENU1                       130
 #define IDD_PREFERENCES                 132
 #define IDD_SETINGS                     132
@@ -20,28 +21,34 @@
 #define IDD_SETTINGS_USER               144
 #define IDI_ICON_AS                     148
 #define IDB_PNG1                        149
-#define IDB_FIRECAPTURE                 178
-#define IDB_GENIKA                      180
-#define IDB_LUCAMRECORDER               181
 #define IDB_PARAMETERS                  182
-#define IDB_PLXCAPTURE                  183
-#define IDB_SHARPCAP                    184
 #define IDB_GEMINI                      187
 #define IDB_BITMAP1                     188
-#define IDB_ASICAP                      188
 #define IDI_ICON_INFO                   189
 #define IDB_BITMAP2                     193
-#define IDB_CRITICAL                    193
 #define IDB_BITMAP3                     194
 #define IDB_BITMAP4                     195
-#define IDB_INFORMATION                 195
 #define IDB_BITMAP5                     196
-#define IDB_QUESTION                    196
 #define IDI_ICON_EXCLAMATION            203
 #define IDI_ICON_EXCLAMATION_SMALL      210
 #define IDB_EXCLAMATION_SMALL           211
 #define IDI_ICON2                       215
 #define IDI_CRITICAL                    215
+#define IDI_ICON_ECO                    245
+#define IDI_ICON_ECO_SMALL              247
+#define IDI_WINJUPOS                    252
+#define IDI_PIPP                        253
+#define IDI_FIRECAPTURE                 254
+#define IDI_GENIKA                      255
+#define IDI_SHARPCAP                    256
+#define IDI_ASICAP                      257
+#define IDI_PLXCapture                  259
+#define IDI_LUCAMRECORDER               260
+#define IDI_ICCAPTURE                   261
+#define IDI_ICON1                       262
+#define IDI_WXASTROCAPTURE              262
+#define IDI_ICON3                       263
+#define IDI_EXCLAMATION_SMALL_BIG       263
 #define IDC_EDIT1                       1004
 #define IDC_EDIT2                       1005
 #define IDC_EDIT3                       1006
@@ -171,7 +178,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        216
+#define _APS_NEXT_RESOURCE_VALUE        264
 #define _APS_NEXT_COMMAND_VALUE         32792
 #define _APS_NEXT_CONTROL_VALUE         1112
 #define _APS_NEXT_SYMED_VALUE           101

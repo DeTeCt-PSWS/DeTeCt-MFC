@@ -78,7 +78,6 @@ public:
 	STDMETHOD(OnProgress)(/* [in] */ ULONG ulProgress, /* [in] */ ULONG ulProgressMax, /* [in] */ ULONG ulStatusCode, /* [in] */ LPCWSTR wszStatusText)
 	{
 		// You can use your own logging function here
-		//opts.message[0] = "test";
 		wprintf(L"Downloaded %d of %d. Status code %d\n", ulProgress, ulProgressMax, ulStatusCode);
 		return S_OK;
 	}
