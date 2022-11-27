@@ -526,7 +526,9 @@ BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
 	SG_Version	version_update = { 10, 10, 10, 10 };
 	BOOL		update = FALSE;
 
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// DON'T FORGET TO UPDATE ALSO WriteIni AND CDeTeCtMFCDlg::CDeTeCtMFCDlg() for DEFAULT VALUES!!!
+	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	version_update.Major		= 3;
 	version_update.Minor		= 4;
@@ -563,6 +565,17 @@ BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
 		update = TRUE;
 	}
 
+	version_update.Major = 3;
+	version_update.Minor = 6;
+	version_update.Revision = 1;
+	version_update.SubRevision = 0;
+	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+		opts.detail = FALSE;				// to size down zip files
+		opts.impact_confidence_min = 2.10;	// to improve detection		// was not set as default in 3.6.0
+		WriteIni();
+		update = TRUE;
+	}
+	
 	return update;
 }
 

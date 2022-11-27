@@ -280,6 +280,17 @@ void get_folder(const char *src, char *dst)
 	}
 }
 
+bool file_exists(const char* fname)
+{
+	FILE* file;
+	if ((file = fopen(fname, "r")))
+	{
+		fclose(file);
+		return true;
+	}
+	return false;
+}
+
 void	ErrorExit(const bool display_msgbox, const char *title, const char *function, const char *text) {	
 	char fulltext[MAX_STRING];
 	char fulltitle[MAX_STRING];

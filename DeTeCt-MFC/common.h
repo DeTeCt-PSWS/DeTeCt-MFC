@@ -60,6 +60,7 @@ extern "C" {
 
 	void 	get_fileextension(const char *src, char *dst, int max);
 	void 	get_folder(const char *src, char *dst);
+	bool	file_exists(const char* fname);
 	
 	void	ErrorExit(const bool display_msgbox,	const char *title, const char* function, const char *text);
 	void	Warning(const bool display_msgbox,		const char *title, const char* function, const char *text);

@@ -5,6 +5,23 @@ Suspended:
 ----------
 Bugfix:			correct darkfile comment in log (not reproductable)
 
+Small updates:
+--------------
+GUI:			auto shutdown even if auto exit not checked
+GUI:			clean folders recursively on demand
+GUI:			Advanced option to mofify factor of frames for impact candidate
+				Advanced option to mofify min duration for impact candidate
+				Advanced option to mofify max distance for high impact probability
+				Advanced option to mofify min average brightness for high impact probability
+				Advanced option to mofify min confidence for high impact probability
+				Advanced option to mofify ROI min pixel brightness
+				Advanced option to mofify ROI min size
+SER format:		logs fps / gain / duration in structure if available
+SER format:		puts datation calculation either fully out or fully in ser header/timestamp reading function
+GUI:			display option for warnings
+Code:			wrapper for Warning() in C++
+Code:			Include filename in SerCapture struct for debug/warnings
+
 Low priority:
 -------------
 GUI:			checkboxes for selecting files/folders to be processed (M.Lewis, Isaac Lozano)
@@ -21,6 +38,7 @@ Medium priority:
 				TBD: generate limited zip files
 GUI:			uses symbols instead of grey checkboxes
 Instances:		logs fps and # of frames in file_processed
+Instances:		check exact processes kills + auto kill windows + kill grand-sons process (image windows)
 Algorithm:		minimum size for flash
 Algorithm:		binning depending on size of planet to decrease computing A.(Wesley)
 Algorithm:		use WJ ims file for initial RoI/center of gravity
@@ -29,26 +47,11 @@ Files:			avi support to be fixed
 
 High priority:
 --------------
-auto shutdown even if auto exit not checked
-clean folders reccursively on demand
-SER format:		logs fps / gain / duration in structure if available
-SER format:		puts datation calculation either fully out or fully in ser header/timestamp reading function
-check distance criteria (not working ?)
-ignore bad centered images (ROI in negative area)
-check exact processes kills + auto kill windows + kill grand-sons process (image windows)
-available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
-available logical processors to adapt # of instances (1 core/instance)
+Instances:		available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+Instances:		available logical processors to adapt # of instances (1 core/instance)
 
-Include filename in SerCapture struct for debug/warnings
-Search as3 file at same location than movie if not found (cf. j20200828 ir685)
+Autostakkert:	Search as3 file at same location than movie if not found (cf. j20200828 ir685)
 Alignement:		*TBD: Detection of bad frames (broken, bars)
-GUI:			Advanced option to mofify factor of frames for impact candidate
-				Advanced option to mofify min duration for impact candidate
-				Advanced option to mofify max distance for high impact probability
-				Advanced option to mofify min average brightness for high impact probability
-				Advanced option to mofify min confidence for high impact probability
-				Advanced option to mofify ROI min pixel brightness
-				Advanced option to mofify ROI min size
 Detection:		Move use min duration in impact candidate function
 				Test max duration for impact candidate
 				Do not draw Null probability crosses
@@ -57,10 +60,14 @@ Algorithm:		attempt to match impact candidates with brightest point in max-mean
 				*detect and ignore artifacts images (sliding brightness average?)
 				*TBD: build histogram of image to determine the bg (like AS does)
 				*TBD: Prioritize as3 over file even if as3 is read after
-
+				check distance criteria (not working ?)
+				ignore bad centered images (ROI in negative area)
+				check GetSimilarity function use
+ROI:			discard bad frames but continue till number of correct frames used
 
 Detection:		Check csv for low positives
 Detection:		Ignore "DSO", "Star"
+
 Files:			Bug in format supported (e.g. mp4) in file selection (works for folder)
 (Detection:		Look for second+ differential photometry (yellow cross) candidates near max brightness (blue cross))
 Detection:		Change color of crosses in case of low/high/error
@@ -97,6 +104,12 @@ Detection:		**stretch black level in detection max-mean/mean images
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+
+v3.6.1
+GUI:			eco logo, wording for auto exit/shutdown
+Bugfix:			Default value for impact minimum confidence
+Bugfix:			Renaming mean and max-mean files (provoking exit before log done) (S. Walsh)
+--------------------------------------------------------------------------------------
 v3.6.0
 Detection:		PIPP support: look for integrity to analyze PIPP file (usage of options info in log file)
 Datation:		Additionnal support for:

@@ -278,7 +278,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.impact_distance_max = std::stod(optionStr);
 						::GetPrivateProfileString(L"impact",L"impact_max_avg_min",		L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_max_avg_min = std::stod(optionStr);
-						::GetPrivateProfileString(L"impact",L"impact_confidence_min",	L"3.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+						::GetPrivateProfileString(L"impact",L"impact_confidence_min",	L"2.10", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_confidence_min = std::stod(optionStr);
 	opts.histScale = 1;
 	opts.show_detect_image =	::GetPrivateProfileInt(L"view",		L"detect",					TRUE, DeTeCtIniFilename);

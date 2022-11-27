@@ -1962,6 +1962,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 				}
 
 				if ((nframe > 0) && (strlen(rating_filename_suffix) > 0)) {
+					init_string(tmpstring);
+					init_string(tmpstring2);
 					sprintf(tmpstring, "_%s", rating_filename_suffix);
 					strcpy(rating_filename_suffix, tmpstring);
 					if (opts.detail) rename_replace(dtc_full_filename(opts.ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2), "details", "detect()");
@@ -3478,16 +3480,19 @@ void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const 
 int rename_replace(const char *src, const char *dest, const char *foldername, char* function) {
 	char				errnostring[MAX_STRING] = { 0 };
 	int					return_value = 0;
-
-	if (strcmp(src,dest) !=0) if (filesys::exists(dest)) remove(dest);
-	if (rename(src, dest) != 0) {
-		return_value = errno;
-		strcpy(errnostring, strerror(return_value));
-		char msgtext[MAX_STRING] = { 0 };
-		char shorttext[MAX_STRING] = { 0 };
-		snprintf(shorttext, MAX_STRING, "cannot rename file in %s folder", foldername);
-		snprintf(msgtext, MAX_STRING, "cannot rename file %s to %s in %s folder (error %s)\n", src, dest, foldername, errnostring);
-		Warning(WARNING_MESSAGE_BOX, shorttext, function, msgtext);
+		
+	bool same_file = strcmp(src, dest);
+	if (!same_file) {							//strcmp(src, dest)!=0 does not work ???
+		if (file_exists(dest)) remove(dest);	//if (filesys::exists(CString2string((CString)dest))) does not work
+		if (rename(src, dest) != 0) {
+			return_value = errno;
+			strcpy(errnostring, strerror(return_value));
+			char msgtext[MAX_STRING] = { 0 };
+			char shorttext[MAX_STRING] = { 0 };
+			snprintf(shorttext, MAX_STRING, "cannot rename file in %s folder", foldername);
+			snprintf(msgtext, MAX_STRING, "cannot rename file %s to %s in %s folder (error %s)\n", src, dest, foldername, errnostring);
+			Warning(WARNING_MESSAGE_BOX, shorttext, function, msgtext);
+		}
 	}
 	return return_value;
 }
