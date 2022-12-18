@@ -75,13 +75,13 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 				capt = NULL;
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read fits file %s\n", fname);
-				Warning(WARNING_MESSAGE_BOX, "cannot read fits file", "dtcCaptureFromFile2()", msgtext);
+				Warning(WARNING_MESSAGE_BOX, "cannot read fits file", __func__, msgtext);
 				//exit(EXIT_FAILURE);
 				return NULL;
 			}
 			capt->framecount = (int)capt->u.filecapture->FrameCount;
 		}
-		else if ((!strcmp(ext, "bmp")) || (!strcmp(ext, "dib")) || (!strcmp(ext, "jpeg")) || (!strcmp(ext, "jpg")) || (!strcmp(ext, "jpe")) || (!strcmp(ext, "jp2")) || (!strcmp(ext, "png")) || (!strcmp(ext, "pbm")) || (!strcmp(ext, "pgm")) || (!strcmp(ext, "ppm")) || (!strcmp(ext, "sr")) || (!strcmp(ext, "ras")) || (!strcmp(ext, "tiff")) || (!strcmp(ext, "tif"))) {
+		else if ((!strcmp(ext, "bmp")) || (!strcmp(ext, "jpg")) || (!strcmp(ext, "jpeg")) || (!strcmp(ext, "jp2")) || (!strcmp(ext, "dib")) || (!strcmp(ext, "png")) || (!strcmp(ext, "pbm")) || (!strcmp(ext, "pgm")) || (!strcmp(ext, "ppm")) || (!strcmp(ext, "sr")) || (!strcmp(ext, "ras")) || (!strcmp(ext, "tif")) || (!strcmp(ext, "tiff"))) {
 			capt->type = CAPTURE_FILES;
 			capt->u.filecapture = NULL;
 			if (!(capt->u.filecapture = FileCaptureFromFile(fname, pframecount, capt->type)))
@@ -89,8 +89,10 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 				free(capt);
 				capt = NULL;
 				char msgtext[MAX_STRING] = { 0 };
-				snprintf(msgtext, MAX_STRING, "cannot read fits file %s\n", fname);
-				Warning(WARNING_MESSAGE_BOX, "cannot read fits file", "dtcCaptureFromFile2()", msgtext);
+				char exttext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot read %s file %s\n", ext, fname);
+				snprintf(exttext, MAX_STRING, "cannot read %s file\n", ext);
+				Warning(WARNING_MESSAGE_BOX, exttext, __func__, msgtext);
 				//exit(EXIT_FAILURE);
 				return NULL;
 			}
@@ -111,7 +113,7 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 				capt = NULL;
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read capture file %s\n", fname);
-				Warning(WARNING_MESSAGE_BOX, "cannot read capture file", "dtcCaptureFromFile2()", msgtext);
+				Warning(WARNING_MESSAGE_BOX, "cannot read capture file", __func__, msgtext);
 				//exit(EXIT_FAILURE);
 				return NULL;
 			}

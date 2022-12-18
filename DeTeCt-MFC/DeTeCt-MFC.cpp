@@ -250,9 +250,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// Free memory allocated for CommandLineToArgvW arguments.
 	LocalFree(szArglist);
 
-	std::for_each(DeTeCtName.begin(), DeTeCtName.end(), [](char& c) {
-		c = (char) ::tolower(c);
-		});
+	lowercase_string(&DeTeCtName);
 	BOOL param_instances = FALSE;
 	BOOL param_dtcpid = FALSE;
 	BOOL param_aspid = FALSE;
@@ -269,9 +267,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 			//std::string param_org(wparam.begin(), wparam.end());
 			std::string param_org = wstring2string(wparam);
 
-			std::for_each(param.begin(), param.end(), [](char& c) {
-				c = (char) ::tolower(c);
-				});
+			lowercase_string(&param);
 			while (param.find('\n') != std::string::npos) param.erase(param.find('\n'), 2);
 			param_used = FALSE;
 			// Gets number of maxinstances
@@ -414,7 +410,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 									if (_fullpath(buffer, object.c_str(), MAX_STRING) == NULL) {
 										 char msgtext[MAX_STRING] = { 0 };							
 										snprintf(msgtext, MAX_STRING, "cannot construct full path %s", object.c_str());
-										ErrorExit(TRUE, "cannot construct full path", "InitInstance()", msgtext);
+										ErrorExit(TRUE, "cannot construct full path", __func__, msgtext);
 									};
 									target_file = std::string(buffer);
 								}
@@ -446,7 +442,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 									if (_fullpath(buffer, object.c_str(), MAX_STRING) == NULL) {
 										 char msgtext[MAX_STRING] = { 0 };
 										snprintf(msgtext, MAX_STRING, "cannot construct full path %s", object.c_str());
-										ErrorExit(TRUE, "cannot construct full path", "InitInstance()", msgtext);
+										ErrorExit(TRUE, "cannot construct full path", __func__, msgtext);
 									};
 									target_folder = std::string(buffer);
 								}
@@ -620,7 +616,7 @@ if (opts.debug) {
 	//DBOUT("DBOUT test " << "\n");	// works
 	//fprintf(stderr, "stderr test\n"); // does not work
 	//fprintf(stdout, "stdout test\n"); // does not work
-	//Warning(WARNING_MESSAGE_BOX, "Warning test", "main()", "Warning display test"); // works
+	//Warning(WARNING_MESSAGE_BOX, "Warning test", __func__, "Warning display test"); // works
 
 // **********************************************************
 // *********************** MFC INIT *************************
@@ -731,11 +727,6 @@ void CreateQueueFileName() {
 	}
 	else {											// normal mode, no queue
 		strcpy(opts.DeTeCtQueueFilename, "");
-// Debug
-//CString pid_cstring;
-//pid_cstring.Format(L"%d", GetCurrentProcessId());
-//CString2char(DeTeCt_additional_filename_exe_fullpath(CString(_T(DTC_QUEUE_PREFIX)) + _T("_dtc") + pid_cstring + _T(DTC_QUEUE_EXT)), opts.DeTeCtQueueFilename);
-// Debug
-	opts.parent_instance = TRUE;
+		opts.parent_instance = TRUE;
 	}
 }

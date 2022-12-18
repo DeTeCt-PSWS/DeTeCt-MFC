@@ -31,6 +31,8 @@ GUI:			Identify Win11
 Firecapture:	code for live detection
 General:		video card offload library usage (OpenCL) (A.Wesley)
 Dev:			cleans includes in headers vs sources
+Dev:			Dev. subrevision automatic version update for subscribers
+Dev:			Expose only needed functions
 
 Medium priority:
 ----------------
@@ -43,12 +45,23 @@ Algorithm:		minimum size for flash
 Algorithm:		binning depending on size of planet to decrease computing A.(Wesley)
 Algorithm:		use WJ ims file for initial RoI/center of gravity
 WinJupos:		use of planet and equatorial radius information from measurement files (incl. from derotation file)
-Files:			avi support to be fixed
 
 High priority:
 --------------
+Bugs
+----
+Bad count 268/306 for 10 instances on dataset
+DeTeCt launch after single instance ? test on dataset
+Slowness in files acquisition addition
+
+FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
+Files:			avi support to be fixed (opencv3+? see https://www.geeksforgeeks.org/opencv-c-windows-setup-using-visual-studio-2019/)
+
+Functionalities
+---------------
 Instances:		available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
 Instances:		available logical processors to adapt # of instances (1 core/instance)
+Instances:		optimize multi instance mode by reordering processing list by acquisition size - not to be done if # of files <= absolute max instances
 
 Autostakkert:	Search as3 file at same location than movie if not found (cf. j20200828 ir685)
 Alignement:		*TBD: Detection of bad frames (broken, bars)
@@ -68,7 +81,6 @@ ROI:			discard bad frames but continue till number of correct frames used
 Detection:		Check csv for low positives
 Detection:		Ignore "DSO", "Star"
 
-Files:			Bug in format supported (e.g. mp4) in file selection (works for folder)
 (Detection:		Look for second+ differential photometry (yellow cross) candidates near max brightness (blue cross))
 Detection:		Change color of crosses in case of low/high/error
 Detection:		Scan directory
@@ -79,14 +91,11 @@ Detection:		Do not draw blue cross when null qualification
 Autostakkert:	Log AS3 (median quality)
 Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
 GUI:			Advertise contributions by displaying current impact frequency estimation
-				TBD: slowness in files acquisition addition (fileget_name to be optimized with readdir)
 				**Extra tool to analyze images
 Instances:		Children list to optimize exit
 				Children count to stop processes scan
 				TBD: optimize children count process
 				TBD: InstanceType to modify with GetIntParam?
-Development:	Dev. subrevision automatic version update for subscribers
-				Expose only needed functions
 GUI:			Pause/Resume button (M.Lewis)
 GUI:			Exit mode for all instances (like Pause/Resume)
 GUI:			Resume option after quitting detect (through  noreprocessing option and flags to identify impact directories aborted/processing ongoing) (Alexandros)
@@ -96,7 +105,6 @@ ROI:			Scan of 90° from cog to edge (for Saturn)
 				Increase size of ROI (Martin)
 				TBD: Use as3 ROI
 				*TBD: build histogram of image to determine the bg (like AS does)
-FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
 Detection:		*ignore off planet impact detection (check level of background?)
 Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
 Detection:		**stretch black level in detection max-mean/mean images
@@ -104,7 +112,17 @@ Detection:		**stretch black level in detection max-mean/mean images
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
-
+v3.6.2
+Detection:		Speed improvement (~60%) in multi instances mode (processing bigger acquisitions first)
+Files:			Improvement of numbering detection in filename
+GUI:			Improvement of selection/processing interface
+Log:			Sort detect.log per fullpath filename
+Log:			Format PID # (0*)
+Bugfix:			Rating in detection images filenames
+Bugfix:			Datation if PIPP capture exists and has 1 frame
+Bugfix:			1/01/03->0001/01/03 for invalid date in log (allows sorting)
+Dev:			IDE moved to VS2022
+--------------------------------------------------------------------------------------
 v3.6.1
 GUI:			eco logo, wording for auto exit/shutdown
 Bugfix:			Default value for impact minimum confidence

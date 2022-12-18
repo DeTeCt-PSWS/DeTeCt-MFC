@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include <cassert>
+//#include <cassert>
 #include <stdint.h>
 
 #include "serfmt.h"
@@ -45,7 +45,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 		{
 			char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext,MAX_STRING, "cannot open %s ser file\n", fname);
-			Warning(WARNING_MESSAGE_BOX, "cannot open ser file", "serCaptureFromFile()", msgtext);
+			Warning(WARNING_MESSAGE_BOX, "cannot open ser file", __func__, msgtext);
 			//exit(EXIT_FAILURE);
 			return NULL;
 		}
@@ -61,7 +61,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 		{
 			char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext,MAX_STRING, "cannot read %s ser header\n", fname);
-			Warning(WARNING_MESSAGE_BOX, "cannot read ser header", "serCaptureFromFile()", msgtext);
+			Warning(WARNING_MESSAGE_BOX, "cannot read ser header", __func__, msgtext);
 			fclose(sc->fh);
 			//exit(EXIT_FAILURE);
 			return NULL;
@@ -315,7 +315,7 @@ void serReinitCaptureRead(SerCapture *sc,const char *fname)
 	if (fread(buffer, sizeof (char), SER_HEADER_SIZE, sc->fh) != SER_HEADER_SIZE) {
 		char msgtext[MAX_STRING] = { 0 };									
 		snprintf(msgtext, MAX_STRING, "wrong header size in %s", fname);
-		ErrorExit(TRUE, "wrong header size", "serReinitCaptureRead()", msgtext);
+		ErrorExit(TRUE, "wrong header size", __func__, msgtext);
 		//exit(EXIT_FAILURE);		
 	}
 /*	if (!(fsetpos(sc->fh, (fpos_t) (SER_HEADER_SIZE))))
@@ -429,7 +429,7 @@ void serReleaseCapture(SerCapture *sc)
 		if (!(fclose(sc->fh) == 0)) {
 			char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext,MAX_STRING, "cannot close capture file\n");
-			Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "serReleaseCapture()", msgtext);
+			Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
 			//exit(EXIT_FAILURE);
 		}
 		/*											if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
@@ -789,12 +789,12 @@ void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
 		if (!ignore) {
 			 char msgtext[MAX_STRING] = { 0 };										
 			snprintf(msgtext, MAX_STRING, "cannot read ser frame %zd", sc->frame);
-			ErrorExit(TRUE, "cannot read ser frame", "serQueryFrame()", msgtext);
+			ErrorExit(TRUE, "cannot read ser frame", __func__, msgtext);
 		} else {
 			(*perror) = 1;
 			 char msgtext[MAX_STRING] = { 0 };	
 			snprintf(msgtext, MAX_STRING, "cannot read ser frame #%zd and above (%zd missing till frame #%zd)", sc->frame, sc->header.FrameCount - sc->ValidFrameCount, sc->header.FrameCount);
-			Warning(WARNING_MESSAGE_BOX, "cannot read ser frame", "serQueryFrame()", msgtext);
+			Warning(WARNING_MESSAGE_BOX, "cannot read ser frame", __func__, msgtext);
 		}
 	}
 	sc->current_frame++;

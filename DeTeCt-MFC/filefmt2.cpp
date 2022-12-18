@@ -439,7 +439,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 	if (!(fc->fh = fopen(filename, "rb"))) {
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot open %s file (frame %d/%d)", filename, fc->frame, fc->LastFileIdx);
-		ErrorExit(TRUE, "cannot open file", "fileQueryFrame2()", msgtext);
+		ErrorExit(TRUE, "cannot open file", __func__, msgtext);
 	}
 	switch (fc->FileType) {
 	case CAPTURE_FITS:
@@ -452,19 +452,19 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 				if (fclose(fc->fh) != 0) {
 					 char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
-					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
 					//exit(EXIT_FAILURE);
 				}
 				free(header);
 				if (!ignore) {
 					 char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
-					ErrorExit(TRUE, "cannot read fits header", "fileQueryFrame2()", msgtext);
+					ErrorExit(TRUE, "cannot read fits header", __func__, msgtext);
 				}
 				else {
 					 char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
-					Warning(WARNING_MESSAGE_BOX, "cannot read fits header", "fileQueryFrame2()", msgtext);
+					Warning(WARNING_MESSAGE_BOX, "cannot read fits header", __func__, msgtext);
 					(*perror) = 1;
 					return fc->image;
 				}
@@ -474,19 +474,19 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 					if (fclose(fc->fh) != 0) {
 						 char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
-						Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+						Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
 					}
 					free(header);
 					if (!ignore) {
 						 char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
-						ErrorExit(TRUE, "cannot read fits frame", "fileQueryFrame2()", msgtext);
+						ErrorExit(TRUE, "cannot read fits frame", __func__, msgtext);
 					}
 					else {
 						fc->ValidFrameCount--;
 						 char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
-						Warning(WARNING_MESSAGE_BOX, "cannot read fits frame", "fileQueryFrame2()", msgtext);
+						Warning(WARNING_MESSAGE_BOX, "cannot read fits frame", __func__, msgtext);
 						(*perror) = 1;
 						return fc->image;
 					}
@@ -503,11 +503,11 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 				if (fclose(fc->fh) != 0) {
 					char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
-					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
 				}
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
-				ErrorExit(TRUE, "cannot read frame", "fileQueryFrame2()", msgtext);
+				ErrorExit(TRUE, "cannot read frame", __func__, msgtext);
 			}
 			else {
 				fc->ValidFrameCount--;
@@ -515,7 +515,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 				(*perror) = 1;
 				 char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
-				Warning(WARNING_MESSAGE_BOX, "cannot read frame", "fileQueryFrame2()", msgtext);
+				Warning(WARNING_MESSAGE_BOX, "cannot read frame", __func__, msgtext);
 				/*if (fclose(fc->fh) != 0) {
 //					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 					exit(EXIT_FAILURE);
@@ -535,7 +535,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 	if (fclose(fc->fh) != 0) {
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
-		Warning(WARNING_MESSAGE_BOX, "cannot close capture file", "fileQueryFrame2()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
 		//exit(EXIT_FAILURE);
 	}
 
@@ -682,14 +682,14 @@ void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 		if (closedir(dir) != 0) {
 			char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext, MAX_STRING, "cannot close directory %s)", fc->filename_folder);
-			Warning(WARNING_MESSAGE_BOX, "cannot close directory", "fileGet_filename()", msgtext);
+			Warning(WARNING_MESSAGE_BOX, "cannot close directory", __func__, msgtext);
 			//exit(EXIT_FAILURE);
 		}
 	}
 	else {
 		char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot open directory %s\n", fc->filename_folder);
-		Warning(WARNING_MESSAGE_BOX, "cannot open directory", "fileGet_filename()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "cannot open directory", __func__, msgtext);
 	}
 	if (found != 1) {
 		strcpy(dest, "");

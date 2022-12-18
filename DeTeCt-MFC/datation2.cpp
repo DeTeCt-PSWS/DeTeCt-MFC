@@ -18,6 +18,7 @@
 #include "datation2.h"
 //#include "dtc.h"	//not used
 #include "common2.h"
+#include <numeric>      // std::iota
 
 
 /**********************************************************************************************//**
@@ -55,7 +56,8 @@ void fprint_jd_wj(std::ofstream *stream, const double jd)
 		min_frac = (long)(precision - 1);
 	}
 
-	*stream << year << "/" << std::setfill('0') << std::setw(2) << month << "/" << std::setfill('0') << std::setw(2) << 
+	//*stream << year << "/" << std::setfill('0') << std::setw(2) << month << "/" << std::setfill('0') << std::setw(2) <<
+	*stream << std::setfill('0') << std::setw(4) << year << "/" << std::setfill('0') << std::setw(2) << month << "/" << std::setfill('0') << std::setw(2) <<
 		day << " " << std::setfill('0') << std::setw(2) << hour << ":" << std::setfill('0') << std::setw(2) << min;
 	*stream << "," << std::setfill('0') << std::setw(6) << (int)min_frac;
 }
@@ -343,7 +345,7 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 		char tmpline[MAX_STRING];
 										
 		snprintf(msgtext, MAX_STRING, "cannot find log file %s", CString2char(output_filename, tmpline));
-		ErrorExit(TRUE, "cannot find log file", "dtcWriteLog2()", msgtext);
+		ErrorExit(TRUE, "cannot find log file", __func__, msgtext);
 	}
 	*pwaitms += NbWaitedUnlockedFile(output_filename, FILEACCESS_WAIT_MS);
 	std::ofstream output_file(output_filename, std::ios_base::app);
@@ -586,6 +588,66 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 	else (*logline) << ";;;;;;;;;;;;;;;;;";
 	(*logline) << "\n";
 }
+
+bool compare_string_fullfilenames(std::string string1, std::string string2) {
+	std::string path1		= string1.substr(0, string1.find_last_of("\\"));
+	std::string path2		= string2.substr(0, string2.find_last_of("\\"));
+	std::string filename1	= string1.substr(string1.find_last_of("\\") + 1, string1.size() - (string1.find_last_of("\\") + 1));
+	std::string filename2	= string2.substr(string2.find_last_of("\\") + 1, string2.size() - (string2.find_last_of("\\") + 1));
+	size_t min_path_size = MIN(path1.size(), path2.size());
+	lowercase_string(&path1);
+	lowercase_string(&path2);
+	lowercase_string(&filename1);
+	lowercase_string(&filename2);
+
+	if (path1.compare(path2) == 0)														return (filename1 < filename2);
+	if (path1.size() == path2.size())													return (path1 < path2);
+	if (path1.substr(0, min_path_size).compare(path2.substr(0, min_path_size)) == 0)	return (path1 < path2);
+																						return (path1.substr(0, min_path_size) < path2.substr(0, min_path_size));
+}
+
+void dtcSortLog(const char* source_filename, const char* dest_filename) {
+	std::vector<std::string>	lines;
+	std::vector<std::string>	sort_fields;
+	int nb_header_lines = 3;
+	std::string line;
+
+/*	//Writes header
+	dtcWriteLogHeader(dest_filename);
+	//Count header lines #
+	std::ifstream TmpFile(dest_filename, std::ifstream::in);
+	while (std::getline(TmpFile, line)) nb_header_lines++;
+	TmpFile.close();*/
+
+	//Read input file ignoring header
+	std::ifstream InputFile(source_filename, std::ifstream::in);
+	std::ofstream OutputFile(dest_filename, std::ofstream::out);
+	int nb_lines = 0;
+	while (std::getline(InputFile, line)) {
+		if (nb_lines < nb_header_lines) OutputFile << line << std::endl;
+		else {
+			lines.push_back(line);
+			sort_fields.push_back(line.substr(134, 389-134));
+		}
+		nb_lines++;
+	}
+	InputFile.close();
+
+	//Sorts field
+	// sort indexes based on comparing values in v using std::stable_sort instead of std::sort to avoid unnecessary index re-orderings when v contains elements of equal values 
+	//vector<size_t> sort_indexes(const vector<T>& v) {
+	std::vector<size_t> sorted_indexes(lines.size());
+	iota(sorted_indexes.begin(), sorted_indexes.end(), 0);
+	stable_sort(sorted_indexes.begin(), sorted_indexes.end(), [&](size_t i1, size_t i2) {return compare_string_fullfilenames(sort_fields[i1], sort_fields[i2]); });
+
+	//Write sorted file
+//	std::ofstream OutputFile(dest_filename, std::ios_base::app);
+	size_t index = 0;
+	while (index < sorted_indexes.size()) OutputFile << lines[sorted_indexes[index++]] << std::endl;
+	OutputFile.close();
+}
+
+
 
 /**********************************************************************************************//**
  * @fn	std::stringstream getRunTime()

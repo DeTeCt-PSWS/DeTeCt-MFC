@@ -473,7 +473,7 @@ BOOL GetProcessedFileFromQueue(CString *processed_filename, CString *processed_f
 		 char msgtext[MAX_STRING] = { 0 };
 		char tmpline[MAX_STRING];
 		snprintf(msgtext, MAX_STRING, "cannot find acquisition queue file %s", CString2char(QueueFilename, tmpline));
-		ErrorExit(TRUE, "queue file not found", "GetProcessedFileFromQueue()", msgtext);  	// exits DeTeCt if Queuefile does not exists
+		ErrorExit(TRUE, "queue file not found", __func__, msgtext);  	// exits DeTeCt if Queuefile does not exists
 	}
 	CString	processed_line;
 	BOOL	status;

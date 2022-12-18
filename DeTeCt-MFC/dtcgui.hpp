@@ -123,6 +123,7 @@ struct AcquisitionFilesList {
 	std::vector<std::string> file_list				= {};
 	std::vector<std::string> acquisition_file_list	= {};
 	std::vector<int>		 nb_prealigned_frames	= {};
+	std::vector<int64>		 acquisition_size		= {};
 };
 
 enum class _Instance_type { autostakkert_parent, parent, autostakkert_single, single, autostakkert_child, child };
@@ -147,4 +148,6 @@ void			zip(char *zipfilename, char *item_to_be_zipped, std::wstring output_filen
 Instance_type	DisplayInstanceType(int *nbinstances);
 
 void			WriteIni();
+void			AcquisitionFileListToQueue(AcquisitionFilesList* pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int* acquisitions_to_be_processed);
+
 //BOOL			RemoveFromIni(const CString line_to_remove);

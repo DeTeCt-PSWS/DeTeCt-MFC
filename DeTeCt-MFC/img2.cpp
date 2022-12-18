@@ -8,15 +8,13 @@
 
 //#include "stdafx.h"
 
+
 #include <stdio.h>
 
 #include "img2.h"
 #include "dtc.h"
 #include "wrapper2.h"
 #include "auxfunc.h"
-
-#include "dtcgui.hpp"
-
 
 //#include <opencv2/imgproc.hpp> //TEST opencv3
 
@@ -121,7 +119,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 		perror("ERROR in dtcGetGrayImageROIcCM allocating memory");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayImageROIcCM()", msgtext);
+		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
 	} else {
 		assert(tbuf != NULL);
 		assert(mbuf != NULL);
@@ -275,7 +273,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 		perror("ERROR in dtcGetGrayImageROIcCM2 allocating memory");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayImageROIcCM2()", msgtext);
+		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
 	}
 	else {
 		assert(tbuf != NULL);
@@ -472,7 +470,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 		perror("ERROR in dtcGetGrayImageROI allocating memory");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayImageROI()", msgtext);
+		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
 	}
 	else {
 		assert(tbuf != NULL);
@@ -566,7 +564,7 @@ cv::Rect dtcGetGrayMatROIcCM(cv::Mat *img, cv::Point cm, int medsize, double fac
 		DBOUT("ERROR in dtcGetGrayMatROIcCM allocating memory\n");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", "dtcGetGrayMatROIcCM()", msgtext);
+		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
 	} else {
 		assert(tbuf != NULL);
 		assert(mbuf != NULL);

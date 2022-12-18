@@ -30,17 +30,26 @@
 
 #include <direct.h>
 
+#include <numeric>      // std::iota
+#include <algorithm>    // std::sort, std::stable_sort
+
+#ifndef _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#endif
+#include <experimental\filesystem>
+namespace filesys = std::experimental::filesystem;
+
 //#include <opencv2/imgproc.hpp>  //TEST opencv3
 
 void			LogString(CString log_cstring, CString output_filename, int *log_counter, BOOL GUI_display, int* pwaitms);
 int				GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename, clock_t* computing_threshold_time, clock_t* end, clock_t computing_refresh_duration, clock_t begin, clock_t begin_total);
+int			GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_index_children, int* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* computing_threshold_time, clock_t* end, clock_t computing_refresh_duration, clock_t begin, clock_t begin_total);
 int				ForksInstances(const int maxinstances, const int PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances);
 int				ASorDeTeCtPID(const int AutoStakkert_ID, const int DeTeCt_PID);
 void			DisplayProcessingTime(clock_t *pcomputing_threshold_time, clock_t *plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time);
 CString			TotalType();
 Instance_type	InstanceType(CString *pinstance_text);
-void			AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int *acquisitions_to_be_processed);
-int				rename_replace(const char* src, const char* dest, const char* foldername, char* function);
+int				rename_replace(const char* src, const char* dest, const char* foldername, const char* function);
 
 /** @brief	Options for the algorithm */
 
@@ -68,19 +77,19 @@ extern CDeTeCtMFCDlg dlg;
  **************************************************************************************************/
 
 void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
-	DIR *directory;
-	struct dirent *entry;
-	std::string acquisition_file;
+	DIR				*directory;
+	struct dirent	*entry;
+	std::string		acquisition_file;
 
-	std::vector<std::string> supported_videoext				= { "m4v", "avi", "ser", "wmv" , "mp4", "mov"};
-	std::vector<std::string> supported_fileext				= { "bmp", "jpg", "jpeg", "jp2", "dib", "png", "p?m", "sr", "ras", "tif", "tiff", "fit", "fits" };
+	std::vector<std::string> supported_videoext				= { VIDEOS_EXT };
+	std::vector<std::string> supported_fileext				= { FILES_EXT };
 	std::vector<std::string> supported_otherext				= { AUTOSTAKKERT_EXT };
 	// Syntax files:
 	// F0.* *0000_*.* *_000000.*  *_000001.* *_00000.* *_00001.* *_0000.* *_0001.* *_0.tif nb1.*
-	// supported 0/1 number inside filename
-	std::vector<std::string> supported_filename_number		= {  "000000_", "000001_", "00000_", "00001_", "0000_", "0001_", "000000",  "000001",   "00000",  "00001",  "0000",  "0001" };
 	// supported 0/1 number syntax for full filename
-	std::vector<std::string> supported_fullfilename_number	= { "_000000.","_000001.","_00000.","_00001.","_0000.","_0001.", "000000.", "000001.",  "00000.", "00001.", "0000.", "0001.", "F0.", "nb1.", "_0." };
+	std::vector<std::string> supported_fullfilename_number = { FULLFILENAME_NUMBER };
+	// supported 0/1 number inside filename
+	std::vector<std::string> supported_filename_number		= { FILENAME_NUMBER };
 
 	// ignored dtc own files
 	std::vector<std::string> not_supported_suffix = { DTC_MAX_MEAN_SUFFIX, DTC_MAX_MEAN1_SUFFIX, DTC_MAX_MEAN2_SUFFIX, DTC_MEAN_SUFFIX, DTC_MEAN2_SUFFIX,
@@ -103,9 +112,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 		else {
 			std::string file(entry->d_name);
 			std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
-			std::for_each(extension.begin(), extension.end(), [](char& c) {
-				c = (char) ::tolower(c);
-				});
+			lowercase_string(&extension);
 
 			acquisition_file = "";
 			if (std::find(supported_videoext.begin(), supported_videoext.end(), extension) != supported_videoext.end()) { //video file
@@ -113,12 +120,17 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 				acquisition_file = folder + "\\" + entry->d_name;
 				acquisition_files->acquisition_file_list.push_back(acquisition_file);
 				acquisition_files->nb_prealigned_frames.push_back(0);
+				acquisition_files->acquisition_size.push_back(filesize(acquisition_file.c_str()));
 			}
 			else if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) { // file extensions
 				int found = false;
 				for (std::string filename_number : supported_fullfilename_number) { // number just before extension
 					if (file.find(filename_number) != std::string::npos) {
 						found = true;
+						/*if (isNumeric(file.substr(file.find(filename_number) + filename_number.length() + 1, 1))) {
+							found = false;
+								break;
+						}*/
 						for (std::string suffix : not_supported_suffix) {		// no  detect suffix
 							if (file.find(suffix) != std::string::npos) {
 								found = false;
@@ -148,6 +160,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 					acquisition_file = folder + "\\" + entry->d_name;
 					acquisition_files->acquisition_file_list.push_back(acquisition_file);
 					acquisition_files->nb_prealigned_frames.push_back(0);
+					acquisition_files->acquisition_size.push_back(filesize(acquisition_file.c_str()));
 					//break;			//avoid picking *1, *10-*19 when *0 or *1 found
 				}
 			}
@@ -164,6 +177,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 						acquisition_files->file_list.push_back(folder + "\\" + entry->d_name);
 						acquisition_files->acquisition_file_list.push_back(acquisition_file);
 						acquisition_files->nb_prealigned_frames.push_back(MIN(cm_list_end - cm_list_start+1, cm_frame_count));
+						acquisition_files->acquisition_size.push_back(filesize(acquisition_file.c_str()));
 					}
 				}
 				else {
@@ -171,6 +185,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 					acquisition_file = folder + "\\" + entry->d_name;
 					acquisition_files->acquisition_file_list.push_back(acquisition_file);
 					acquisition_files->nb_prealigned_frames.push_back(0);
+					acquisition_files->acquisition_size.push_back(filesize(acquisition_file.c_str()));
 				}
 			}
 		}
@@ -180,6 +195,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 	std::vector<cv::String>::iterator acquisition_files_vector_string =	acquisition_files->file_list.begin();
 	acquisition_files_vector_string =									acquisition_files->acquisition_file_list.begin();
 	std::vector<int>::iterator acquisition_files_vector_int =			acquisition_files->nb_prealigned_frames.begin();
+	std::vector<int64>::iterator acquisition_files_vector_long =		acquisition_files->acquisition_size.begin();
 	for (int i = 0; i < acquisition_files->file_list.size(); i++) {
 		std::string file = acquisition_files->file_list.at(i);
 		std::string extension = file.substr(file.find_last_of(".") + 1, file.length());
@@ -198,6 +214,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 					acquisition_files->file_list.erase(acquisition_files->file_list.begin() + j);
 					acquisition_files->acquisition_file_list.erase(acquisition_files->acquisition_file_list.begin() + j);
 					acquisition_files->nb_prealigned_frames.erase(acquisition_files->nb_prealigned_frames.begin() + j);
+					acquisition_files->acquisition_size.erase(acquisition_files->acquisition_size.begin() + j);
 					if (j < i) i--;
 				}
 				else {
@@ -205,6 +222,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 					acquisition_files->file_list.erase(acquisition_files->file_list.begin() + i);
 					acquisition_files->acquisition_file_list.erase(acquisition_files->acquisition_file_list.begin() + i);
 					acquisition_files->nb_prealigned_frames.erase(acquisition_files->nb_prealigned_frames.begin() + i);
+					acquisition_files->acquisition_size.erase(acquisition_files->acquisition_size.begin() + i);
 					if (i>0) i--;
 				}
 			}
@@ -475,14 +493,16 @@ int impact_detection(DTCIMPACT *dtc, LIST *impact, LIST *candidates, std::vector
 
 int detect(std::vector<std::string> current_file_list, std::string scan_folder_path) {
 	
-	// ******************** INITIALIZATION *********************
+// **************************************************************************
+// ***************************** INITIALIZATION *****************************
+// **************************************************************************
 	clock_t				begin, begin_total, end;
-	const int			wait_imagedisplay_seconds		= 0;					// display time for detection/mean image display (s). No limit if set to 0s (was 3s)
-	int					queue_scan_delay				= CLOCKS_PER_SEC * 2;	// interval waiting time for scanning new jobs (ms)
-	int					queue_scan_delay_random_max		= CLOCKS_PER_SEC;		// additionnal max random waiting time for scanning new jobs (ms)
-	int					check_children_time_factor		= 5;
-	clock_t				computing_refresh_duration		= CLOCKS_PER_SEC / 2;		//interval for refreshing computing time (ms)
-	clock_t				check_threshold_time_inc = wait_imagedisplay_seconds * check_children_time_factor * CLOCKS_PER_SEC;	// for interval for checking children results during parent capture processing
+	int					queue_scan_delay				= CLOCKS_PER_SEC * 2;	// interval waiting time for scanning new jobs (s)
+	int					queue_scan_delay_random_max		= CLOCKS_PER_SEC;		// additionnal max random waiting time for scanning new jobs (s)
+	int					wait_imagedisplay_seconds		= 3;					// display time for detection/mean image display (s). No limit if set to 0s (was 3s)
+	int					check_children_time_factor		= 4;
+	clock_t				check_threshold_time_inc		= wait_imagedisplay_seconds * check_children_time_factor * CLOCKS_PER_SEC;	// for interval for checking children results during parent capture processing
+	clock_t				computing_refresh_duration		= CLOCKS_PER_SEC / 2;	//interval for refreshing computing time (s)
 	int					log_counter						= 0;
 
 	std::stringstream	logline_tmp;
@@ -547,7 +567,7 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 		if (mkdir(detection_folder_fullpathname_string.c_str()) != 0) {
 			char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext, MAX_STRING, "cannot create directory %s", detection_folder_fullpathname_string.c_str());
-			ErrorExit(TRUE, "cannot create directory", "detect()", msgtext);
+			ErrorExit(TRUE, "cannot create directory", __func__, msgtext);
 		}
 	else closedir(dir_tmp);
 	if (opts.detail || opts.allframes) {
@@ -558,7 +578,7 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 			if (mkdir(details_folder_fullpathname_string.c_str()) != 0) {
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext,MAX_STRING, "cannot create directory %s\n", details_folder_fullpathname_string.c_str());
-				Warning(WARNING_MESSAGE_BOX, "cannot create directory", "detect()", msgtext);
+				Warning(WARNING_MESSAGE_BOX, "cannot create directory", __func__, msgtext);
 			}
 		else closedir(dir_tmp);
 	}
@@ -579,7 +599,7 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 	//DBOUT("DBOUT test " << "\n");	// works
 	//fprintf(stderr, "stderr test\n"); // does not work
 	//fprintf(stdout, "stdout test\n"); // does not work
-	//Warning(WARNING_MESSAGE_BOX, "Warning test", "detect()", "Warning display test"); // works
+	//Warning(WARNING_MESSAGE_BOX, "Warning test", __func__, "Warning display test"); // works
 
 	dtcWriteLogHeader(log_consolidated_directory);
 	dtcWriteLogHeader(log);
@@ -589,55 +609,60 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 	message_init = message_init + _T(" \n");
 	instance_type = InstanceType(&instance_type_cstring);
 	message_init = message_init + instance_type_cstring + _T(" instance");
+	std::wofstream output_log_out(output_log_file.c_str(), std::ios_base::app);
+	std::wifstream parameter_ini_in(DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX));
 	switch (instance_type) {
-	case Instance_type::autostakkert_parent:
-	case Instance_type::parent:
-		message_init = message_init + L", DO NOT CLOSE unless told to do so";
-		queue_scan_delay = FILEACCESS_WAIT_MS;								// waiting time (ms) for scanning new jobs - parent instance
-		queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
-		GUI_display = FALSE;
-		break;
-	case Instance_type::autostakkert_single:
-		message_init = message_init + L", DO NOT CLOSE unless told to do so";
-		queue_scan_delay = FILEACCESS_WAIT_MS;								// waiting time (ms) for scanning new jobs - parent instance
-		queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
-		GUI_display = TRUE;
-		break;
-	case Instance_type::single:
-		queue_scan_delay = FILEACCESS_WAIT_MS;								// waiting time (ms) for scanning new jobs - parent instance
-		queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
-		GUI_display = TRUE;
-		break;
-	case Instance_type::autostakkert_child:
-		message_init = message_init + L", will CLOSE AUTOMATICALLY";
-		//queue_scan_delay = CLOCKS_PER_SEC / 10;				// waiting time (ms) for scanning new jobs - child instance
-		//queue_scan_delay_random_max = CLOCKS_PER_SEC / 2;
-		queue_scan_delay = FILEACCESS_WAIT_MS;
-		queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
-		GUI_display = TRUE;
-		break;
-	case Instance_type::child:
-		message_init = message_init + L", will CLOSE AUTOMATICALLY";
-		//queue_scan_delay = CLOCKS_PER_SEC / 20;				// waiting time (ms) for scanning new jobs - child instance
-		//queue_scan_delay_random_max = CLOCKS_PER_SEC / 2;
-		queue_scan_delay = FILEACCESS_WAIT_MS;
-		queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
-		computing_refresh_duration = CLOCKS_PER_SEC * 60;	// hidden mode for child, do not need to display
-		GUI_display = TRUE;
-		break;
+		case Instance_type::autostakkert_parent:
+		case Instance_type::parent:
+			message_init = message_init + L", DO NOT CLOSE unless told to do so";
+			queue_scan_delay = FILEACCESS_WAIT_MS;								// waiting time (ms) for scanning new jobs - parent instance
+			queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
+			GUI_display = FALSE;
+			//saves detect.ini parameters in output.log
+			output_log_out << "======================================================================================================\n  Parameters:\n";
+			output_log_out << parameter_ini_in.rdbuf();
+			output_log_out << "======================================================================================================\n\n";
+			output_log_out.flush();
+			break;
+		case Instance_type::autostakkert_single:
+			message_init = message_init + L", DO NOT CLOSE unless told to do so";
+			queue_scan_delay = FILEACCESS_WAIT_MS;								// waiting time (ms) for scanning new jobs - parent instance
+			queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
+			GUI_display = TRUE;
+			break;
+		case Instance_type::single:
+			queue_scan_delay = FILEACCESS_WAIT_MS;								// waiting time (ms) for scanning new jobs - parent instance
+			queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
+			GUI_display = TRUE;
+			//saves detect.ini parameters in output.log
+			output_log_out << "======================================================================================================\n  Parameters:\n";
+			output_log_out << parameter_ini_in.rdbuf();
+			output_log_out << "======================================================================================================\n\n";
+			output_log_out.flush();
+			break;
+		case Instance_type::autostakkert_child:
+			message_init = message_init + L", will CLOSE AUTOMATICALLY";
+			//queue_scan_delay = CLOCKS_PER_SEC / 10;				// waiting time (ms) for scanning new jobs - child instance
+			//queue_scan_delay_random_max = CLOCKS_PER_SEC / 2;
+			queue_scan_delay = FILEACCESS_WAIT_MS;
+			queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
+			GUI_display = TRUE;
+			break;
+		case Instance_type::child:
+			message_init = message_init + L", will CLOSE AUTOMATICALLY";
+			//queue_scan_delay = CLOCKS_PER_SEC / 20;				// waiting time (ms) for scanning new jobs - child instance
+			//queue_scan_delay_random_max = CLOCKS_PER_SEC / 2;
+			queue_scan_delay = FILEACCESS_WAIT_MS;
+			queue_scan_delay_random_max = FILEACCESS_WAIT_MS;
+			computing_refresh_duration = CLOCKS_PER_SEC * 60;	// hidden mode for child, do not need to display
+			GUI_display = TRUE;
+			break;
 	}
+	output_log_out.close();
+	parameter_ini_in.close();
 	message_init = message_init + _T("\n");
 	LogString(message_init, output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 	
-	//saves detect.ini parameters in output.log
-	std::wofstream output_log_out(output_log_file.c_str(), std::ios_base::app);
-	std::wifstream parameter_ini_in(DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX));
-	output_log_out << "======================================================================================================\n  Parameters:\n";
-	output_log_out << parameter_ini_in.rdbuf();
-	output_log_out << "======================================================================================================\n\n";
-	output_log_out.flush();
-	output_log_out.close();
-	parameter_ini_in.close();
 	
 	if (opts.parent_instance) {
 		nb_instances = 1; // Forks not launched yet, gain of computing time
@@ -667,8 +692,11 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 	local_acquisition_files_list.file_list = current_file_list;
 	local_acquisition_files_list.acquisition_file_list = current_file_list;
 	local_acquisition_files_list.nb_prealigned_frames = {};
-	for (int i = 0; i < local_acquisition_files_list.file_list.size(); i++) local_acquisition_files_list.nb_prealigned_frames.push_back(0);
-	
+	local_acquisition_files_list.acquisition_size = {};
+	for (int i = 0; i < local_acquisition_files_list.file_list.size(); i++) {
+		local_acquisition_files_list.nb_prealigned_frames.push_back(0);
+		local_acquisition_files_list.acquisition_size.push_back(0);
+	}
 	int acquisition_index = 0;
 	int acquisition_index_children = 0;
 	int acquisitions_processed = 0;
@@ -692,6 +720,13 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 	clock_t computing_threshold_time = 0;
 	clock_t begin_imagedisplay_time = 0;
 	clock_t check_threshold_time = 0;
+
+	clock_t display_update_duration = 0;
+	clock_t processing_update_duration = 0;
+	clock_t instances_update_duration = 0;
+	clock_t start_update_time = 0;
+	int		update_count = 0;
+
 	if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) SetIntParamToQueue(opts.maxinstances, _T("max_instances"), (CString)opts.DeTeCtQueueFilename);
 
 	CDeTeCtMFCDlg::getAuto()->SetCheck(!opts.interactive);
@@ -718,14 +753,19 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 
 	DisplayProcessingTime(&computing_threshold_time, &begin_total, computing_refresh_duration, 0, 0);
 	begin = begin_total;
-	check_threshold_time = begin + (clock_t)(check_threshold_time_inc);
+	check_threshold_time = begin + check_threshold_time_inc;
 	std::string filename;
 
+// **************************************************************************
+// ******************* Start of acquisition processing **********************
+// **************************************************************************
+
+	if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename);
 	do
 	{
 		if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename);
 		else acquisitions_to_be_processed += (int) local_acquisition_files_list.file_list.size();
-
+//		if ((!opts.parent_instance) || (strlen(opts.DeTeCtQueueFilename) == 0)) acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename);
 		while (acquisition_index < local_acquisition_files_list.file_list.size()) {
 			std::string filename_acquisition;
 			filename =				local_acquisition_files_list.file_list.at(acquisition_index);
@@ -792,6 +832,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 			if ((instance_type == Instance_type::single) || (instance_type == Instance_type::autostakkert_single)) message = message + std::to_string(acquisitions_processed + 1) + "/" + std::to_string(acquisitions_to_be_processed) + " : ";
 			message = message + short_filename + " start -----";
 			totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_to_be_processed) + L")";
+//if (opts.parent_instance) LogString(_T("1: parent / children / done / tobe = ") + (CString) (std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString) (std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+
 			CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 			CDeTeCtMFCDlg::getfileName()->SetWindowText(short_filename_wstring.c_str());
 			message_cstring = (filename_wstring).c_str();
@@ -935,6 +977,10 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 			int tempCols = 0;
 			int tempRows = 0;
 
+// ********************************************************************
+// ****************** Start of capture processing *********************
+// ********************************************************************
+
 			try {
 				/*********************************INITIALIZATION******************************************/
 
@@ -950,8 +996,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 					//continue;
 				}
 				frame_number = nframe;
-				// sets progress bar configuration
-				CDeTeCtMFCDlg::getProgress()->SetPos(0);
+				CDeTeCtMFCDlg::getProgress()->SetPos(0);  // sets progress bar configuration
 
 				// ***** Gets datation info from acquisition
 				std::wstringstream pipp_message;
@@ -988,8 +1033,6 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 				fps_int = (int)fps;
 				impact_frames_min = (int)ceil(MAX(opts.incrFrameImpact, fps * opts.impact_duration_min));
 				/*********************************DATE ONLY MODE******************************************/
-				//if (opts.dateonly) {}
-				//if ((opts.dateonly) || (nframe == 0)) {
 				if (opts.dateonly) {
 						if (nframe != 0) LogString(L"Datation for capture of " + (CString)std::to_string(nframe).c_str() + L" frames @ " + (CString)std::to_string(fps_int).c_str() + L" fps", output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 					message = "-------------- " + short_filename + " end --------------";
@@ -1070,7 +1113,9 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 					sprintf_s(buffer2, MAX_STRING, "detect2:				opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);
 					OutputDebugStringA(buffer2);
 
-					/*********************************CAPTURE READING******************************************/
+// *******************************************************************
+// ****************** Start of frames processing *********************
+// *******************************************************************
 					while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
 						cv::medianBlur(pFrame, pFrame, 3);
 						video_duration += (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC);
@@ -1115,7 +1160,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 								}
 							}
 
-							/*******************FIRST FRAME PROCESSING*******************/
+/*******************FIRST FRAME PROCESSING*******************/
 							if (nframe == 1) {
 								pGryMat.copyTo(pFirstFrameROIMat);
 								pGryMat.convertTo(pGryMat, CV_8U);
@@ -1189,7 +1234,10 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 								pROIMat = cv::Mat::zeros(bigROI.size(), pFirstFrameROIMat.type());
 								tempGryMat = cv::Mat::zeros(pFirstFrameROI.size(), pFirstFrameROIMat.type());
 							}
-							/*******************EVERY FRAME PROCESSING*******************/
+// ******************************************************************
+// ****************** Start of frame processing *********************
+// ******************************************************************
+
 							pGryMat.convertTo(pGryMat, CV_8U);
 							if (opts.flat_preparation) pGryFullMat.convertTo(pGryFullMat, CV_8U);
 
@@ -1501,8 +1549,9 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 								}
 							}
 						}
-
+// Regular display update
 						if (clock() > computing_threshold_time) {			// refreshed progress bar and computing time at a limited interval
+start_update_time = clock();
 							if (!opts.parent_instance && !filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) dlg.OnFileExit(); 	// exits DeTeCt if Queuefile does not exists (removed at parent exit) for a child instance. Added because of difficulty to terminate children processes when exiting parent instance
 
 							CDeTeCtMFCDlg::getProgress()->SetPos((short)(MAX_RANGE_PROGRESS * ((float)nframe / (float)frame_number)));
@@ -1512,12 +1561,20 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 							CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
 
 							DisplayProcessingTime(&computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
+display_update_duration += clock() - start_update_time;
 						}
+
 						if ((opts.parent_instance) && (clock() > check_threshold_time)) {
+					//Regular processing update
+update_count++;
+start_update_time = clock();
 							BOOL ExistsProcessedFiles = FALSE;
-							if ((opts.maxinstances > 1) && (strlen(opts.DeTeCtQueueFilename) > 0)) {	// Gets other processed files by other instances
-								double duration_total_others = 0;
-								int nb_processed_files_fetched = GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, opts.DeTeCtQueueFilename, &computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
+							//if ((opts.maxinstances > 1) && (strlen(opts.DeTeCtQueueFilename) > 0)) {	// Gets other processed files by other instances
+							if ((opts.maxinstances > 1) && (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename)))) {	// Gets other processed files by other instances
+									double duration_total_others = 0;
+//if (opts.parent_instance) LogString(_T("6a: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+									int nb_processed_files_fetched = GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, opts.DeTeCtQueueFilename, &computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
+//if (opts.parent_instance) LogString(_T("6b: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 								if (nb_processed_files_fetched > 0) {
 									if (opts.debug) LogString(L"File(s) processed fetched: " + (CString)std::to_string(nb_processed_files_fetched).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 									duration_total += duration_total_others;
@@ -1525,6 +1582,9 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 									ExistsProcessedFiles = TRUE;
 								}
 							}
+processing_update_duration += clock() - start_update_time;
+							//Regular instances update
+start_update_time = clock();
 							maxinstances_previous = opts.maxinstances;
 							if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) opts.maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)opts.DeTeCtQueueFilename);
 							// Forks attempt if more instances possible, maximum # of instances not reached at last check or new files processed (hence child detect process exited)
@@ -1542,10 +1602,14 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 							}
 							check_threshold_time = clock() + check_threshold_time_inc;
 							if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+instances_update_duration += clock() - start_update_time;
 						}
 					}
 
-					// ********************************* END OF CAPTURE READING******************************************
+// *****************************************************************
+// ****************** End of frames processing *********************
+// *****************************************************************
+										
 
 					char buffer3[MAX_STRING] = { 0 };
 					sprintf_s(buffer3, MAX_STRING, "detect2:				opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);
@@ -1713,7 +1777,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 					if (mkdir(dir_csv_name.c_str()) != 0) {
 						char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext,MAX_STRING, "cannot create directory %s\n", dir_csv_name.c_str());
-						Warning(WARNING_MESSAGE_BOX, "cannot create directory", "detect()", msgtext);
+						Warning(WARNING_MESSAGE_BOX, "cannot create directory", __func__, msgtext);
 
 					}
 					else closedir(dir_tmp);
@@ -1966,28 +2030,28 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 					init_string(tmpstring2);
 					sprintf(tmpstring, "_%s", rating_filename_suffix);
 					strcpy(rating_filename_suffix, tmpstring);
-					if (opts.detail) rename_replace(dtc_full_filename(opts.ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2), "details", "detect()");
-					rename_replace(dtc_full_filename(opts.ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2), "detection", "detect()");
-					rename_replace(dtc_full_filename(opts.ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2), "detection", "detect()");
+					if (opts.detail) rename_replace(dtc_full_filename(opts.ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2), "details", __func__);
+					rename_replace(dtc_full_filename(opts.ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2), "detection", __func__);
+					rename_replace(dtc_full_filename(opts.ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2), "detection", __func__);
 				}
 						/*if (rename(dtc_full_filename(opts.ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring2)) != 0) {
 							strcpy(errnostring, strerror(errno));
 							char msgtext[MAX_STRING] = { 0 };
 							snprintf(msgtext,MAX_STRING, "cannot rename file %s in details folder (error %s)\n", dtc_full_filename(opts.ofilename, DTC_DIFF_SUFFIX, detail_folder_path_string.c_str(), tmpstring), errnostring);
-							Warning(WARNING_MESSAGE_BOX, "cannot rename file in details folder", "detect()", msgtext);
+							Warning(WARNING_MESSAGE_BOX, "cannot rename file in details folder", __func__, msgtext);
 						}
 					}
 					if (rename(dtc_full_filename(opts.ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2)) != 0) {
 						strcpy(errnostring, strerror(errno));
 						char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext,MAX_STRING, "cannot rename file %s in detection folder (error %s)\n", dtc_full_filename(opts.ofilename, DTC_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), errnostring);
-						Warning(WARNING_MESSAGE_BOX, "cannot rename file in detection folder", "detect()", msgtext);
+						Warning(WARNING_MESSAGE_BOX, "cannot rename file in detection folder", __func__, msgtext);
 					}
 					if (rename(dtc_full_filename(opts.ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), dtc_full_filename_2suffix(opts.ofilename, rating_filename_suffix, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring2)) != 0) {
 						strcpy(errnostring, strerror(errno));
 						char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext,MAX_STRING, "cannot rename file %s in detection folder (error %s)\n", dtc_full_filename(opts.ofilename, DTC_MAX_MEAN_SUFFIX, detection_folder_fullpathname_string.c_str(), tmpstring), errnostring);
-						Warning(WARNING_MESSAGE_BOX, "cannot rename file in detection folder", "detect()", msgtext);
+						Warning(WARNING_MESSAGE_BOX, "cannot rename file in detection folder", __func__, msgtext);
 					}
 				}*/
 				message_cstring = message_cstring + (CString)"\n" + (CString)logmessage.c_str();
@@ -2136,8 +2200,13 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 				// acquition has been processed, increasing counter					
 				acquisitions_processed++;
 				totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_to_be_processed) + L")";
+//if (opts.parent_instance) LogString(_T("2: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 				CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 			}
+
+// ********************************************************************
+// ******************* End of frame processing **********************
+// ********************************************************************
 
 			catch (std::exception& e) {
 					std::string exception_message(e.what());
@@ -2200,6 +2269,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processed file from queue"), 
 		local_acquisition_files_list.file_list = std::vector<std::string>();
 		local_acquisition_files_list.acquisition_file_list = std::vector<std::string>();
 		local_acquisition_files_list.nb_prealigned_frames = {};
+		local_acquisition_files_list.acquisition_size = {};
 
 		char buffer7[MAX_STRING] = { 0 };
 		sprintf_s(buffer7, MAX_STRING, "detect7:				opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);
@@ -2251,7 +2321,10 @@ if (opts.debug) LogString(_T("!Debug info: Check queue: parent=") + (CString)std
 			// *********************************************************************//
 				double duration_total_others = 0;
 				if (opts.maxinstances > 1) {
+//if (opts.parent_instance) LogString(_T("7a: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 					int nb_processed_files = (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, opts.DeTeCtQueueFilename, &computing_threshold_time, &end, computing_refresh_duration, begin, begin_total));
+//if (opts.parent_instance) LogString(_T("7b: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+
 					if (nb_processed_files > 0) {
 						if (opts.debug) LogString(L"File(s) processed fetched: " + (CString)std::to_string(nb_processed_files).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 						duration_total += duration_total_others;
@@ -2337,14 +2410,19 @@ if (opts.debug) LogString(_T("!Debug info: Getting file from queue"), output_log
 										local_acquisition_files_list.file_list.push_back(std::string(opts.filename));
 										file = file.substr(file.find_last_of("\\") + 1, file.length());
 										if (extension.compare(AUTOSTAKKERT_EXT) != 0) {
-											ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
 											local_acquisition_files_list.acquisition_file_list.push_back(std::string(opts.filename));
+											local_acquisition_files_list.acquisition_size.push_back(filesize(opts.filename));
+											//ss << "Adding " << file.c_str() << " (" << local_acquisition_files_list.acquisition_size.at(0) / MEGABYTES << "MB in " << scan_folder_path.c_str() << ") for analysis\n";
+											ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
 										}
 										else {
-											ss << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
 											local_acquisition_files_list.acquisition_file_list.push_back(std::string(filename_acquisition));
+											local_acquisition_files_list.acquisition_size.push_back(filesize(filename_acquisition.c_str()));
+											//ss << "Adding " << file.c_str() << " (" << local_acquisition_files_list.acquisition_size.at(0) / MEGABYTES << "MB acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
+											ss << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
 										}
 										local_acquisition_files_list.nb_prealigned_frames.push_back(nframe);
+										local_acquisition_files_list.acquisition_size.push_back(filesize(opts.filename));
 										CDeTeCtMFCDlg::getfileName()->SetWindowText(L"");
 										acquisition_index = 0;
 					}
@@ -2387,14 +2465,21 @@ if (opts.debug) LogString(_T("!Debug info: Getting file from queue"), output_log
 									std::string extension		= filename_folder.substr(filename_folder.find_last_of(".") + 1, filename_folder.size() - filename_folder.find_last_of(".") - 1);
 									std::string filename_path	= filename_folder.substr(0, filename_folder.find_last_of("\\"));
 									std::string file			= filename_folder.substr(filename_folder.find_last_of("\\") + 1, filename_folder.length());
-									if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " (in " << filename_path.c_str() << ") for analysis\n";
-									else ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << filename_path.c_str() << ") for analysis\n";
+									if (extension.compare(AUTOSTAKKERT_EXT) != 0) {
+										//ss3 << "Adding " << file.c_str() << " (" << local_acquisition_files_list.acquisition_size.at(index) / MEGABYTES << "MB in " << filename_path.c_str() << ") for analysis\n";
+										ss3 << "Adding " << file.c_str() << " (in " << filename_path.c_str() << ") for analysis\n";
+									}
+									else {
+										//ss3 << "Adding " << file.c_str() << " (" << local_acquisition_files_list.acquisition_size.at(index) / MEGABYTES << "MB acquisition file " << filename_acquisition.c_str() << " in " << filename_path.c_str() << ") for analysis\n";
+										ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << filename_path.c_str() << ") for analysis\n";
+									}
 									index++;
 								}
 								else {
 									local_acquisition_files_list.file_list.erase(local_acquisition_files_list.file_list.begin() + index);
 									local_acquisition_files_list.acquisition_file_list.erase(local_acquisition_files_list.acquisition_file_list.begin() + index);
 									local_acquisition_files_list.nb_prealigned_frames.erase(local_acquisition_files_list.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
+									local_acquisition_files_list.acquisition_size.erase(local_acquisition_files_list.acquisition_size.begin() + index);
 								}
 								LogString((CString)ss3.str().c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 							}
@@ -2438,16 +2523,25 @@ if (opts.debug) LogString(
 
 
 // **************************************************************************
-// ******************** End of acquisition processing ***********************
+// ******************** End of acquisitions processing **********************
 // **************************************************************************
+
+	if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 
 	// Last update of file counts with actual figures
 	int acquisitions_finally_processed = MAX(NbItemFromQueue(_T("file_ok        "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE), acquisitions_to_be_processed) ;
 	totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_finally_processed) + L")";
+//if (opts.parent_instance) LogString(_T("3: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 	if (opts.parent_instance) {
 		nb_instances = 0;
 		DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
+		LogString(_T("wait_imagedisplay_seconds   (s) = ") + (CString)std::to_string(wait_imagedisplay_seconds).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		LogString(_T("check_children_time_factor      = ") + (CString)std::to_string(check_children_time_factor).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		LogString(_T("update_count               (ms) = ") + (CString)std::to_string(update_count).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		LogString(_T("display_update_duration    (ms) = ") + (CString)std::to_string(display_update_duration).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		LogString(_T("processing_update_duration (ms) = ") + (CString)std::to_string(processing_update_duration).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		LogString(_T("instances_update_duration  (ms) = ") + (CString)std::to_string(instances_update_duration).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 	}
 	DisplayProcessingTime(&computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
 	begin_imagedisplay_time = 0;
@@ -2590,12 +2684,15 @@ if (opts.debug) LogString(
 
 		// renames logs and shows links, creates zip if parent instance
 		char item_to_be_zipped_shortname[MAX_STRING]	= { 0 };
-		if (opts.parent_instance) {
-			if (rename(LogOrgFilename, LogNewFilename)!= 0) {
+		if ((opts.parent_instance) || (instance_type == Instance_type::single) ||(instance_type == Instance_type::autostakkert_single)) {
+			/*if (rename(LogOrgFilename, LogNewFilename) != 0) {
 				char msgtext[MAX_STRING] = { 0 };
-				snprintf(msgtext,MAX_STRING, "cannot rename log file %s\n", LogOrgFilename.m_psz);
-				Warning(WARNING_MESSAGE_BOX, "cannot rename log file", "detect()", msgtext);
-			}
+				snprintf(msgtext, MAX_STRING, "cannot rename log file %s\n", LogOrgFilename.m_psz);
+				Warning(WARNING_MESSAGE_BOX, "cannot rename log file", __func__, msgtext);
+			}*/
+			dtcSortLog(LogOrgFilename, LogNewFilename);
+			if (filesys::exists(CString2string((CString)LogNewFilename)) && filesys::exists(CString2string((CString)LogNewFilename))) remove(LogOrgFilename);
+
 			CString LogNewFilename_cstring;
 			CString LogConsolidatedNewFilename_cstring;
 			char2CString(LogNewFilename, &LogNewFilename_cstring);
@@ -2761,7 +2858,7 @@ if (opts.debug) LogString(
 			if (rename(OutOrgFilename2, OutNewFilename2)!= 0) {
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext,MAX_STRING, "cannot rename output file %s\n", OutOrgFilename2.m_psz);
-				Warning(WARNING_MESSAGE_BOX, "cannot rename output file", "detect()", msgtext);
+				Warning(WARNING_MESSAGE_BOX, "cannot rename output file", __func__, msgtext);
 			}
 			output_log_in.close();
 			if (opts.show_detect_image) cv::destroyWindow("Detection image");
@@ -2957,7 +3054,7 @@ void zip(char *zipfilename, char *item_to_be_zipped, std::wstring output_filenam
 if (opts.debug) LogString(L"zip: ERROR: Impossible to initialize COM library", output_filename.c_str(), log_counter, FALSE, &waitms);
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot initialize COM library");
-		ErrorExit(TRUE, "cannot initialize COM library", "detect()", msgtext);
+		ErrorExit(TRUE, "cannot initialize COM library", __func__, msgtext);
 	}
 	hResult = CoCreateInstance(CLSID_Shell, NULL, CLSCTX_INPROC_SERVER, IID_IShellDispatch, (void **)&pISD);
 if (opts.debug) LogString(L"zip: heartbeat", output_filename.c_str(), log_counter, FALSE, &waitms);
@@ -3119,14 +3216,14 @@ void LogString(CString log_cstring,  CString output_filename, int *log_counter, 
 		debug_string.append(std::to_string(NbFilesFromQueue((CString)opts.DeTeCtQueueFilename)).c_str());
 		debug_string.append(" files)");
 	}
-	output_log_stream  << "PID " << std::to_string(GetCurrentProcessId()).c_str() << "-" << log_counter_string.c_str() << debug_string << ": " << getDateTimeMillis().str().c_str() << log_string.c_str() << "\n";
+	output_log_stream  << "PID " << std::setfill('0') << std::setw(5) << std::to_string(GetCurrentProcessId()).c_str() << "-" << log_counter_string.c_str() << debug_string << ": " << getDateTimeMillis().str().c_str() << log_string.c_str() << "\n";
 	output_log_stream.flush();
 	output_log_stream.close();
 	//UnlockQueue(output_filename); //new queue method
 	(*log_counter) = (*log_counter) + 1;
 }
 
-int GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename, clock_t* pcomputing_threshold_time, clock_t* plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time) {
+int GetOtherProcessedFiles(const int acquisition_index, int* pacquisition_index_children, int* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* pcomputing_threshold_time, clock_t* plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time) {
 	CString processed_filename;
 	CString processed_filename_acquisition;
 	CString processed_message;
@@ -3141,6 +3238,7 @@ int GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_
 	while (GetProcessedFileFromQueue(&processed_filename, &processed_filename_acquisition, &processed_message, &processed_rating, &duration, &nframe_child, &fps_int_child, (CString)DeTeCtQueueFilename)) {
 
 		totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children)+1)) + L")";
+//	LogString(_T("4: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
 		CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children)+1)));
 		CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
@@ -3148,6 +3246,7 @@ int GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_
 		switch (processed_rating) {
 		case Rating_type::Error:
 			(*pnb_error_impact)++;
+			CDeTeCtMFCDlg::getimpactNull()->SetWindowText(std::to_wstring((*pnb_null_impact) + (*pnb_error_impact)).c_str());
 			break;
 		case Rating_type::Null:
 			(*pnb_null_impact)++;
@@ -3174,7 +3273,6 @@ int GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_
 		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + std::to_string(nframe_child).c_str() + (CString)" frames @ " + std::to_string(fps_int_child).c_str() + (CString)" fps (" + std::to_wstring((int)duration).c_str() + "s duration)");
 		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + processed_message);
 		CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str());
-		//CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + processed_short_filename.c_str() + ":" + "    " + processed_message);
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 		CDeTeCtMFCDlg::getLog()->RedrawWindow();
 
@@ -3182,9 +3280,155 @@ int GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_
 		nb_otherprocessedfiles++;
 
 		totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))) + L")";
+//LogString(_T("5: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
 		CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))));
 		CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+	}
+	return nb_otherprocessedfiles;
+}
+
+//Integrated version, much quicker but misses some processed files displayed for unknown reason
+int GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_index_children, int* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* pcomputing_threshold_time, clock_t* plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time) {
+	CString processed_filename;
+	CString processed_filename_acquisition;
+	CString processed_message;
+	CString tmp;
+	Rating_type processed_rating = Rating_type::Error;
+	std::wstring totalProgress_wstring_tmp;
+	int		nb_otherprocessedfiles = 0;
+	int nframe_child = 0;
+	int fps_int_child = 0;
+
+	double duration = 0;
+	if (!filesys::exists(CString2string(char2CString(DeTeCtQueueFilename, &tmp))))
+	{
+		char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot find acquisition queue file %s", DeTeCtQueueFilename);
+		ErrorExit(TRUE, "queue file not found", __func__, msgtext);  	// exits DeTeCt if Queuefile does not exists
+	}
+	//CString	processed_line;
+	BOOL	status;
+	HANDLE	QueueFileHandle = INVALID_HANDLE_VALUE;
+	CString line = L"";
+	std::vector<CString> cstring_lines;
+	BOOL file_to_be_updated = FALSE;
+
+	if (OpenRWQueueFile(char2CString(DeTeCtQueueFilename, &tmp), &QueueFileHandle)) {
+		do {
+			line = GetLine(QueueFileHandle);
+			if (line.GetLength() > 1) {
+				if (line.Left(17) == (_T("file_processed : "))) {
+					//if (line.Find(_T("file_processed : "), 0) == 0) {
+					file_to_be_updated = TRUE;
+
+					std::string tmp_line(CString2string(line));
+					status = TRUE;
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) processed_filename = tmp_line.substr(0, tmp_line.find("|")).c_str(); //
+					else status = FALSE;
+					tmp_line.erase(0, tmp_line.find("|") + 1);
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) processed_filename_acquisition = tmp_line.substr(0, tmp_line.find("|")).c_str();
+					else status = FALSE;
+					tmp_line.erase(0, tmp_line.find("|") + 1);
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) processed_message = tmp_line.substr(0, tmp_line.find("|")).c_str();
+					else status = FALSE;
+					tmp_line.erase(0, tmp_line.find("|") + 1);
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) processed_rating = (Rating_type)(atoi(tmp_line.substr(0, tmp_line.find("|")).c_str()));
+					else status = FALSE;
+					tmp_line.erase(0, tmp_line.find("|") + 1);
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) duration = atoi(tmp_line.c_str());
+					else status = FALSE;
+					tmp_line.erase(0, tmp_line.find("|") + 1);
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) nframe_child = atoi(tmp_line.c_str());
+					else status = FALSE;
+					tmp_line.erase(0, tmp_line.find("|") + 1);
+
+					while (tmp_line.substr(tmp_line.size() - 1, 1) == " ") tmp_line.erase(tmp_line.size() - 1, 1);
+					if (tmp_line.find("|")) fps_int_child = atoi(tmp_line.c_str());
+					else status = FALSE;
+
+					if (status)	line.Replace(_T("file_processed "), _T("file_ok        "));
+					else		line.Replace(_T("file_processed "), _T("file_ko        "));
+
+/*					totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children) + 1)) + L")";
+					CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
+					CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children) + 1)));
+					CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+					if (clock() > *pcomputing_threshold_time) DisplayProcessingTime(pcomputing_threshold_time, plast_time, refresh_duration, single_time, total_time);*/
+					switch (processed_rating) {
+					case Rating_type::Error:
+						(*pnb_error_impact)++;
+						break;
+					case Rating_type::Null:
+						(*pnb_null_impact)++;
+						break;
+					case Rating_type::Low:
+						(*pnb_low_impact)++;
+						break;
+					case Rating_type::High:
+						(*pnb_high_impact)++;
+						break;
+					}
+					(*pacquisition_index_children)++;
+					//(*pacquisitions_to_be_processed) = NbFilesFromQueue(char2CString(DeTeCtQueueFilename, &tmp));
+					(*pduration_total) += duration;
+					std::string processed_filename_acquisition_string = CString2string(processed_filename_acquisition);
+					std::string processed_short_filename = processed_filename_acquisition_string.substr(processed_filename_acquisition_string.find_last_of("\\") + 1, processed_filename_acquisition_string.length());
+					plog_messages->push_back(processed_short_filename + ":" + "    " + CString2string(processed_message));
+
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + "----- " + processed_short_filename.c_str() + " -----");
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + std::to_string(nframe_child).c_str() + (CString)" frames @ " + std::to_string(fps_int_child).c_str() + (CString)" fps (" + std::to_wstring((int)duration).c_str() + "s duration)");
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str() + processed_message);
+					CDeTeCtMFCDlg::getLog()->AddString((CString)getDateTime().str().c_str());
+
+					duration = 0;
+					nb_otherprocessedfiles++;
+
+/*					totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))) + L")";
+					CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
+					CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))));
+					CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();*/
+				}
+			}
+			cstring_lines.push_back(line);
+		} while (line.GetLength() > 1);
+		if (file_to_be_updated) {
+			DWORD	dwBytesWritten = 0;
+
+			SetFilePointerEx(QueueFileHandle, { 0 }, NULL, FILE_BEGIN);
+			SetEndOfFile(QueueFileHandle);
+			std::for_each(cstring_lines.begin(), cstring_lines.end(), [&](const CString cstring_line) {
+				CT2A line(cstring_line + _T("\n"));
+				WriteFile(QueueFileHandle, line, cstring_line.GetLength() + 1, &dwBytesWritten, NULL);
+			});
+			CloseHandle(QueueFileHandle);
+
+			//Refresh display after saving file
+			CDeTeCtMFCDlg::getimpactNull()->SetWindowText(std::to_wstring((*pnb_null_impact) + (*pnb_error_impact)).c_str());
+			CDeTeCtMFCDlg::getimpactLow()->SetWindowText(std::to_wstring((*pnb_low_impact)).c_str());
+			CDeTeCtMFCDlg::getimpactHigh()->SetWindowText(std::to_wstring((*pnb_high_impact)).c_str());
+
+			CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+			CDeTeCtMFCDlg::getLog()->RedrawWindow();
+
+			if (clock() > *pcomputing_threshold_time) DisplayProcessingTime(pcomputing_threshold_time, plast_time, refresh_duration, single_time, total_time);
+			totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisitions_processed + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisitions_processed + (*pacquisition_index_children))) + L")";
+			CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
+			CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS* (float)(acquisitions_processed + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisitions_processed + (*pacquisition_index_children))));
+			CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+		} else CloseHandle(QueueFileHandle);
 	}
 	return nb_otherprocessedfiles;
 }
@@ -3427,14 +3671,7 @@ void WriteIni() {
 	::WritePrivateProfileString(L"processing", L"reprocessing", str, DeTeCtIniFilename);
 }
 
-void FileListToQueue(std::vector<std::string> file_list, CString QueueFilename) {
-	for (std::string filename : file_list) {
-		PushFileToQueue((CString)filename.c_str(), QueueFilename);
-		file_list.erase(file_list.begin());
-	}
-}
-
-void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int *acquisitions_to_be_processed) {
+void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int *pacquisitions_to_be_processed) {
 	CString tmp, tmp2;
 	if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
 		CreateQueueFileName();
@@ -3452,37 +3689,41 @@ void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const 
 			CString2char(DeTeCt_additional_filename_exe_fullpath(CString(_T(DTC_QUEUE_PREFIX)) + _T("_dtc") + pid_cstring + _T(DTC_QUEUE_EXT)), opts.DeTeCtQueueFilename);
 		}*/
 		CString log_cstring;
-		if (!GetItemFromQueue(&log_cstring, _T("output_dir: "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE)) PushItemToQueue(out_directory, _T("output_dir"), char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
+		if ((out_directory.GetLength() > 0) && (!GetItemFromQueue(&log_cstring, _T("output_dir: "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE))) PushItemToQueue(out_directory, _T("output_dir"), char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
 		SetIntParamToQueue(opts.maxinstances, _T("max_instances"), (CString)opts.DeTeCtQueueFilename);
 	}
+
 	if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
-		std::string filename;
+//		std::string filename;
 		int index = 0;
 		//int initial_file_list_size = pacquisition_files->file_list.size();
-		(*acquisitions_to_be_processed) = (int) pacquisition_files->file_list.size();
+		(*pacquisitions_to_be_processed) = (int) pacquisition_files->file_list.size();
 		while (index < pacquisition_files->file_list.size()) {
-			filename = pacquisition_files->file_list.at(index);
-			if (index < index_current)			PushItemToQueue(char2CString(filename.c_str(), &tmp), _T("file_ok"), char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
-			else if (index == index_current)	PushItemToQueue(char2CString(filename.c_str(), &tmp), tag_current, char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
-			else								PushFileToQueue(char2CString(filename.c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));
-			
-			if (index > index_current) {
-				pacquisition_files->file_list.erase(pacquisition_files->file_list.begin() + index);
-				pacquisition_files->acquisition_file_list.erase(pacquisition_files->acquisition_file_list.begin() + index);
-				pacquisition_files->nb_prealigned_frames.erase(pacquisition_files->nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
+//			filename = pacquisition_files->file_list.at(index);
+			if (index_current >= pacquisition_files->file_list.size())	PushItemToQueue(char2CString(pacquisition_files->file_list.at(index++).c_str(), &tmp), _T("file"), char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
+			else if (index < index_current)								PushItemToQueue(char2CString(pacquisition_files->file_list.at(index).c_str(), &tmp), _T("file_ok"), char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
+			else if (index == index_current)							PushItemToQueue(char2CString(pacquisition_files->file_list.at(index).c_str(), &tmp), tag_current, char2CString(opts.DeTeCtQueueFilename, &tmp2), NULL, TRUE);
+			else {
+																		PushFileToQueue(char2CString(pacquisition_files->file_list.at(index).c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));
+				if ((index_current >= 0) && (index > index_current)) {
+					pacquisition_files->file_list.erase(pacquisition_files->file_list.begin() + index);
+					pacquisition_files->acquisition_file_list.erase(pacquisition_files->acquisition_file_list.begin() + index);
+					pacquisition_files->nb_prealigned_frames.erase(pacquisition_files->nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
+					pacquisition_files->acquisition_size.erase(pacquisition_files->acquisition_size.begin() + index);
+				}
+				else index++;
 			}
-			else index++;
 			//index++;
 		}
 	}
 }
 
-int rename_replace(const char *src, const char *dest, const char *foldername, char* function) {
+int rename_replace(const char *src, const char *dest, const char *foldername, const char* function) {
 	char				errnostring[MAX_STRING] = { 0 };
 	int					return_value = 0;
 		
-	bool same_file = strcmp(src, dest);
-	if (!same_file) {							//strcmp(src, dest)!=0 does not work ???
+	//bool same_file = strcmp(src, dest);
+	if (strcmp(src, dest) != 0) {							//strcmp(src, dest)!=0 does not work ???
 		if (file_exists(dest)) remove(dest);	//if (filesys::exists(CString2string((CString)dest))) does not work
 		if (rename(src, dest) != 0) {
 			return_value = errno;

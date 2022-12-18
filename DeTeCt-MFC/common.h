@@ -9,6 +9,7 @@
 #define MAX_STRING			2048
 #define EXT_MAX				16
 #define WARNING_MESSAGE_BOX TRUE
+#define MEGABYTES			1048576
 
 #if defined(_MSC_VER)
 #ifdef _WIN32

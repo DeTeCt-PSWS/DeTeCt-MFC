@@ -32,6 +32,8 @@ with
 //#include <opencv2/imgproc.hpp> //TEST opencv3
 #include <iomanip>  // std::setprecision
 
+#include <numeric>      // std::iota
+
 #define FFMPEGDLL "opencv_ffmpeg2413_64.dll"
 
 std::string message_lines[MAX_STRING];
@@ -915,7 +917,7 @@ void CDeTeCtMFCDlg::OnBnClickedOk()
 			//AfxBeginThread(impactDetection, (ImpactDetectParams*)params);
 		}
 		else {
-			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Error: no files selected");
+			impactDetectionLog.AddString((CString)getDateTime().str().c_str() + L"Error: no file selected");
 			if (!opts.interactive) dlg.OnFileExit();
 		}
 	}
@@ -998,9 +1000,10 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 
 void CDeTeCtMFCDlg::OnFileOpenfile()
 {
-	acquisition_files.file_list = {};
-	acquisition_files.acquisition_file_list = {};
-	acquisition_files.nb_prealigned_frames = {};
+	acquisition_files.file_list				= {};
+	acquisition_files.acquisition_file_list	= {};
+	acquisition_files.nb_prealigned_frames	= {};
+	acquisition_files.acquisition_size		= {};
 	std::wstringstream ss, ssint, ssopt;
 	std::wstring file_path;
 	std::string file;
@@ -1038,6 +1041,7 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 		file = wstring2string(file_path);
 	}
 	std::string extension = file.substr(file.find_last_of(".") + 1, file.size() - file.find_last_of(".") - 1);
+	lowercase_string(&extension);
 
 	if (file.size() <= 0) {
 		//********* Error if no file selected
@@ -1086,9 +1090,23 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info : Logfile=" +  (CStri
 					scan_folder_path = file.substr(0, file.find_last_of("\\"));
 					acquisition_files.file_list.push_back(file);
 					file = file.substr(file.find_last_of("\\") + 1, file.length());
-					if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
-					else ss << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
+					std::vector<std::string> supported_fileext = { FILES_EXT };
 
+					if (extension.compare(AUTOSTAKKERT_EXT) != 0) {
+						acquisition_files.acquisition_file_list.push_back(file);
+						if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) acquisition_files.acquisition_size.push_back(filesize(file.c_str()) * nframe);
+						else acquisition_files.acquisition_size.push_back(filesize(file.c_str()));
+						//ss << "Adding " << file.c_str() << " (" << acquisition_files.acquisition_size.at(0) / MEGABYTES << "MB in " << scan_folder_path.c_str() << ") for analysis\n";
+						ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
+					}
+					else {
+						acquisition_files.acquisition_file_list.push_back(filename_acquisition);
+						acquisition_files.acquisition_size.push_back(filesize(filename_acquisition.c_str()));
+						if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) acquisition_files.acquisition_size.push_back(filesize(filename_acquisition.c_str()) * nframe);
+						else acquisition_files.acquisition_size.push_back(filesize(filename_acquisition.c_str()));
+						//ss << "Adding " << file.c_str() << " (" << acquisition_files.acquisition_size.at(0) / MEGABYTES << "MB acquisition file " << filename_acquisition.c_str() << " in " << scan_folder_path.c_str() << ") for analysis\n";
+						ss << "Adding " << file.c_str() << " (in " << scan_folder_path.c_str() << ") for analysis\n";
+					}
 					CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(_T("Total\n(0/1)"));
 					CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Click on Detect impacts!");
 					okbtn->EnableWindow(TRUE);
@@ -1129,13 +1147,15 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info : Logfile=" +  (CStri
 
 void CDeTeCtMFCDlg::OnFileOpenFolder()
 {
-	acquisition_files.file_list = {};
-	acquisition_files.acquisition_file_list = {};
-	acquisition_files.nb_prealigned_frames = {};
+	acquisition_files.file_list				= {};
+	acquisition_files.acquisition_file_list	= {};
+	acquisition_files.nb_prealigned_frames	= {};
+	acquisition_files.acquisition_size		= {};
 	std::wstring		folder_path;
 	std::string			path;
 	std::wstringstream	ss;
 	int					files_count = 0;
+	bool				reorder_by_size		= true;
 	
 	impactNull.SetWindowText(L"N/A");
 	impactLow.SetWindowText(L"N/A");
@@ -1185,6 +1205,7 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 		if (acquisition_files.file_list.size() > 0) {
 			int index = 0;
 			std::string filename;
+			std::vector<std::string> supported_fileext = { FILES_EXT };
 			while (index< acquisition_files.file_list.size()) {
 				filename = acquisition_files.file_list.at(index);
 				std::wstringstream ss3;
@@ -1212,66 +1233,181 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 					// ***** if option noreprocessing on, check in detect log file if file already processed or processed with in datation only mode
 								// ********* Finally adds file to the list !
 							std::string extension	= filename.substr(filename.find_last_of(".") + 1, filename.size() - filename.find_last_of(".") - 1);
+							lowercase_string(&extension);
 							std::string file		= filename.substr(filename.find_last_of("\\") + 1, filename.length());
 							std::string file_path	= filename.substr(0, filename.find_last_of("\\"));
 // Debug
 							if ((index >= 0) && (strlen(opts.DeTeCtQueueFilename) > 1)) {			// MODIFIED to keep even 1st file in list!
 // Debug
 							//if ((index>0) && (opts.maxinstances > 1)) {			// if multi instances mode, keep only one acquisition in the list and the rest in the queue
-								CString log_cstring;
+								/*CString log_cstring;
 								if ((index == 0) && (!GetItemFromQueue(&log_cstring, L"output_dir: ", (CString)opts.DeTeCtQueueFilename, NULL, TRUE))) {	// defines output directory if not already set
 									std::string output_dir = path;
 									output_dir.append("\\Impact_detection_run@").append(getRunTime().str().c_str());
 									CString output_dir_cstring(output_dir.c_str());
 									PushItemToQueue(output_dir_cstring, L"output_dir", (CString) opts.DeTeCtQueueFilename, NULL, TRUE);
 									opts.parent_instance = TRUE;
-								}
-								CString tmp, tmp2;
-								if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
-									 char msgtext[MAX_STRING] = { 0 };
-									snprintf(msgtext, MAX_STRING, "cannot find acquisitions queue file %s", opts.DeTeCtQueueFilename);
-									ErrorExit(TRUE, "cannot finf acquisitions queue file", "OnFileOpenFolder()", msgtext);
-								}
-								else PushFileToQueue(char2CString(filename.c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));
-								if (index > 0) {// MODIFIED: if multi instances mode, keep only one acquisition in the list and the rest in the queue
+								}*/
+								/*CString tmp, tmp2;
+			if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
+					char msgtext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot find acquisitions queue file %s", opts.DeTeCtQueueFilename);
+				ErrorExit(TRUE, "cannot finf acquisitions queue file", __func__, msgtext);
+			}
+			else PushFileToQueue(char2CString(filename.c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));*/
+								if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) acquisition_files.acquisition_size.at(index) *= nframe;
+								int64 acquisition_size = acquisition_files.acquisition_size.at(index);
+								/*if (index > 0) {// MODIFIED: if multi instances mode, keep only one acquisition in the list and the rest in the queue
 									acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
 									acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
 									acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
+									acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin() + index); // WARNING in debug, error in .begin()
 								}
-								else index++;
-								if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " (in " << file_path.c_str() << ") for analysis\n";
-								else ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
+								else index++;*/
+								if (extension.compare(AUTOSTAKKERT_EXT) != 0) {
+									//ss3 << "Adding " << file.c_str() << " (" << acquisition_size / MEGABYTES << "MB in " << file_path.c_str() << ") for analysis\n";
+									ss3 << "Adding " << file.c_str() << " (in " << file_path.c_str() << ") for analysis\n";
+								}
+								else {
+									//ss3 << "Adding " << file.c_str() << " (" << acquisition_size / MEGABYTES << "MB acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
+									ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
+								}
 							}
 							else {
-								if (extension.compare(AUTOSTAKKERT_EXT) != 0) ss3 << "Adding " << file.c_str() << " (in " << file_path.c_str() << ") for analysis\n";
-								else ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
-								index++;
+								if (extension.compare(AUTOSTAKKERT_EXT) != 0) {
+									//ss3 << "Adding " << file.c_str() << " (" << acquisition_files.acquisition_size.at(index) / MEGABYTES << "MB in " << file_path.c_str() << ") for analysis\n";
+									ss3 << "Adding " << file.c_str() << " (in " << file_path.c_str() << ") for analysis\n";
+								}
+								else {
+									//ss3 << "Adding " << file.c_str() << " (" << acquisition_files.acquisition_size.at(index) / MEGABYTES << "MB acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
+									ss3 << "Adding " << file.c_str() << " (acquisition file " << filename_acquisition.c_str() << " in " << file_path.c_str() << ") for analysis\n";
+								}
+									//								index++;
 							}
 							files_count++;
 							std::wstring totalProgress_wstring = L"Total\n(0/" + std::to_wstring(files_count) + L")";
 							CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 						}
-						else {
+						else { //file no to be processed
 							acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
 							acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
 							acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
+							acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin() + index); // WARNING in debug, error in .begin()
 						}
+index++;
 					}
-					else {
+					else { //file to be ignored
 						acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
 						acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
 						acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
-					}
-					impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
-					CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
-					//this->RedrawWindow();
-					CDeTeCtMFCDlg::getLog()->RedrawWindow();
+						acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin() + index); // WARNING in debug, error in .begin()
+				}
+				impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
+				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+				//this->RedrawWindow();
+				CDeTeCtMFCDlg::getLog()->RedrawWindow();
 			}
 		}
 		if (acquisition_files.file_list.size() <= 0) {
 			ss << "No file selected";
 		}
 		else {
+/*			CString log_cstring;
+			if (!GetItemFromQueue(&log_cstring, L"output_dir: ", (CString)opts.DeTeCtQueueFilename, NULL, TRUE)) {	// defines output directory if not already set
+				std::string output_dir = path;
+				output_dir.append("\\Impact_detection_run@").append(getRunTime().str().c_str());
+				CString output_dir_cstring(output_dir.c_str());
+				PushItemToQueue(output_dir_cstring, L"output_dir", (CString)opts.DeTeCtQueueFilename, NULL, TRUE);
+			}
+			if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
+				char msgtext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot find acquisitions queue file %s", opts.DeTeCtQueueFilename);
+				ErrorExit(TRUE, "cannot finf acquisitions queue file", __func__, msgtext);
+			}*/
+			int acquisitions_to_be_processed_local = 0;
+			opts.parent_instance = TRUE;
+			std::string output_dir = path;
+			output_dir.append("\\Impact_detection_run@").append(getRunTime().str().c_str());
+			CString output_dir_cstring(output_dir.c_str());
+
+			if (reorder_by_size == true) {
+				// sort indexes based on comparing values in v using std::stable_sort instead of std::sort to avoid unnecessary index re-orderings when v contains elements of equal values 
+				//vector<size_t> sort_indexes(const vector<T>& v) {
+				std::vector<size_t> idx(acquisition_files.acquisition_size.size());
+				iota(idx.begin(), idx.end(), 0);
+				//stable_sort(idx.begin(), idx.end(), [&v](size_t i1, size_t i2) {return v[i1] < v[i2]; });
+				stable_sort(idx.begin(), idx.end(), [&](size_t i1, size_t i2) {return acquisition_files.acquisition_size[i1] > acquisition_files.acquisition_size[i2]; });
+				AcquisitionFilesList acquisition_files_reordered;
+				acquisition_files_reordered.file_list = {};
+				acquisition_files_reordered.acquisition_file_list = {};
+				acquisition_files_reordered.nb_prealigned_frames = {};
+				acquisition_files_reordered.acquisition_size = {};
+
+				int index = 0;
+				while (index < idx.size()) {
+					acquisition_files_reordered.file_list.push_back(acquisition_files.file_list[idx[index]]);
+					acquisition_files_reordered.acquisition_file_list.push_back(acquisition_files.acquisition_file_list[idx[index]]);
+					acquisition_files_reordered.nb_prealigned_frames.push_back(acquisition_files.nb_prealigned_frames[idx[index]]);
+					acquisition_files_reordered.acquisition_size.push_back(acquisition_files.acquisition_size[idx[index++]]);
+				}
+				AcquisitionFileListToQueue(&acquisition_files_reordered, L"file", acquisition_files.file_list.size(), output_dir_cstring, &acquisitions_to_be_processed_local);
+				while (acquisition_files.file_list.size() > 0) {
+					acquisition_files.file_list.erase(acquisition_files.file_list.begin());
+					acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin());
+					acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin()); // WARNING in debug, error in .begin()
+					acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin());
+				}
+				index = 0;
+				size_t index_max = acquisition_files_reordered.file_list.size();
+				if (opts.maxinstances > 1) index_max = 1; // no queue for single instance
+				while (index < index_max) {
+					acquisition_files.file_list.push_back(acquisition_files_reordered.file_list[index]);
+					acquisition_files.acquisition_file_list.push_back(acquisition_files_reordered.acquisition_file_list[index]);
+					acquisition_files.nb_prealigned_frames.push_back(acquisition_files_reordered.nb_prealigned_frames[index]);
+					acquisition_files.acquisition_size.push_back(acquisition_files_reordered.acquisition_size[index++]);
+				}
+
+				// to prepare for multi instances mode, keep only one acquisition in the list and the rest in the queue
+/*				while (acquisition_files.file_list.size() > 0) {
+					acquisition_files.file_list.erase(acquisition_files.file_list.begin());
+					acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin());
+					acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin()); // WARNING in debug, error in .begin()
+					acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin());
+				}
+				acquisition_files.file_list.push_back(acquisition_files_reordered.file_list[0]);
+				acquisition_files.acquisition_file_list.push_back(acquisition_files_reordered.acquisition_file_list[0]);
+				acquisition_files.nb_prealigned_frames.push_back(acquisition_files_reordered.nb_prealigned_frames[0]);
+				acquisition_files.acquisition_size.push_back(acquisition_files_reordered.acquisition_size[0]);*/
+			}
+			else {
+				AcquisitionFileListToQueue(&acquisition_files, L"file: ", acquisition_files.file_list.size(), output_dir_cstring, &acquisitions_to_be_processed_local);
+				if (opts.maxinstances > 1) {
+					std::string		file_list0(acquisition_files.file_list[0]);
+					std::string		acquisition_file_list0(acquisition_files.acquisition_file_list[0]);
+					int				nb_prealigned_frames0	= acquisition_files.nb_prealigned_frames[0];
+					int64			acquisition_size0		= acquisition_files.acquisition_size[0];
+					
+					while (acquisition_files.file_list.size() > 0) {
+						acquisition_files.file_list.erase(acquisition_files.file_list.begin());
+						acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin());
+						acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin()); // WARNING in debug, error in .begin()
+						acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin());
+					}
+					acquisition_files.file_list.push_back(file_list0);
+					acquisition_files.acquisition_file_list.push_back(acquisition_file_list0);
+					acquisition_files.nb_prealigned_frames.push_back(nb_prealigned_frames0);
+					acquisition_files.acquisition_size.push_back(acquisition_size0);
+				}
+				
+				// to prepare for multi instances mode, keep only one acquisition in the list and the rest in the queue
+/*				while (acquisition_files.file_list.size() > 1) {
+					acquisition_files.file_list.erase(acquisition_files.file_list.begin());
+					acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin());
+					acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin()); // WARNING in debug, error in .begin()
+					acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin());
+				}*/
+			}
+			
 			ss << std::to_string(files_count).c_str() << " files added for analysis";
 			okbtn->EnableWindow(TRUE);
 			CDeTeCtMFCDlg::getfileName()->SetWindowText(L"Click on Detect impacts!");
@@ -1444,9 +1580,10 @@ void CDeTeCtMFCDlg::OnFileResetFileList() {
 		strcpy(opts.DeTeCtQueueFilename, "");
 	}
 	
-	acquisition_files.file_list = {};
-	acquisition_files.acquisition_file_list = {};
-	acquisition_files.nb_prealigned_frames = {};
+	acquisition_files.file_list				= {};
+	acquisition_files.acquisition_file_list	= {};
+	acquisition_files.nb_prealigned_frames	= {};
+	acquisition_files.acquisition_size				= {};
 	opts.interactive_bak =			opts.interactive;
 	//opts.autostakkert =				FALSE;
 	//opts.autostakkert_PID =			0;

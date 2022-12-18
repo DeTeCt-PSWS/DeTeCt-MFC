@@ -7,7 +7,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.6.1"
+#define VERSION_NB		"3.6.2"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -52,12 +52,17 @@
 #define SINGLE_PREFIX			"_single_"
 
 #define DTC_QUEUE_EXT			".lst"
+#define VIDEOS_EXT				"m4v", "avi", "ser", "wmv" , "mp4", "mov"
+#define FILES_EXT				"bmp", "jpg", "jpeg", "jp2", "dib", "png", "p?m", "sr", "ras", "tif", "tiff", "fit", "fits"
 #define AUTOSTAKKERT_EXT		"as3"
-#define WJ_DEROT_STRING			"-DeRot."
 #define WJ_DEROT_EXT			"drs.xml"
 #define WJ_DEROT_EXT_OLD		"drs"
-#define PIPP_STRING				"_pipp"
+#define FULLFILENAME_NUMBER		"_000000.", "_000001.", "_00000.", "_00001.", "_0000.", "_0001.", "000000.", "000001.", "00000.", "00001.", "0000.", "0001.", "F0.", "nb1.", "_0."
+#define FILENAME_NUMBER			"000000_", "000001_", "00000_", "00001_", "0000_", "0001_", "000000", "000001", "00000", "00001", "0000", "0001"
 #define DARK_STRING				"dark"
+#define PIPP_STRING				"_pipp"
+#define WJ_DEROT_STRING			"-DeRot."
+
 #define IGNORE_WJ_DEROTATION	FALSE
 #define IGNORE_PIPP				FALSE
 #define IGNORE_DARK				TRUE
@@ -139,7 +144,7 @@ struct options {
 	int				minframes;				// Minimum # of frames to start processing
 	struct Filter	filter;
 	bool			dateonly;			// Display date information and stops processing
-	bool			ignore;			// Ignore incorrect frames
+	bool			ignore;				// Ignore incorrect frames
 	int				maxinstances;				// Maximum number of DeTeCt instances running in parallel
 	bool			reprocessing;			// Reprocessing files already in DeTeCt.log
 	bool			interactive;			// Normal interactive mode or automatic mode

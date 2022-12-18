@@ -30,6 +30,8 @@ void	SetFileProcessingFromQueue(const CString objectname, const CString QueueFil
 void	SetProcessingFileProcessedFromQueue(const CString objectname, const CString details, const CString tag, const CString QueueFilename);						//API			-WD
 BOOL	GetProcessedFileFromQueue(CString *processed_filename, CString *processed_filename_acquisition, CString *processed_message, Rating_type *processed_rating, double *duration, int *nframe_child, int *fps_int_child, const CString QueueFilename);  //API	-WD
 
+BOOL OpenRWQueueFile(const CString QueueFilename, HANDLE* pQueueFileHandle);
+
 // ************** Process functions **********
 int		ProcessRunningInstancesNumber(const char *ProcessFilename);
 BOOL	IsProcessRunning(const DWORD pid);

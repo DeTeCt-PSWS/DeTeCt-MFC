@@ -28,14 +28,14 @@ char *mid(const char *src, size_t start, size_t length, char *dst)
 	if (start>=MAX_STRING) {
 		char msgtext[MAX_STRING] = { 0 };
 		sprintf(msgtext,"incorrect start %zd for %s\n",start, src);
-		Warning(WARNING_MESSAGE_BOX, "incorrect string start", "mid()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "incorrect string start", __func__, msgtext);
 		strcpy(dst,"");
 		return dst;
 	}
 	if ((start+len_valid>=MAX_STRING)) {
 		char msgtext[MAX_STRING] = { 0 };
 		sprintf(msgtext,"incorrect length %zd for %s, truncating it\n",start+len_valid, src);
-		Warning(WARNING_MESSAGE_BOX, "incorrect string length", "mid()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "incorrect string length", __func__, msgtext);
 		len_valid = MAX_STRING - start -1;
 	}
     strncpy(dst, src + start, len_valid);
@@ -53,7 +53,7 @@ char *left(const char *src, size_t length, char *dst)
 	if (len_valid>=MAX_STRING) {
 		char msgtext[MAX_STRING] = { 0 };
 		sprintf(msgtext,"incorrect length %zd for %s, truncating it\n",len_valid,src);
-		Warning(WARNING_MESSAGE_BOX, "incorrect string length", "left()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "incorrect string length", __func__, msgtext);
 		len_valid = MAX_STRING - 1;
 	}
 	if (length<strlen(src)) {
@@ -72,7 +72,7 @@ char *right(const char *src, size_t length, char *dst)
 	if (len_valid>=MAX_STRING) {
 		char msgtext[MAX_STRING] = { 0 };
 		sprintf(msgtext,"incorrect length %zd for %s, truncating it\n",len_valid, src);
-		Warning(WARNING_MESSAGE_BOX, "incorrect string length", "right()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "incorrect string length", __func__, msgtext);
 		len_valid = MAX_STRING - 1;
 	}
 	if (length<strlen(src)) {
@@ -173,7 +173,7 @@ char *lcase(const char *src, char *dst)
 	if (len_valid>=MAX_STRING) {
 		char msgtext[MAX_STRING] = { 0 };
 		sprintf(msgtext,"incorrect length %zi for %s, truncating it\n",len_valid, src);
-		Warning(WARNING_MESSAGE_BOX, "incorrect string length", "lcase()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "incorrect string length", __func__, msgtext);
 		len_valid = MAX_STRING - 1;
 	}
 	for (int i = 0; i < len_valid; i++) {
@@ -189,7 +189,7 @@ char *ucase(const char *src, char *dst)
 	if (len_valid>=MAX_STRING) {
 		char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext,MAX_STRING, "incorrect length %zi for %s, truncating it\n",len_valid, src);
-		Warning(WARNING_MESSAGE_BOX, "incorrect string length", "ucase()", msgtext);
+		Warning(WARNING_MESSAGE_BOX, "incorrect string length", __func__, msgtext);
 		len_valid = MAX_STRING - 1;
 	}
 	for (int i = 0; i < len_valid; i++) {
@@ -297,13 +297,13 @@ void	ErrorExit(const bool display_msgbox, const char *title, const char *functio
 	char buffer[MAX_STRING] = { 0 };
 
 	if (strlen(function)>0) {
-		snprintf(fulltext, MAX_STRING, "Error in %s: %s\n\nWill now exit program", function, text);
-		fprintf(stderr, "Error in %s: %s\n", function, text);
-		sprintf_s(buffer, MAX_STRING, "Error in %s: %s\n", function, text);
+		sprintf_s(buffer, MAX_STRING, "Error in %s(): %s\n", function, text);
+		fprintf(stderr, "%s", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nWill now exit program", buffer);
 	} else {
-		sprintf(fulltext, "Error: %s\n\nWill now exit program", text);
-		fprintf(stderr, "Error: %s\n", text);
 		sprintf_s(buffer, MAX_STRING, "Error: %s\n", text);
+		fprintf(stderr, "%s", buffer);
+		sprintf(fulltext, "%s\nWill now exit program", buffer);
 	}
 	OutputDebugStringA(buffer);
 	if (strlen(opts.ErrorsFilename) > 1) {
@@ -330,14 +330,14 @@ void	Warning(const bool display_msgbox, const char* title, const char* function,
 	char buffer[MAX_STRING] = { 0 };
 
 	if (strlen(function) > 0) {
-		snprintf(fulltext, MAX_STRING, "Warning in %s: %s\n\nWill now continue program", function, text);
-		fprintf(stderr, "Warning in %s: %s\n", function, text);
-		sprintf_s(buffer, MAX_STRING, "Warning in %s: %s\n", function, text);
+		sprintf_s(buffer, MAX_STRING, "Warning in %s(): %s\n", function, text);
+		fprintf(stderr, "%s", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
 	}
 	else {
-		snprintf(fulltext, MAX_STRING, "Warning: %s\n\nWill now continue program", text);
-		fprintf(stderr, "Warning: %s\n", text);
 		sprintf_s(buffer, MAX_STRING, "Warning: %s\n", text);
+		fprintf(stderr, "%s", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
 	}
 	OutputDebugStringA(buffer);
 	if (strlen(opts.WarningsFilename) > 1) {
@@ -362,14 +362,14 @@ void	Info(const bool display_msgbox, const char* title, const char* function, co
 	char buffer[MAX_STRING] = { 0 };
 
 	if (strlen(function) > 0) {
-		snprintf(fulltext, MAX_STRING, "Warning in %s: %s\n\nWill now continue program", function, text);
-		fprintf(stderr, "Warning in %s: %s\n", function, text);
-		sprintf_s(buffer, MAX_STRING, "Warning in %s: %s\n", function, text);
+		sprintf_s(buffer, MAX_STRING, "Info in %s(): %s\n", function, text);
+		fprintf(stderr, "%s", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
 	}
 	else {
-		snprintf(fulltext, MAX_STRING, "Warning: %s\n\nWill now continue program", text);
-		fprintf(stderr, "Warning: %s\n", text);
-		sprintf_s(buffer, MAX_STRING, "Warning: %s\n", text);
+		sprintf_s(buffer, MAX_STRING, "Info: %s\n", text);
+		fprintf(stderr, "%s", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
 	}
 	OutputDebugStringA(buffer);
 	if (strlen(opts.WarningsFilename) > 1) {
@@ -377,7 +377,7 @@ void	Info(const bool display_msgbox, const char* title, const char* function, co
 		fprintf(logfile, buffer);
 		fclose(logfile);
 	}
-	snprintf(fulltitle, MAX_STRING, "Warning: %s", title);
+	snprintf(fulltitle, MAX_STRING, "Info: %s", title);
 	//	if (display_msgbox && (opts.parent_instance || (opts.maxinstances == 1))) {
 	if (display_msgbox) {
 		wchar_t wfulltitle[MAX_STRING];

@@ -155,7 +155,7 @@ void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
 		if (!(*pcapture = dtcCaptureFromFile2(fname, &framecount))) {
 			 char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext, MAX_STRING, "cannot open file %s", fname);
-			ErrorExit(TRUE, "cannot reinitialize capture", "dtcReinitCaptureRead2()", msgtext);
+			ErrorExit(TRUE, "cannot reinitialize capture", __func__, msgtext);
 		}
 		break;
 	}
@@ -554,13 +554,9 @@ BOOL Is_CaptureFile_To_Be_Processed(const std::string filename_acquisition, cons
 					} while ((pos_separator != std::string::npos) && (nb_separators < 6));
 					while (starts_with(line, " ")) line = line.substr(1, line.size() - 1);
 					while (starts_with(line, "\t")) line = line.substr(1, line.size() - 1);
-					std::for_each(line.begin(), line.end(), [](char& c) {
-						c = (char) ::tolower(c);
-						});
+					lowercase_string(&line);
 					std::string filename_acquisition_local = filename_acquisition;
-					std::for_each(filename_acquisition_local.begin(), filename_acquisition_local.end(), [](char& c) {
-						c = (char) ::tolower(c);
-						});
+					lowercase_string(&filename_acquisition_local);
 					if ((nb_separators == 6)
 						&& (line.find_first_of(";") != std::string::npos)
 						&& (starts_with(line, filename_acquisition_local))

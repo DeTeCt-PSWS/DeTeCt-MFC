@@ -50,7 +50,7 @@ void dtcGetDatation(DtcCapture* pcapture, char* filename, int nbframes, double* 
 		if ((*pipp_info).capture_exists) { // Original capture used for PIPP exists
 			// tbd nbframes for capture_file to estimate + pfps ?
 			DtcCapture*	pCapture_original;
-			int			nbframes_original;
+			int			nbframes_original = 0;
 
 			pCapture_original = dtcCaptureFromFile2((*pipp_info).capture_filename, &nbframes_original);
 			dtcGetDatationForFilename(pCapture_original, (*pipp_info).capture_filename, nbframes_original, pstart_time, pend_time, pduration, pfps, ptimetype, comment, pplanet, pdatation_source);
@@ -2722,7 +2722,7 @@ MM.dd.yyyy
 		if (fclose(logfile)!=0) {
 			 char msgtext[MAX_STRING] = { 0 };										
 			snprintf(msgtext, MAX_STRING, "cannot close file %s", logfilename);
-			Warning(WARNING_MESSAGE_BOX, "cannot close file", "dtcGetInfoDatationFromLogFile()", msgtext);
+			Warning(WARNING_MESSAGE_BOX, "cannot close file", __func__, msgtext);
 			//exit(EXIT_FAILURE);
 		}
 		if ((*jd_end_time_loginfo)<(JD_init+1) && ((*jd_start_time_loginfo)>(JD_init+1)) && (IsDurationValid(*pDuration))) {

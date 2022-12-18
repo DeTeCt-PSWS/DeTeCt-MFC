@@ -77,6 +77,8 @@ void dtcWriteLogHeader(std::string location);
 
 void dtcWriteLog2(const std::string location, const LogInfo video_info, DtcCaptureInfo CaptureInfo, std::stringstream *logline, int* pwaitms);
 
+void dtcSortLog(const char* source_filename, const char* dest_filename);
+
 //void dtcWriteWholeLog(std::string location, std::vector<LogInfo> videos_info);
 
 void fprint_jd_wj(std::ofstream *stream, const double jd);

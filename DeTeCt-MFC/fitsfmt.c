@@ -68,7 +68,7 @@ void fitsGet_info(FileCapture *fc, const char *fname, double *date)
 	{
 		 char msgtext[MAX_STRING] = { 0 };										
 		snprintf(msgtext, MAX_STRING, "wrong fits header size in %s", fname);
-		ErrorExit(TRUE, "wrong fits header size", "fitsGet_info()", msgtext);
+		ErrorExit(TRUE, "wrong fits header size", __func__, msgtext);
 	}
 	fc->header_size=nbhead;
 

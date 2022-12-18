@@ -13,6 +13,8 @@ extern "C" {
 #include <sstream>
 #include "dirent.h"
 #include <direct.h>
+#include <numeric>      // std::iota
+#include <algorithm>    // std::sort, std::stable_sort
 
 
 // ************************************************************
@@ -61,6 +63,11 @@ bool replace(std::string& str, const std::string& from, const std::string& to) {
 	return true;
 }
 
+void lowercase_string(std::string *source) {
+	std::for_each((*source).begin(), (*source).end(), [](char& c) {
+		c = (char) ::tolower(c);
+		});
+}
 
 std::vector<std::string> read_txt(std::string path) {
 	std::ifstream file(path);
@@ -72,12 +79,6 @@ std::vector<std::string> read_txt(std::string path) {
 	file.close();
 	return lines;
 }
-
-/*std::wstring wstring_tolower(std::wstring& wstr) {
-	std::for_each(wstr.begin(), wstr.end(), [](char& c) {
-		c = (char) ::tolower(c);
-	});
-}*/ 
 
 CString GetLine(HANDLE QueueFileHandle) //ok
 {
@@ -290,4 +291,10 @@ int NbWaitedUnlockedFile(CString filename, const int delay) {
 	} while (!Unlocked);
 	
 	return counter;
+}
+
+int64 filesize(const char* filename) /* MB */
+{
+	std::ifstream in(filename, std::ios::binary | std::ios::ate);
+	return (int64) (in.tellg());
 }
