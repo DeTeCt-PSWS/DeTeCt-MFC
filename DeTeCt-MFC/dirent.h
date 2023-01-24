@@ -160,7 +160,7 @@
 
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 
 
@@ -833,7 +833,7 @@ dirent_set_errno(
 
 
 #ifdef __cplusplus
-}
+//}
 #endif
 #endif /*DIRENT_H*/
 

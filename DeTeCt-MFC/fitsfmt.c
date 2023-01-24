@@ -11,14 +11,14 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-#include <opencv/highgui.h>
+// #include <opencv/highgui.h>  // test OpenCV 4.7.0 
+#include <opencv2/highgui/highgui_c.h>  // test OpenCV 4.7.0 
 
 #include "fitsfmt.h"
 #include "wrapper.h"
 #include "dtc.h"
 #include "datation.h"
 #include "fitsfile_dtc.h"
-
 
 /*****************Reads current image data***************************/		
 /* FITS specific */		
@@ -31,7 +31,7 @@ size_t fitsImageRead(void *image, const size_t size, const size_t num, FILE *f)
 	long int length;
 	
 	length=(long int)(size*num);
-	ptr = image;
+	ptr = (char*)image;
 	while (bytesR < num * size)	{
 		bytesC = fread(ptr, 1, length, f);
 		if (!bytesC)
@@ -42,7 +42,7 @@ size_t fitsImageRead(void *image, const size_t size, const size_t num, FILE *f)
 	}
 /* Reverse bytes order for 16bits resolution */
 	if (size==2) {
-		ptr = image;
+		ptr = (char*)image;
 		for (long int i = 0; i<length; i = i + 2) {
 			tmp=ptr[i];
 			ptr[i]=ptr[i+1];
@@ -343,7 +343,7 @@ double fitsJD_date(char *buffer)
 				delta_time_hour=-1;
 			} else if (strcmp(mid(value,64,3,tmpline),"AZT") == 0) {
 				delta_time_hour=4;
-			} else if (strcmp(mid(value,64,3,tmpline),"BDT") == 0) {
+			} if (strcmp(mid(value,64,3,tmpline),"BDT") == 0) {
 				delta_time_hour=8;
 			} else if (strcmp(mid(value,64,3,tmpline),"BIO") == 0) {
 				delta_time_hour=6;
@@ -404,7 +404,8 @@ double fitsJD_date(char *buffer)
 			} else if (strcmp(mid(value,64,3,tmpline),"CWS") == 0) {
 				delta_time_hour=8;
 				delta_time_min=45;
-			} else if (strcmp(mid(value,64,3,tmpline),"CXT") == 0) {
+			}
+			if (strcmp(mid(value,64,3,tmpline),"CXT") == 0) {
 				delta_time_hour=7;
 			} else if (strcmp(mid(value,64,3,tmpline),"DAV") == 0) {
 				delta_time_hour=7;
@@ -480,7 +481,8 @@ double fitsJD_date(char *buffer)
 				delta_time_hour=7;
 			} else if (strcmp(mid(value,64,3,tmpline),"HST") == 0) {
 				delta_time_hour=-10;
-			} else if (strcmp(mid(value,64,3,tmpline),"ICT") == 0) {
+			}
+			if (strcmp(mid(value,64,3,tmpline),"ICT") == 0) {
 				delta_time_hour=7;
 			} else if (strcmp(mid(value,64,3,tmpline),"IDT") == 0) {
 				delta_time_hour=3;
@@ -569,7 +571,8 @@ double fitsJD_date(char *buffer)
 				delta_time_hour=13;
 			} else if (strcmp(mid(value,64,3,tmpline),"NZS") == 0) {
 				delta_time_hour=12;
-			} else if (strcmp(mid(value,64,3,tmpline),"OMS") == 0) {
+			}
+			if (strcmp(mid(value,64,3,tmpline),"OMS") == 0) {
 				delta_time_hour=7;
 			} else if (strcmp(mid(value,64,3,tmpline),"ORA") == 0) {
 				delta_time_hour=5;
@@ -642,7 +645,8 @@ double fitsJD_date(char *buffer)
 				delta_time_hour=13;
 			} else if (strcmp(mid(value,64,3,tmpline),"TVT") == 0) {
 				delta_time_hour=12;
-			} else if (strcmp(mid(value,64,3,tmpline),"UCT") == 0) {
+			}
+			if (strcmp(mid(value,64,3,tmpline),"UCT") == 0) {
 				delta_time_hour=0;
 			} else if (strcmp(mid(value,64,3,tmpline),"ULA") == 0) {
 				delta_time_hour=8;

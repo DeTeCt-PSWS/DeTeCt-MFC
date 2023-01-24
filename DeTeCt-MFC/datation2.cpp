@@ -15,10 +15,11 @@
 
 //#include <Windows.h> //after processes_queue.h  //not used
 
-#include "datation2.h"
+#include "datation2.hpp"
 //#include "dtc.h"	//not used
-#include "common2.h"
+#include "common2.hpp"
 #include <numeric>      // std::iota
+#include <iomanip>		// test OpenCV 4.7.0
 
 
 /**********************************************************************************************//**
@@ -398,8 +399,8 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 		output_file << " xx; ";
 	}
 	output_file.setf(std::ios::right, std::ios::adjustfield);
-	output_file << std::setfill(' ') << std::setw(9) << std::setprecision(4) << std::fixed << video_info.duration << " s; ";
-	output_file << std::setfill(' ') << std::setw(7) << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
+	output_file << std::setfill(' ') << std::setw(9) << std::setprecision(4) << std::fixed << video_info.duration << " s;";
+	output_file << std::setfill(' ') << std::setw(8) << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 	//output_file << video_info.filename << std::setfill(' ') << std::setw(255) << std::left << " " << "; ";
 	output_file << str_trail_fill(video_info.filename, " ", 255, str_tmp) << "; ";
 	strcpy(str_tmp2, full_version.c_str());
@@ -559,8 +560,8 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 		(*logline) << " xx; ";
 	}
 	(*logline).setf(std::ios::right, std::ios::adjustfield);
-	(*logline) << std::setfill(' ') << std::setw(8) << std::setprecision(4) << std::fixed << video_info.duration << " s; ";
-	(*logline) << std::setfill(' ') << std::setw(7) << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
+	(*logline) << std::setfill(' ') << std::setw(8) << std::setprecision(4) << std::fixed << video_info.duration << " s;";
+	(*logline) << std::setfill(' ') << std::setw(8) << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 	(*logline) << video_info.filename << "; ";
 	(*logline) << full_version.c_str() << " (" << video_info.comment << "); ";
 	(*logline) << os_version.c_str() << "; ";

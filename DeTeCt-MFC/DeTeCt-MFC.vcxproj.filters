@@ -34,10 +34,10 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DeTeCt-MFC.h">
+    <ClInclude Include="DeTeCt-MFC.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DeTeCt-MFCDlg.h">
+    <ClInclude Include="DeTeCt-MFCDlg.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -88,25 +88,25 @@
     <ClInclude Include="dtcgui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="img2.h">
+    <ClInclude Include="img2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filefmt2.h">
+    <ClInclude Include="filefmt2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrapper2.h">
+    <ClInclude Include="wrapper2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="auxfunc.h">
+    <ClInclude Include="auxfunc.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="dtcas3.h">
+    <ClInclude Include="dtcas3.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="datation2.h">
+    <ClInclude Include="datation2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DetectThread.h">
+    <ClInclude Include="DetectThread.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="serfmt.h">
@@ -124,7 +124,7 @@
     <ClInclude Include="WndResizer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wrapper3.h">
+    <ClInclude Include="wrapper3.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="processes_queue.hpp">
@@ -133,10 +133,10 @@
     <ClInclude Include="max.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="common2.h">
+    <ClInclude Include="common2.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="AutoUpdate.h">
+    <ClInclude Include="AutoUpdate.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

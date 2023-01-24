@@ -17,7 +17,7 @@
 #include "serfmt.h"
 #include "datation.h"
 //#include "dtc.h"
-#include "wrapper3.h"
+#include "wrapper3.hpp"
 
 
 const double FPS_MIN		=	0.01;
@@ -963,8 +963,8 @@ void dtcGetDatationFromFileInfo(DtcCapture *capture, const char *filename, const
 			(*pfps)=0.0;
 			break;
 		default: // CAPTURE_CV
-			(*pfps) = dtcGetCaptureProperty(capture, CV_CAP_PROP_FPS);
-			nbframes_opencv = (int) floor(0.5+dtcGetCaptureProperty(capture, CV_CAP_PROP_FRAME_COUNT));
+			(*pfps) = dtcGetCaptureProperty(capture, cv::CAP_PROP_FPS);
+			nbframes_opencv = (int) floor(0.5+dtcGetCaptureProperty(capture, cv::CAP_PROP_FRAME_COUNT));
 			if ((*pfps) != 0) duration_tmp = nbframes_opencv / (*pfps);
 	}
 	

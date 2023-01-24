@@ -2,7 +2,8 @@
 #define __FITSFMT_H__
 #include "common.h"
 
-#include <opencv/highgui.h>
+// test OpenCV 4.7.0 #include <opencv/highgui.h>
+#include <opencv2/highgui\highgui_c.h> // test OpenCV 4.7.0 
 #include "dirent.h"
 #include "filefmt.h"
 

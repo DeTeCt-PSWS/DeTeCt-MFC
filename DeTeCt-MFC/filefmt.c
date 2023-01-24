@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <opencv/highgui.h>
+//#include <opencv/highgui.h> // test OpenCV 4.7.0 
 
 #include "filefmt.h"
 #include "wrapper.h"
@@ -19,7 +19,9 @@
 #include "fitsfmt.h"
 
 //#include <opencv2/imgcodecs/imgcodecs_c.h>  //TEST opencv3
-
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgcodecs/legacy/constants_c.h>  // test OpenCV 4.7.0 from <opencv2/imgcodecs/imgcodecs_c.h>
+#include "filefmt2.hpp"
 
 FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type)
 {
@@ -37,7 +39,7 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 
 /* Init */
 	
-	fc = calloc(sizeof (FileCapture), 1);
+	fc = (FileCapture*) calloc(sizeof(FileCapture), 1);
 	assert(fc != NULL);	
 
 	if (!(fc->fh = fopen(fname, "rb")))	{
@@ -268,11 +270,12 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 						fc->StartTime_JD=JD_from_time_t(teststat_start.st_mtime);
 					}
 				}
+				
 				nChannels = 1;
 				depth     = fc->PixelDepth > 8 ? IPL_DEPTH_16U : IPL_DEPTH_8U;
 				fc->image					= cvCreateImageHeader(cvSize(fc->ImageWidth, fc->ImageHeight), depth, nChannels);
 				assert(fc->image != NULL);
-				fc->image->imageData		= calloc(sizeof (char), fc->ImageBytes);
+				fc->image->imageData		= (char*) calloc(sizeof (char), fc->ImageBytes);
 				assert(fc->image->imageData != NULL);
 				fc->image->widthStep		= fc->ImageWidth * (int)fc->BytesPerPixel * fc->image->nChannels;
 				fc->image->imageDataOrigin	= fc->image->imageData;
@@ -347,7 +350,9 @@ void fileReinitCaptureRead(FileCapture *fc,const char *fname)
 	}
 }
 
+
 /*****************Reads current frame***************************/			
+/*  // test OpenCV 4.7.0 deactivated Marc 2022.01.10
 IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 {
 	IplImage *old_image;
@@ -428,7 +433,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 			break;
 		case CAPTURE_FILES:
 			old_image=fc->image;
-/*			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);*/
+//			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);
 			if (!(fc->image=cvLoadImage(filename,CV_LOAD_IMAGE_ANYDEPTH))) {
 				if (!ignore) {
 					cvReleaseImage(&old_image);
@@ -458,7 +463,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 	}
 	return fc->image;
 }
-
+*/
 /*****************Gets general file info***************************/			
 void fileGet_info(FileCapture *fc, const char *fname, double *date)
 {
@@ -471,14 +476,25 @@ void fileGet_info(FileCapture *fc, const char *fname, double *date)
 			fitsGet_info(fc, fname, date);
 			break;
 		case CAPTURE_FILES:
-			fc->image		= cvLoadImage(fname,CV_LOAD_IMAGE_ANYDEPTH);
-			fc->ImageWidth	= fc->image->width;
-			fc->ImageHeight	= fc->image->height;
-			fc->PixelDepth	= fc->image->depth;
-			fc->ColorID		= fc->image->nChannels;
-			fc->image->widthStep		= fc->ImageWidth * (int)fc->BytesPerPixel * fc->image->nChannels;
-			fc->image->imageDataOrigin	= fc->image->imageData;
-			cvReleaseImage(&fc->image);
+			//fc->image		= cvLoadImage(fname,CV_LOAD_IMAGE_ANYDEPTH);
+			//fc->ImageWidth = fc->image->width;
+			//fc->ImageHeight = fc->image->height;
+			//fc->PixelDepth = fc->image->depth;
+			//fc->ColorID = fc->image->nChannels;
+			//fc->image->widthStep = fc->ImageWidth * (int)fc->BytesPerPixel * fc->image->nChannels;
+			//fc->image->imageDataOrigin = fc->image->imageData;
+			//cvReleaseImage(&fc->image);
+			
+			cv::Mat MatImage =	cv::imread(fname, CV_LOAD_IMAGE_ANYDEPTH);
+			//fc->image =			&IplImageFromMat(MatImage);
+			fc->ImageWidth  =	MatImage.cols;
+			fc->ImageHeight	=	MatImage.rows;
+			fc->PixelDepth =	cvIplDepth(MatImage.flags);
+			//fc->PixelDepth =	MatImage.depth(); // code 1-7
+			fc->ColorID		=	MatImage.channels();
+			//fc->image->widthStep		= fc->ImageWidth * (int)fc->BytesPerPixel * fc->image->nChannels;
+			//fc->image->imageDataOrigin	= fc->image->imageData;
+			//cvReleaseImage(fc->image);
 			break;
 	}
 	fc->BytesPerPixel = fc->PixelDepth > 8 ? 2 : 1;

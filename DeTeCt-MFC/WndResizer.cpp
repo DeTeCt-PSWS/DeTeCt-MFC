@@ -915,7 +915,12 @@ LRESULT CALLBACK CWndResizer::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 {
 	CWndResizer * pResizer = NULL;
 	WndResizerData.Lookup(hWnd, pResizer);
-	ASSERT( pResizer != NULL);
+	ASSERT(pResizer != NULL);
+	ASSERT(pResizer != nullptr);
+
+//BUG CWNDRESIZER ? ASSERT NOT WORKING
+	if (pResizer == NULL) return NULL;
+//END OF BUGFIX
 
 	switch (uMsg)
 	{
@@ -958,7 +963,7 @@ LRESULT CALLBACK CWndResizer::WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 		break;
 	}
 
- 	return ::CallWindowProc(pResizer->m_pfnWndProc, hWnd, uMsg, wParam, lParam);
+	return ::CallWindowProc(pResizer->m_pfnWndProc, hWnd, uMsg, wParam, lParam);
 }
 
 BOOL CWndResizer::CreateSplitContainer(LPCTSTR panelName, LPCTSTR panelNameA, LPCTSTR panelNameB)

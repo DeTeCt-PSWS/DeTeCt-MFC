@@ -43,7 +43,7 @@
 #ifndef fitsfile_h_
 #define fitsfile_h_
 #include "common.h"
-#include "fitshead.h"
+#include "fits\fitshead.h"
 
 /* Declarations for subroutines in fitsfile.c, imhfile.c, imio.c,
  * fileutil.c, and dateutil.c */
@@ -85,17 +85,17 @@ extern "C" {
  * fileutil.c, and dateutil.c */
 
 /* FITS file access subroutines in fitsfile.c */
-    int fitsropen(	/* Open a FITS file for reading, returning a FILE pointer */
+    extern int fitsropen(	/* Open a FITS file for reading, returning a FILE pointer */    // test OpenCV 4.7.0 - extern added
 	const char *inpath);	/* Pathname for FITS tables file to read */
 	
-    char *fitsrhead(	/* Read a FITS header */
+    extern char *fitsrhead(	/* Read a FITS header */    // test OpenCV 4.7.0 extern added
 	const char *filename,	/* Name of FITS image file */
 	int *lhead,	/* Allocated length of FITS header in bytes (returned) */
 	int *nbhead);	/* Number of bytes before start of data (returned) */
 
 /* FITS file access subroutines in fitsfile.c */
-extern int fitsropen();
-extern char *fitsrhead();
+//extern int fitsropen();           // test OpenCV 4.7.0 
+//extern char *fitsrhead();// test OpenCV 4.7.0 
 
 //#endif  /* __STDC__ */
 

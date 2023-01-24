@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 
-#include "AutoUpdate.h"
+#include "AutoUpdate.hpp"
 
 #pragma warning(push)
 #pragma warning(disable: 4244)
@@ -12,29 +12,30 @@ with
 [
  _Iter = wchar_t*
 ]*/
-#include "DeTeCt-MFC.h"
+#include "DeTeCt-MFC.hpp"
 #pragma warning(pop)
-#include "DeTeCt-MFCDlg.h"
+#include "DeTeCt-MFCDlg.hpp"
 #include "afxdialogex.h"
 
 #include "dtcgui.hpp"
-#include "DetectThread.h"
+#include "DetectThread.hpp"
 #include "cmdline.h"
 #include <thread>
 #include <string>
 
 #include "common.h"
-#include "common2.h"
+#include "common2.hpp"
 #include "processes_queue.hpp"
 
-#include "wrapper2.h"
+#include "wrapper2.hpp"
 
-//#include <opencv2/imgproc.hpp> //TEST opencv3
+#include <opencv2/imgproc.hpp> // test OpenCV 4.7.0
 #include <iomanip>  // std::setprecision
 
 #include <numeric>      // std::iota
 
-#define FFMPEGDLL "opencv_ffmpeg2413_64.dll"
+//#define FFMPEGDLL "opencv_ffmpeg2413_64.dll"
+#define FFMPEGDLL "opencv_videoio_ffmpeg460_64.dll"
 
 std::string message_lines[MAX_STRING];
 
@@ -402,6 +403,7 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_COMMAND(ID_HELP_TUTORIAL, &CDeTeCtMFCDlg::OnHelpTutorial)
 	ON_COMMAND(ID_HELP_DOCUMENTATION, &CDeTeCtMFCDlg::OnHelpDocumentation)
 	ON_COMMAND(ID_HELP_CHECKSFORUPDATE, &CDeTeCtMFCDlg::OnHelpChecksForUpdate)
+	ON_COMMAND(ID_HELP_RERUNCONFIGURATIONUPDATES, &CDeTeCtMFCDlg::OnHelpRerunConfigurationUpdates)
 	ON_COMMAND(ID_HELP_HISTORY, &CDeTeCtMFCDlg::OnHelpHistory)
 	ON_COMMAND(ID_HELP_PROJECTRESULTS, &CDeTeCtMFCDlg::OnHelpProjectResults)
 	ON_COMMAND(ID_SETTINGS_USER, &CDeTeCtMFCDlg::OnSettingsUser)
@@ -647,10 +649,9 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 
 	std::ifstream filetest(FFMPEGDLL);
 	if (!filetest) {
-		MessageBox(_T("File ") + CString(FFMPEGDLL) + _T(" not found,\n") + CString(PROGNAME) + _T(" will not be able to open avi, mov, mpg, etc... files\n\nIt will close without processing if finding such files to analyse.\n\nTo fix this, go to menu Help->Version history to download this missing dll from the latest ") + CString(PROGNAME) + _T(" zip file available."), _T("Warning: file ") + CString(FFMPEGDLL) + _T(" not found"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+		MessageBox(_T("File ") + CString(FFMPEGDLL) + _T(" not found,\n") + CString(PROGNAME) + _T(" will not be able to open avi, mov, mpg, etc... files\n\nThere will be errors if finding such files to analyse.\n\nTo fix this, go to menu Help->Rerun configuration updates to download missing dll(s)"), _T("Warning: file ") + CString(FFMPEGDLL) + _T(" not found"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 	}
 	filetest.close();
-
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1256,7 +1257,7 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 			}
 			else PushFileToQueue(char2CString(filename.c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));*/
 								if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) acquisition_files.acquisition_size.at(index) *= nframe;
-								int64 acquisition_size = acquisition_files.acquisition_size.at(index);
+								//int64 acquisition_size = acquisition_files.acquisition_size.at(index);
 								/*if (index > 0) {// MODIFIED: if multi instances mode, keep only one acquisition in the list and the rest in the queue
 									acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
 									acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
@@ -1470,8 +1471,41 @@ void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
 {
 	OnCheckUpdate();
 }
+
 /**************************************************************************************************
- * @fn	void CDeTeCtMFCDlg::OnHelpChecksForUpdate()
+ * @fn	void CDeTeCtMFCDlg::OnHelpRERUNCONFIGURATIONUPDATES()
+ *
+ * @brief	Opens latest version webpage
+ *
+ * @author	Marc
+ * @date	2019-10-24
+ **************************************************************************************************/
+
+void CDeTeCtMFCDlg::OnHelpRerunConfigurationUpdates()
+{
+	std::vector<CString> log_cstring_lines;
+	SG_Version version_current;
+	TCHAR szPath[MAX_PATH];
+	AutoUpdate au(&log_cstring_lines);								// For auto updating
+
+	if (!GetModuleFileName(NULL, szPath, MAX_PATH))
+	{
+		log_cstring_lines.push_back((CString)"Can't find module file name (" + (CString)std::to_string(GetLastError()).c_str() + _T(")"));
+		return;
+	}
+	au.SG_GetVersion(szPath, &version_current, &log_cstring_lines);
+	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + _T("Rerun configuration updates till v") + au.version_CString(version_current) + _T(" ...\n"));
+	if (au.ForceAllUpdates(version_current, &log_cstring_lines)) MessageBox(_T("All configuration updates till v") + au.version_CString(version_current) + _T(" have been executed\n"), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
+	else MessageBox(_T("No configuration update till v") + au.version_CString(version_current) + _T(" has been found\n"), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
+
+	std::for_each(log_cstring_lines.begin(), log_cstring_lines.end(), [&](const CString log_cstring_line) {
+		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + log_cstring_line);
+		});
+}
+
+
+/**************************************************************************************************
+ * @fn	void CDeTeCtMFCDlg::OnHelpHistory()
  *
  * @brief	Opens latest version webpage
  *
@@ -1720,7 +1754,8 @@ void CDeTeCtMFCDlg::OnFileCleanImpactFiles() {
 
 void CDeTeCtMFCDlg::OnFileExit()
 {
-	cv::destroyWindow("Detection image");
+	//cv::destroyWindow("Detection image");
+	cv::destroyAllWindows();
 	
 	if (opts.parent_instance) {
 		CString message;

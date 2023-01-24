@@ -55,5 +55,7 @@ double 		get_item_list_mean_value(LIST *l);
 void 		init_dtc_struct(DTCIMPACT *dtc);
 void 		print_list_item(LIST *l, int max);
 void 		print_item_array(ITEM **ord, size_t n, size_t max);
+int			itemcmp(const void* a, const void* b);
+
 
 #endif /* __MAX_H__ */

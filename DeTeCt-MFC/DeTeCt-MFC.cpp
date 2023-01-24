@@ -3,10 +3,10 @@
 //
 
 #include "stdafx.h"
-#include "common2.h"
-#include "DeTeCt-MFC.h"
-#include "DeTeCt-MFCDlg.h"
-#include "dtcas3.h"
+#include "common2.hpp"
+#include "DeTeCt-MFC.hpp"
+#include "DeTeCt-MFCDlg.hpp"
+#include "dtcas3.hpp"
 //#include "ini.h" 
 #include "cmdline.h"
 

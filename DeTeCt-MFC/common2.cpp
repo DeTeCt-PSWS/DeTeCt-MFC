@@ -1,13 +1,13 @@
-#include "common2.h"
+#include "common2.hpp"
 
 //#include "dtcgui.hpp"		//not needed
 #include <opencv2\highgui\highgui.hpp>
 #include <codecvt>
 //#include "versionhelpers.h"	//for IsWindowsxxx //not needed
 
-extern "C" {
+//extern "C" {
 #include "common.h"
-}
+//}
 
 #include <fstream>
 #include <sstream>

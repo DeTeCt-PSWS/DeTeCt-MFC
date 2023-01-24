@@ -10,9 +10,8 @@
 #include <windows.h>
 #include <ctype.h>
 
-int debug_mode;
-
-OPTS opts;
+int		debug_mode;
+OPTS	opts;
 
 /*****************Math functions***************************/
 //int		round(const float num)
@@ -141,7 +140,7 @@ char* strrstr(const char *haystack, const char *needle)
 	if (!needle[0])
 		return (char*)haystack + strlen(haystack);
 	while (1) {
-		char *p = strstr(haystack, needle);
+		char *p = (char*)strstr(haystack, needle);
 		if (!p)
 			return r;
 		r = p;
@@ -256,7 +255,7 @@ void get_fileextension(const char *src, char *dst, int max)
 {
 	char *ext;
 	
-	ext = strrchr(src, '.');
+	ext = (char*)strrchr(src, '.');
 	
 	if (!ext) {
 		*dst = '\0';
@@ -270,7 +269,7 @@ void get_folder(const char *src, char *dst)
 {
 	char *dir;
 	
-	dir = strrchr(src, '\\');
+	dir = (char*)strrchr(src, '\\');
 	
 	if (!dir) {
 		*dst = '.';
@@ -297,7 +296,7 @@ void	ErrorExit(const bool display_msgbox, const char *title, const char *functio
 	char buffer[MAX_STRING] = { 0 };
 
 	if (strlen(function)>0) {
-		sprintf_s(buffer, MAX_STRING, "Error in %s(): %s\n", function, text);
+		sprintf_s(buffer, MAX_STRING, "Error: %s\n (message from function %s() )\n", text, function);
 		fprintf(stderr, "%s", buffer);
 		snprintf(fulltext, MAX_STRING, "%s\nWill now exit program", buffer);
 	} else {
@@ -330,7 +329,7 @@ void	Warning(const bool display_msgbox, const char* title, const char* function,
 	char buffer[MAX_STRING] = { 0 };
 
 	if (strlen(function) > 0) {
-		sprintf_s(buffer, MAX_STRING, "Warning in %s(): %s\n", function, text);
+		sprintf_s(buffer, MAX_STRING, "Warning: %s\n (message from function %s() )\n", text, function);
 		fprintf(stderr, "%s", buffer);
 		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
 	}

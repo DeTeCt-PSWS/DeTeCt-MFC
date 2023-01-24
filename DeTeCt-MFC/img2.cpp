@@ -11,14 +11,14 @@
 
 #include <stdio.h>
 
-#include "img2.h"
+#include "img2.hpp"
 #include "dtc.h"
-#include "wrapper2.h"
-#include "auxfunc.h"
+#include "wrapper2.hpp"
+#include "auxfunc.hpp"
+#include <opencv2/imgproc.hpp>  // test OpenCV 4.7.0 
+#include <opencv2/imgcodecs/legacy/constants_c.h>  // test OpenCV 4.7.0 
 
-//#include <opencv2/imgproc.hpp> //TEST opencv3
-
-static void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);
+//static void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);   // test OpenCV 4.7.0 
 int doublecmp(const void *a, const void *b);
 void printtbuf(double *uc, size_t s);
 
@@ -753,7 +753,15 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 	for (nframe = 1; !opts.nframesROI || nframe <= opts.nframesROI; nframe++) {
 		error = 0;
 		frame = dtcQueryFrame2(pcapture, ignore, &error);
-		if (!frame.data) return roi;
+/*if (frame.data) {
+	cv::Mat frame_img;
+	frame.convertTo(frame_img, CV_8U);
+	cv::namedWindow("Debug1");
+	cv::imshow("Debug1", frame_img);
+	cv::waitKey(0);
+	cv::destroyWindow("Debug1");
+}*/
+	if ((!frame.data) ||(frame.dims == 0)) return roi;
 		if (error == 0) {
 			cv::Point cm;
 			gray = dtcGetGrayMat(&frame, pcapture);
@@ -877,6 +885,7 @@ cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
  * @param	img   	The source frame.
  **************************************************************************************************/
 
+/*   // test OpenCV 4.7.0  deactivated 2023.01.10
 void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img)
 {
 	cv::Mat tmp;
@@ -903,7 +912,7 @@ void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img)
 		
 	}
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	cv::VideoWriter *dtcWriteVideo(const char *file, cv::VideoWriter writer, DtcCapture *capture, cv::Mat img)
  *
@@ -919,7 +928,7 @@ void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img)
  *
  * @return	Null if it fails, else a pointer to a cv::VideoWriter.
  **************************************************************************************************/
-
+ /* deactivated 2023.01.10 test OpenCV 4.7.0 
 cv::VideoWriter *dtcWriteVideo(const char *file, cv::VideoWriter writer, DtcCapture *capture, cv::Mat img)
 {
 	cv::Mat color;
@@ -929,13 +938,13 @@ cv::VideoWriter *dtcWriteVideo(const char *file, cv::VideoWriter writer, DtcCapt
 	if (!img.data) return nullptr;
 
 	if (!writer.isOpened()) {
-		fps = dtcGetCaptureProperty(capture, CV_CAP_PROP_FPS);
+		fps = dtcGetCaptureProperty(capture, cv::CAP_PROP_FPS);  // test OpenCV 4.7.0 
 		size = cv::Size(img.cols, img.rows);
 		writer = cv::VideoWriter(file,
 		#if defined(_WIN32)
-			CV_FOURCC('D', 'I', 'B', ' '),
+			cv::VideoWriter::fourcc('D', 'I', 'B', ' '),  // test OpenCV 4.7.0 
 		#else
-			CV_FOURCC('M', 'J', 'P', 'G'),
+			cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),  // test OpenCV 4.7.0 
 		#endif
 			fps, size, CV_LOAD_IMAGE_COLOR);
 	} else {
@@ -954,7 +963,7 @@ cv::VideoWriter *dtcWriteVideo(const char *file, cv::VideoWriter writer, DtcCapt
 
 	return &writer;
 }
-
+*/
 /**********************************************************************************************//**
  * @fn	void dtcShowPhotometry(cv::Mat pmat, int nframe)
  *

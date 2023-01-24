@@ -77,11 +77,11 @@ getfitsskip()
 /* FITSRHEAD -- Read a FITS header */
 
 char *
-fitsrhead (filename, lhead, nbhead)
+fitsrhead (const char *filename, int *lhead, int *nbhead)
 
-const char	*filename;	/* Name of FITS image file */
-int	*lhead;		/* Allocated length of FITS header in bytes (returned) */
-int	*nbhead;	/* Number of bytes before start of data (returned) */
+//const char	*filename;	/* Name of FITS image file */
+//int	*lhead;		/* Allocated length of FITS header in bytes (returned) */
+//int	*nbhead;	/* Number of bytes before start of data (returned) */
 			/* This includes all skipped image extensions */
 
 {
@@ -119,17 +119,17 @@ int	*nbhead;	/* Number of bytes before start of data (returned) */
 	strcpy(extnam, "");
 
     /* Check for FITS WCS specification and ignore for file opening */
-    mwcs = strchr (filename, '%');
+    mwcs = (char*) strchr (filename, '%');
     if (mwcs != NULL)
 	*mwcs = (char) 0;
 
     /* Check for FITS extension and ignore for file opening */
     rbrac = NULL;
-    ext = strchr (filename, ',');
+    ext = (char*) strchr (filename, ',');
     if (ext == NULL) {
-	ext = strchr (filename, '[');
+	ext = (char*) strchr (filename, '[');
 	if (ext != NULL) {
-	    rbrac = strchr (filename, ']');
+	    rbrac = (char*) strchr (filename, ']');
 	    if (rbrac != NULL)
 		*rbrac = (char) 0;
 	    }
@@ -505,7 +505,7 @@ int	*nbhead;	/* Number of bytes before start of data (returned) */
 	hputs (header,"COMMENT","-------------------------------------------");
 	hputs (header,"COMMENT","Information from Primary Header");
 	hputs (header,"COMMENT","-------------------------------------------");
-	headend = blsearch (header,"END");
+	headend = (char*) blsearch (header,"END");
 	if (headend == NULL)
 	    headend = ksearch (header, "END");
 	pheader[lprim] = 0;
@@ -524,9 +524,9 @@ int	*nbhead;	/* Number of bytes before start of data (returned) */
 /* FITSROPEN -- Open a FITS file, returning the file descriptor */
 
 int
-fitsropen (inpath)
+fitsropen (const char *inpath)
 
-const char	*inpath;	/* Pathname for FITS tables file to read */
+//const char	*inpath;	/* Pathname for FITS tables file to read */
 
 {
     int ntry;
@@ -537,15 +537,15 @@ const char	*inpath;	/* Pathname for FITS tables file to read */
     char *mwcs;		/* Pointer to WCS name separated by % */
 
 /* Check for FITS WCS specification and ignore for file opening */
-    mwcs = strchr (inpath, '%');
+    mwcs = (char*) strchr (inpath, '%');
 
 /* Check for FITS extension and ignore for file opening */
-    ext = strchr (inpath, ',');
+    ext = (char*) strchr (inpath, ',');
     rbrac = NULL;
     if (ext == NULL) {
-	ext = strchr (inpath, '[');
+	ext = (char*) strchr (inpath, '[');
 	if (ext != NULL) {
-	    rbrac = strchr (inpath, ']');
+	    rbrac = (char*) strchr (inpath, ']');
 	    }
 	}
 
@@ -559,7 +559,7 @@ const char	*inpath;	/* Pathname for FITS tables file to read */
 	    *rbrac = (char) 0;
 	if (mwcs != NULL)
 	    *mwcs = (char) 0;
-	fd = open (inpath, O_RDONLY);
+	fd = open (inpath, O_RDONLY, 0);
 	if (ext != NULL)
 	    *ext = cext;
 	if (rbrac != NULL)

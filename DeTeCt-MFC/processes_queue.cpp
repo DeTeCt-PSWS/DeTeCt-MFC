@@ -1,7 +1,7 @@
 #include "processes_queue.hpp"
 #include "common.h"
-#include "common2.h"
-//#include "auxfunc.h"
+#include "common2.hpp"
+//#include "auxfunc.hpp"
 
 #include <tlhelp32.h>
 #include <psapi.h>
@@ -372,7 +372,7 @@ void PushFileToQueue(const CString objectname, const CString QueueFilename) //ok
 *
 * @fn	RemoveFileFromQueue(const CString objectname, CString QueueFilename)
 *
-* @brief	removes from objectname from QueueFilename
+* @brief	removes objectname from QueueFilename
 *
 * @author	Marc
 * @date		2020-04-15

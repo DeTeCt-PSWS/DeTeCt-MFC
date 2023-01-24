@@ -10,16 +10,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <sys/stat.h>
-#include <opencv2\highgui\highgui.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgcodecs/legacy/constants_c.h>  // test OpenCV 4.7.0 
 
-#include "filefmt2.h"
+#include "filefmt2.hpp"
+#include "filefmt.h"
 
-extern "C" {
+//extern "C" {
 	#include "datation.h"
 	#include "fitsfmt.h"
-}
+//}
 #include "wrapper.h"
 #include "dtc.h"
+
+void		fileGet_filenamecpp(char* dest, FileCapture* fc, int nb);
+void		fileGenerate_numbercpp(char* dest, FileCapture* fc, int nb);
 
 /**********************************************************************************************//**
  * @fn	FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type)
@@ -398,6 +403,148 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 	return fc->image;
 }
 */
+/**********************************************************************************************//**
+ * @fn	cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
+ *
+ * @brief	File query frame 2. Same as the old version, using the C++ API.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ *
+ * @param [in,out]	fc	  	If non-null, the fc.
+ * @param 		  	ignore	The ignore.
+ * @param [in,out]	perror	If non-null, the perror.
+ *
+ * @return	A cv::Mat.
+ **************************************************************************************************/
+
+/* Deactivation Marc 2022.01.10
+cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
+{
+	cv::Mat old_image;
+	char filename[MAX_STRING] = { 0 };
+	char* header;
+	size_t bytesR;
+
+	(*perror) = 0;
+	if (fc->frame < 0) {
+		fc->frame = fc->FirstFileIdx;
+	}
+	else {
+		fc->frame++;
+	}
+	if (fc->frame > fc->LastFileIdx) {
+		return cv::Mat();
+	}
+
+	fileGet_filename(filename, fc, fc->frame);
+
+	if (!(fc->fh = fopen(filename, "rb"))) {
+		char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot open %s file (frame %d/%d)", filename, fc->frame, fc->LastFileIdx);
+		ErrorExit(TRUE, "cannot open file", __func__, msgtext);
+	}
+	switch (fc->FileType) {
+	case CAPTURE_FITS:
+		header = (char*)malloc(sizeof * header * fc->header_size);
+		if (header == NULL) {
+			assert(header != NULL);
+		}
+		else {
+			if (fread(header, sizeof(char), fc->header_size, fc->fh) != fc->header_size) {
+				if (fclose(fc->fh) != 0) {
+					char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
+					//exit(EXIT_FAILURE);
+				}
+				free(header);
+				if (!ignore) {
+					char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
+					ErrorExit(TRUE, "cannot read fits header", __func__, msgtext);
+				}
+				else {
+					char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
+					Warning(WARNING_MESSAGE_BOX, "cannot read fits header", __func__, msgtext);
+					(*perror) = 1;
+					return fc->image;
+				}
+			}
+			else {
+				if (!(bytesR = fitsImageRead(fc->image.data, sizeof(char) * fc->BytesPerPixel, fc->ImageBytes / fc->BytesPerPixel, fc->fh))) {
+					if (fclose(fc->fh) != 0) {
+						char msgtext[MAX_STRING] = { 0 };
+						snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+						Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
+					}
+					free(header);
+					if (!ignore) {
+						char msgtext[MAX_STRING] = { 0 };
+						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
+						ErrorExit(TRUE, "cannot read fits frame", __func__, msgtext);
+					}
+					else {
+						fc->ValidFrameCount--;
+						char msgtext[MAX_STRING] = { 0 };
+						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
+						Warning(WARNING_MESSAGE_BOX, "cannot read fits frame", __func__, msgtext);
+						(*perror) = 1;
+						return fc->image;
+					}
+				}
+			}
+		}
+		break;
+	case CAPTURE_FILES:
+		old_image = fc->image;
+		//			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);
+		if ((fc->image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
+			if (!ignore) {
+				old_image.release();
+				if (fclose(fc->fh) != 0) {
+					char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+					Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
+				}
+				char msgtext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
+				ErrorExit(TRUE, "cannot read frame", __func__, msgtext);
+			}
+			else {
+				fc->ValidFrameCount--;
+				fc->image = old_image;
+				(*perror) = 1;
+				char msgtext[MAX_STRING] = { 0 };
+				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
+				Warning(WARNING_MESSAGE_BOX, "cannot read frame", __func__, msgtext);
+				//if (fclose(fc->fh) != 0) {
+//					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
+				//	exit(EXIT_FAILURE);
+				//}
+				return fc->image;
+			}
+		}
+		else {
+			//if (!old_image.empty()) {
+			if (!old_image.empty() || old_image.data) {
+				old_image.release();
+			}
+		}
+		break;
+	}
+	fc->LastValidFileIdx = fc->frame;
+	if (fclose(fc->fh) != 0) {
+		char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
+		Warning(WARNING_MESSAGE_BOX, "cannot close capture file", __func__, msgtext);
+		//exit(EXIT_FAILURE);
+	}
+
+	return fc->image;
+}
+*/
 
 /**********************************************************************************************//**
  * @fn	cv::Mat fileQueryFrame2(FileCapture *fc, const int ignore, int *perror)
@@ -416,9 +563,11 @@ cv::Mat fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 
  // Deactivation Marc 2020.06.02
 
-cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
+//cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
+cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // test OpenCV 4.7.0
 {
 	cv::Mat old_image;
+	cv::Mat return_Mat;
 	char filename[MAX_STRING] = { 0 };
 	char *header;
 	size_t bytesR;
@@ -434,7 +583,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 		return cv::Mat();
 	}
 
-	fileGet_filename(filename, fc, fc->frame);
+	fileGet_filenamecpp(filename, fc, fc->frame);
 
 	if (!(fc->fh = fopen(filename, "rb"))) {
 		 char msgtext[MAX_STRING] = { 0 };
@@ -466,11 +615,13 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
 					Warning(WARNING_MESSAGE_BOX, "cannot read fits header", __func__, msgtext);
 					(*perror) = 1;
-					return fc->image;
+					//return fc->image;
+					return_Mat = cv::cvarrToMat(fc->image, true); // test OpenCV 4.7.0
+					return return_Mat; // test OpenCV 4.7.0
 				}
 			}
 			else {
-				if (!(bytesR = fitsImageRead(fc->image.data, sizeof(char)*fc->BytesPerPixel, fc->ImageBytes / fc->BytesPerPixel, fc->fh))) {
+				if (!(bytesR = fitsImageRead(fc->image->imageData, sizeof(char)*fc->BytesPerPixel, fc->ImageBytes / fc->BytesPerPixel, fc->fh))) {
 					if (fclose(fc->fh) != 0) {
 						 char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
@@ -488,16 +639,18 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
 						Warning(WARNING_MESSAGE_BOX, "cannot read fits frame", __func__, msgtext);
 						(*perror) = 1;
-						return fc->image;
+						return return_Mat; // test OpenCV 4.7.0
+						//return fc->image;
 					}
 				}
+				return_Mat = cv::cvarrToMat(fc->image, true); // test OpenCV 4.7.0
 			}
 		}
 		break;
 	case CAPTURE_FILES:
-		old_image = fc->image;
+		old_image = cv::cvarrToMat(fc->image, true);
 		//			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);
-		if ((fc->image = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
+		if ((return_Mat = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
 			if (!ignore) {
 				old_image.release();
 				if (fclose(fc->fh) != 0) {
@@ -511,7 +664,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 			}
 			else {
 				fc->ValidFrameCount--;
-				fc->image = old_image;
+				(*fc->image) = IplImageFromMat(return_Mat);
 				(*perror) = 1;
 				 char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
@@ -520,7 +673,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 //					fprintf(stderr, "ERROR in fileQueryFrame closing capture file\n");
 					exit(EXIT_FAILURE);
 				}*/
-				return fc->image;
+				return return_Mat;
 			}
 		}
 		else {
@@ -539,7 +692,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 		//exit(EXIT_FAILURE);
 	}
 
-	return fc->image;
+	return return_Mat;
 }
 
 
@@ -653,7 +806,7 @@ void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
 
 // Deactivation Marc 2020.06.02
 
-void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
+void fileGet_filename2(char *dest, FileCapture2 *fc, int nb)
 {
 	char tmp_string[MAX_STRING]			= { 0 };
 	char tmp_string2[MAX_STRING]		= { 0 };
@@ -663,7 +816,7 @@ void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 	DIR *dir;
 
 	found = 0;
-	fileGenerate_number(tmp_string, fc, nb);
+	fileGenerate_number2(tmp_string, fc, nb);
 	sprintf(filename_target, "%s%s%s.%s", fc->filename_head, tmp_string, fc->filename_trail, fc->filename_ext);
 	strcat(filename_target, "\0");
 	dir = opendir(fc->filename_folder);
@@ -716,7 +869,7 @@ void fileGet_filename(char *dest, FileCapture2 *fc, int nb)
 
  // Deactivation Marc 2020.06.02
 
-void fileGenerate_number(char *dest, FileCapture2 *fc, int nb)
+void fileGenerate_number2(char *dest, FileCapture2 *fc, int nb)
 {
 	int max;
 	char nbstring[MAX_STRING]	= { 0 };
@@ -735,4 +888,93 @@ void fileGenerate_number(char *dest, FileCapture2 *fc, int nb)
 	else {
 		strcpy(dest, tmpstring);
 	}
+}
+
+
+void fileGet_filenamecpp(char* dest, FileCapture* fc, int nb)
+{
+	char tmp_string[MAX_STRING] = { 0 };
+	char tmp_string2[MAX_STRING] = { 0 };
+	char filename_target[MAX_STRING] = { 0 };
+	int found;
+	struct dirent* dent;
+	DIR* dir;
+
+	found = 0;
+	fileGenerate_numbercpp(tmp_string, fc, nb);
+	sprintf(filename_target, "%s%s%s.%s", fc->filename_head, tmp_string, fc->filename_trail, fc->filename_ext);
+	strcat(filename_target, "\0");
+	//						if (debug_mode) { fprintf(stdout, "%s: Checking filename=%s\n", __func__, filename_target); }
+	dir = opendir(fc->filename_folder);
+	if ((dir) != NULL) {
+		while (((dent = readdir(dir)) != NULL) && (found == 0)) {
+			/*					if (debug_mode) { fprintf(stdout, "%s: Checking file =%s vs |%s|%s%s.%s|,%s,%s\n",  __func__, dent->d_name, filename_target,fc->filename_rac,tmp_string,fc->filename_ext,fc->filename_trail,fc->filename_folder); }	 */
+			/*		if (InRstr(dent->d_name,tmp_string)==fc->NumberPos) {*/
+			/*					if (debug_mode) { fprintf(stdout, "%s: Checking directory filename=%s\n",  __func__, dent->d_name); }*/
+			if ((strncmp(dent->d_name, filename_target, strlen(filename_target)) == 0)
+				|| ((strlen(dent->d_name) == strlen(filename_target))
+					&& (strcmp(left(dent->d_name, strlen(fc->filename_head), tmp_string), left(filename_target, strlen(fc->filename_head), tmp_string2)) == 0)
+					&& (strcmp(mid(dent->d_name, strlen(fc->filename_head), fc->LeadingZeros + 1, tmp_string), mid(filename_target, strlen(fc->filename_head), fc->LeadingZeros + 1, tmp_string2)) == 0)
+					&& (strcmp(right(dent->d_name, strlen(fc->filename_ext), tmp_string), right(filename_target, strlen(fc->filename_ext), tmp_string2)) == 0))) {
+				//			if (strncmp(dent->d_name, filename_target, strlen(filename_target)) == 0) {
+				//				|| ((strlen(dent->d_name) == strlen(filename_target))))
+				found = 1;
+				strcpy(tmp_string, dent->d_name);
+			}
+		}
+		//	close((int) dir);
+		if (closedir(dir) != 0) {
+			closedir(dir);
+			char msgtext[MAX_STRING] = { 0 };
+			snprintf(msgtext, MAX_STRING, "cannot close directory %s", fc->filename_folder);
+			Warning(WARNING_MESSAGE_BOX, "cannot close directory", __func__, msgtext);
+			//exit(EXIT_FAILURE);
+		}
+	}
+	else {
+		closedir(dir);
+		char msgtext[MAX_STRING] = { 0 };
+		snprintf(msgtext, MAX_STRING, "cannot open directory=%s\n", fc->filename_folder);
+		Warning(WARNING_MESSAGE_BOX, "cannot open directory", __func__, msgtext);
+	}
+	if (found != 1) {
+		strcpy(dest, "");
+	}
+	else {
+		strcpy(dest, fc->filename_folder);
+		strcat(dest, "\\");
+		strcat(dest, tmp_string);
+	}
+}
+
+void fileGenerate_numbercpp(char* dest, FileCapture* fc, int nb)
+{
+	int max;
+	char nbstring[MAX_STRING] = { 0 };
+	char tmpstring[MAX_STRING] = { 0 };
+
+	strcpy(tmpstring, "");
+	max = fc->LeadingZeros;
+	for (int i = 1; i <= max; i++) {
+		strcat(tmpstring, "0");
+	}
+	sprintf(nbstring, "%d", nb);
+	strcat(tmpstring, nbstring);
+	if (fc->LeadingZeros > 0) {
+		right(tmpstring, fc->LeadingZeros + 1, dest);
+	}
+	else {
+		strcpy(dest, tmpstring);
+	}
+}
+
+IplImage	IplImageFromMat(cv::Mat Matrix) {
+	IplImage Image;
+	CvSize	Matrix_CvSize = cvSize(Matrix.cols, Matrix.rows);
+	CV_Assert(Matrix.dims <= 2);
+	Image = (*cvCreateImageHeader(Matrix_CvSize, cvIplDepth(Matrix.flags), Matrix.channels()));
+	Image.imageData = (char*)calloc(sizeof(char), Matrix.cols * Matrix.rows * cvIplDepth(Matrix.flags) * Matrix.channels());
+	cvSetData(&Image, Matrix.data, (int)Matrix.step[0]);
+	
+	return Image;
 }

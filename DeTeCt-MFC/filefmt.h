@@ -54,7 +54,7 @@
 
 	FileCapture	*FileCaptureFromFile(const char *fname, int *pframecount, const int capture_type);
 	void 		fileReinitCaptureRead(FileCapture *fc, const char *fname);
-	IplImage 	*fileQueryFrame(FileCapture *fc, const int ignore, int *perror);
+	//IplImage 	*fileQueryFrame(FileCapture *fc, const int ignore, int *perror);
 	void 		fileGet_info(FileCapture *fc, const char *fname, double *date);
 	void 		fileReleaseCapture(FileCapture *fc);
 	void 		fileGenerate_filename(char *dest, FileCapture *fc, int nb);

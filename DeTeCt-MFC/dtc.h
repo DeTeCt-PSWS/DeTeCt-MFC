@@ -3,11 +3,10 @@
 
 #include "common.h"
 #include "cmdline.h"
-#include <windows.h>
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.6.2"
+#define VERSION_NB		"3.7.0"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -19,7 +18,6 @@
 #endif
 
 #define FULL_PROGNAME PROGNAME " v" VERSION_NB "_" DETECT_TARGET " (" __DATE__ ")"
-
 
 #if defined(_MSC_VER) && (_MSC_VER >= 1600)
 #define VERSION_MSVC "_MSVS"
@@ -68,18 +66,18 @@
 #define IGNORE_DARK				TRUE
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 extern int debug_mode;
 #ifdef __cplusplus
-	}
+//}
 #endif
 
 enum _Planet_type { Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptun, Notdefined };
 typedef enum _Planet_type Planet_type;
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 struct options {
 	// variables
@@ -169,7 +167,7 @@ struct options {
 typedef struct options OPTS;
 
 #ifdef __cplusplus
-}
+//}
 #endif
 
 #endif /* __DTC_H__ */

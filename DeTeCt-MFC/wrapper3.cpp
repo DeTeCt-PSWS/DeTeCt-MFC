@@ -1,9 +1,9 @@
 #define _WIN32_WINNT _WIN32_WINNT_WINXP
 
 #include <afx.h>
-#include <iostream>
-#include "wrapper3.h"
-#include "auxfunc.h"
+//#include <iostream>
+#include "wrapper3.hpp"
+#include "auxfunc.hpp"
 #include "datation.h"
 
 using namespace std;

@@ -1,12 +1,12 @@
 #define _WIN32_WINNT _WIN32_WINNT_WINXP
 
-#include "DetectThread.h"
+#include "DetectThread.hpp"
 #include "cmdline.h"
 #include <queue>
 #include <iostream>
 #include <ctime>
 
-#include "DeTeCt-MFCDlg.h"
+#include "DeTeCt-MFCDlg.hpp"
 #include "afxwin.h"
 
 UINT __cdecl impactDetection(LPVOID pParam) {

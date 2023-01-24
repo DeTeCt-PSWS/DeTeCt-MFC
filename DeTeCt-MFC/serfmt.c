@@ -782,7 +782,7 @@ void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
 		return NULL;
 	}
 	sc->frame++;
-	if (debug_mode) { fprintf(stdout, "serQueryFrame: Reading frame #%zd\n", sc->frame); }
+	if (debug_mode) { fprintf(stdout, "serQueryFrameData: Reading frame #%zd\n", sc->frame); }
 	if (!(bytesR = serFrameRead(sc)))
 	{
 		sc->ValidFrameCount = sc->frame - 1;

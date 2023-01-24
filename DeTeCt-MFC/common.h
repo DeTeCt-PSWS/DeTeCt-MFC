@@ -1,11 +1,10 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-//#include <opencv2/highgui/highgui_c.h>
-#include <opencv/highgui.h>
-//#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui/highgui_c.h> // test OpenCV 4.7.0 
 #include <stdbool.h>
 #include <stdio.h>
+
 #define MAX_STRING			2048
 #define EXT_MAX				16
 #define WARNING_MESSAGE_BOX TRUE
@@ -32,6 +31,8 @@
 #pragma warning(disable: 4996)
 #endif
 
+typedef unsigned long       DWORD;
+
 //#define min(a,b)  (((a) < (b)) ? (a) : (b))
 //#define max(a,b)  (((a) > (b)) ? (a) : (b))
 
@@ -40,7 +41,7 @@
 	/****************************************************************************************************/
 
 #ifdef __cplusplus /* C++ prototypes */
-extern "C" {
+//extern "C" {
 #endif
 	//int		round(const float num);
 
@@ -66,8 +67,8 @@ extern "C" {
 	void	ErrorExit(const bool display_msgbox,	const char *title, const char* function, const char *text);
 	void	Warning(const bool display_msgbox,		const char *title, const char* function, const char *text);
 	void	Info(const bool display_msgbox,			const char* title, const char* function, const char* text);
-	
+
 #ifdef __cplusplus /* C++ prototypes */
-}
+//}
 #endif
 #endif

@@ -8,8 +8,8 @@
 #include "stdafx.h"
 #include "processes_queue.hpp"
 #include "dtcgui.hpp"
-#include "common2.h"
-#include "DeTeCt-MFC.h"
+#include "common2.hpp"
+#include "DeTeCt-MFC.hpp"
 //#include "dtc.h"	// for VERSION_NB &&  PIPP_STRING
 #include <windows.h> //after processes_queue.h
 #include <string>
@@ -21,7 +21,7 @@
 #include <regex>
 #include <fstream>
 
-#include "DeTeCt-MFCDlg.h"
+#include "DeTeCt-MFCDlg.hpp"
 #include <strsafe.h>
 
 #include <shldisp.h>
@@ -33,17 +33,23 @@
 #include <numeric>      // std::iota
 #include <algorithm>    // std::sort, std::stable_sort
 
+#include <opencv2/imgcodecs/legacy/constants_c.h>  // test OpenCV 4.7.0 
+#include <opencv2/imgproc.hpp>  // test OpenCV 4.7.0 
+//#include <opencv2/videoio/videoio_c.h>  // test OpenCV 4.7.0 
+#include <opencv2/videoio.hpp>  // test OpenCV 4.7.0 
+
 #ifndef _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
 #endif
 #include <experimental\filesystem>
+#include <iomanip> // test OpenCV 4.7.0 
 namespace filesys = std::experimental::filesystem;
 
 //#include <opencv2/imgproc.hpp>  //TEST opencv3
 
 void			LogString(CString log_cstring, CString output_filename, int *log_counter, BOOL GUI_display, int* pwaitms);
 int				GetOtherProcessedFiles(const int acquisition_index, int *pacquisition_index_children, int  *pacquisitions_to_be_processed, int *pnb_error_impact, int *pnb_null_impact, int *pnb_low_impact, int *pnb_high_impact, double *pduration_total, std::vector<std::string> *plog_messages, char *DeTeCtQueueFilename, clock_t* computing_threshold_time, clock_t* end, clock_t computing_refresh_duration, clock_t begin, clock_t begin_total);
-int			GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_index_children, int* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* computing_threshold_time, clock_t* end, clock_t computing_refresh_duration, clock_t begin, clock_t begin_total);
+int				GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_index_children, int* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* computing_threshold_time, clock_t* end, clock_t computing_refresh_duration, clock_t begin, clock_t begin_total);
 int				ForksInstances(const int maxinstances, const int PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances);
 int				ASorDeTeCtPID(const int AutoStakkert_ID, const int DeTeCt_PID);
 void			DisplayProcessingTime(clock_t *pcomputing_threshold_time, clock_t *plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time);
@@ -967,7 +973,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 			std::vector<unsigned long> frameNumbers;
 			cv::Mat xMat;
 			cv::Mat yMat;
-			cv::Mat bMat;
+			//cv::Mat bMat;
 			cv::Mat impactFrame;
 			cv::Mat pOrigGryMat;
 
@@ -1029,7 +1035,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 				duration_total += duration;
 
 				double fps = fps_real;
-				if (fps < 0.02)	fps = dtcGetCaptureProperty(pCapture, CV_CAP_PROP_FPS);
+				if (fps < 0.02)	fps = dtcGetCaptureProperty(pCapture, cv::CAP_PROP_FPS);   // test OpenCV 4.7.0 
 				fps_int = (int)fps;
 				impact_frames_min = (int)ceil(MAX(opts.incrFrameImpact, fps * opts.impact_duration_min));
 				/*********************************DATE ONLY MODE******************************************/
@@ -1075,9 +1081,17 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 
 							LogString(L"WARNING: ROI " +
 								(CString)std::to_string(croi.width).c_str() + L"x" + (CString)std::to_string(croi.height).c_str() + L" to small (" +
-								(CString)std::to_string(opts.ROI_min_size).c_str() + L"x" + (CString)std::to_string(opts.ROI_min_size).c_str() + L"), ignoring stopping processing", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
+								(CString)std::to_string(opts.ROI_min_size).c_str() + L"x" + (CString)std::to_string(opts.ROI_min_size).c_str() + L"), ignoring acquisition and stopping processing", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
 							dtcReleaseCapture(pCapture);
 							pCapture = NULL;
+							acquisitions_to_be_processed--;
+
+							RemoveFileFromQueue((CString)filename_acquisition.c_str(), (CString)opts.DeTeCtQueueFilename, NULL, TRUE);
+							totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_to_be_processed) + L")";
+							CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
+							CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisitions_processed + 1 + acquisition_index_children) / (acquisitions_to_be_processed)));
+							CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+
 							continue;
 						}
 					}
@@ -1116,9 +1130,10 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 // *******************************************************************
 // ****************** Start of frames processing *********************
 // *******************************************************************
-					while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data) {
-						cv::medianBlur(pFrame, pFrame, 3);
-						video_duration += (int)dtcGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC);
+					//while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data && (pFrame.dims > 0)) {
+					while (!(pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).empty()) {
+							cv::medianBlur(pFrame, pFrame, 3);
+						video_duration += (int)dtcGetCaptureProperty(pCapture, cv::CAP_PROP_POS_MSEC);   // test OpenCV 4.7.0 
 						nframe++;
 						if ((frame_error) != 0) {
 							frame_errors += 1;
@@ -1539,7 +1554,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 										case OTYPE_HIS: pOVdMat = pHisImg; break;
 										case OTYPE_MSK: pOVdMat = pMskMat; break;
 										}
-										pWriter = dtcWriteVideo(opts.ovfname, *pWriter, pCapture, pOVdMat);
+										//pWriter = dtcWriteVideo(opts.ovfname, *pWriter, pCapture, pOVdMat);   // test OpenCV 4.7.0 
 									}
 									if (opts.wait && (cvWaitKey(opts.wait) == 27)) {
 										break;
@@ -1604,6 +1619,7 @@ start_update_time = clock();
 							if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 instances_update_duration += clock() - start_update_time;
 						}
+						pFrame.release();
 					}
 
 // *****************************************************************
@@ -1762,7 +1778,7 @@ instances_update_duration += clock() - start_update_time;
 
 				ITEM* maxDtcImp = create_item(create_point(0, 0, 0, 0)); // Algorithm
 
-				bMat = cv::Mat(cv::Size(1, nframe), CV_8UC1, maxPtB.data());
+				//bMat = cv::Mat(cv::Size(1, nframe), CV_8UC1, maxPtB.data());
 				//cv::medianBlur(bMat, bMat, 3);
 				//maxPtB = bMat.data;
 				/*for (int i = 0; i < nframe; i++) {
@@ -1811,7 +1827,7 @@ instances_update_duration += clock() - start_update_time;
 					stdev = sqrt(stdDevAccum / (maxList.size() - 1));
 				}
 
-				bMat.release();
+				//bMat.release();
 
 				if (ptlist.size <= ptlist.maxsize && ptlist.size > impact_frames_min)
 					nb_impact += detect_impact(&dtc, &outdtc, maxMean, &ptlist, &maxDtcImp, radius, opts.incrLumImpact, impact_frames_min);
@@ -2089,12 +2105,12 @@ instances_update_duration += clock() - start_update_time;
 						+ _T(" (automatically closed in ") + (CString)(std::to_string(wait_imagedisplay_seconds).c_str()) + _T(" second") + (CString)s.c_str() + _T(")..."), output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
 
 					if (opts.show_detect_image) {
-						cv::destroyWindow("Detection image");
+						//cv::destroyWindow("Detection image");
 						cv::imshow("Detection image", pADUdtcImg);
 						cv::waitKey(1);
 					}
 					if (opts.show_mean_image) {
-						cv::destroyWindow("Mean image");
+						//cv::destroyWindow("Mean image");
 						cv::imshow("Mean image", pADUavgMat);
 						cv::waitKey(1);
 					}
@@ -2132,15 +2148,16 @@ instances_update_duration += clock() - start_update_time;
 				dtcWriteLog2(log, info, (pCapture->CaptureInfo), &logline_tmp, &wait_count_total);
 
 				/*FINAL CLEANING**************************************/
-				if (opts.viewDif) cv::destroyWindow("Initial differential photometry");
-				if (opts.viewRef) cv::destroyWindow("Reference frame");
-				if (opts.viewROI) cv::destroyWindow("ROI");
-				if (opts.viewTrk) cv::destroyWindow("Tracking");
-				if (opts.viewMsk) cv::destroyWindow("Mask");
-				if (opts.viewThr) cv::destroyWindow("Thresholded differential photometry");
-				if (opts.viewSmo) cv::destroyWindow("Smoothed differential photometry");
-				if (opts.viewRes) cv::destroyWindow("Resulting differential photometry");
-				if (opts.viewHis) cv::destroyWindow("Histogram");
+				//if (opts.viewDif) cv::destroyWindow("Initial differential photometry");
+				//if (opts.viewRef) cv::destroyWindow("Reference frame");
+				//if (opts.viewROI) cv::destroyWindow("ROI");
+				//if (opts.viewTrk) cv::destroyWindow("Tracking");
+				//if (opts.viewMsk) cv::destroyWindow("Mask");
+				//if (opts.viewThr) cv::destroyWindow("Thresholded differential photometry");
+				//if (opts.viewSmo) cv::destroyWindow("Smoothed differential photometry");
+				//if (opts.viewRes) cv::destroyWindow("Resulting differential photometry");
+				//if (opts.viewHis) cv::destroyWindow("Histogram");
+				//cv::destroyAllWindows();
 
 				if (opts.thrWithMask || opts.viewMsk || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_MSK))) {
 					pMskMat.release();
@@ -2368,8 +2385,9 @@ if (opts.debug) LogString(_T("!Debug info: Check queue: parent=") + (CString)std
 				int wait_time_rest = (int)(begin_imagedisplay_time)+wait_imagedisplay_seconds * 1000 - clock();
 				if (wait_time_rest < 0) { // stop displaying image as wait time is over
 					begin_imagedisplay_time = 0;
-					if (opts.show_detect_image) cv::destroyWindow("Detection image"); 
-					if (opts.show_mean_image)	cv::destroyWindow("Mean image");
+					//if (opts.show_detect_image) cv::destroyWindow("Detection image"); 
+					//if (opts.show_mean_image)	cv::destroyWindow("Mean image");
+					cv::destroyAllWindows();
 				}
 			}
 			CString objectname;
@@ -2529,25 +2547,33 @@ if (opts.debug) LogString(
 	if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 
 	// Last update of file counts with actual figures
-	int acquisitions_finally_processed = MAX(NbItemFromQueue(_T("file_ok        "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE), acquisitions_to_be_processed) ;
+	//int acquisitions_finally_processed = MAX(NbItemFromQueue(_T("file_ok        "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE), acquisitions_to_be_processed) ;
+	int acquisitions_finally_processed = NbItemFromQueue(_T("file_ok        "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE); //BUGFIX if files ignored during processing
 	totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_finally_processed) + L")";
-//if (opts.parent_instance) LogString(_T("3: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
+	CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS* (float)(acquisitions_processed + acquisition_index_children) / (acquisitions_finally_processed)));
+	CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
+
+	
+	//if (opts.parent_instance) LogString(_T("3: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 	if (opts.parent_instance) {
 		nb_instances = 0;
 		DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
-		LogString(_T("wait_imagedisplay_seconds   (s) = ") + (CString)std::to_string(wait_imagedisplay_seconds).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+/*		LogString(_T("wait_imagedisplay_seconds   (s) = ") + (CString)std::to_string(wait_imagedisplay_seconds).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		LogString(_T("check_children_time_factor      = ") + (CString)std::to_string(check_children_time_factor).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		LogString(_T("update_count               (ms) = ") + (CString)std::to_string(update_count).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		LogString(_T("display_update_duration    (ms) = ") + (CString)std::to_string(display_update_duration).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		LogString(_T("processing_update_duration (ms) = ") + (CString)std::to_string(processing_update_duration).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		LogString(_T("instances_update_duration  (ms) = ") + (CString)std::to_string(instances_update_duration).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		*/
 	}
 	DisplayProcessingTime(&computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
 	begin_imagedisplay_time = 0;
 	if (wait_imagedisplay_seconds > 0) {
-		if (opts.show_detect_image)	cv::destroyWindow("Detection image");
-		if (opts.show_mean_image)	cv::destroyWindow("Mean image");
+		cv::destroyAllWindows();
+		//if (opts.show_detect_image)	cv::destroyWindow("Detection image");
+		//if (opts.show_mean_image)	cv::destroyWindow("Mean image");
 	}
 	// ******************* end of processing configuration
 	if ((opts.parent_instance) && (opts.autostakkert) && (!IsParentAutostakkertRunning(opts.autostakkert_PID))) {
@@ -2861,8 +2887,9 @@ if (opts.debug) LogString(
 				Warning(WARNING_MESSAGE_BOX, "cannot rename output file", __func__, msgtext);
 			}
 			output_log_in.close();
-			if (opts.show_detect_image) cv::destroyWindow("Detection image");
-			if (opts.show_mean_image)	cv::destroyWindow("Mean image");
+			cv::destroyAllWindows();
+			//if (opts.show_detect_image) cv::destroyWindow("Detection image");
+			//if (opts.show_mean_image)	cv::destroyWindow("Mean image");
 		}
 } // end if acquisition > 0
 	
@@ -2916,30 +2943,10 @@ if (opts.debug) LogString(
 /**********************************************************************************************//**
 
 
-/**********************************************************************************************//**
- * @fn	int itemcmp(const void *a, const void *b)
- *
- * @brief	Compares items by brightness values -- unused.
- *
- * @author	Jon
- * @date	2017-05-12
- *
- * @param	a	A void to process.
- * @param	b	A void to process.
- *
- * @return	An int.
- **************************************************************************************************/
 
-int itemcmp(const void *a, const void *b)
-{
-	if ((*((ITEM **)a))->point->val < (*((ITEM **)b))->point->val) return 1;
-	else if ((*((ITEM **)a))->point->val > (*((ITEM **)b))->point->val) return -1;
-
-	else return 0;
-}
 
 /**********************************************************************************************//**
-* @fn	int itemcmp(const void *a, const void *b)
+* @fn	int framecmp(const void *a, const void *b)
 *
 * @brief	Compares items by frame number
 *
@@ -3279,16 +3286,19 @@ int GetOtherProcessedFiles(const int acquisition_index, int* pacquisition_index_
 		duration = 0;
 		nb_otherprocessedfiles++;
 
+//		if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) (*pacquisitions_to_be_processed) = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename);
 		totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))) + L")";
+//		totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L"/" + std::to_wstring(acquisition_index + (*pacquisition_index_children)) + L")";
 //LogString(_T("5: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 		CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
 		CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(acquisition_index + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisition_index + (*pacquisition_index_children))));
 		CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
 	}
+	(*pacquisitions_to_be_processed) = NbFilesFromQueue(char2CString(DeTeCtQueueFilename, &tmp)); //BUGFIX if files ignored during processing by other processes
 	return nb_otherprocessedfiles;
 }
 
-//Integrated version, much quicker but misses some processed files displayed for unknown reason
+//!!!!!!!!!!!!!!!!!!!!!!WARNING!!!!!!!!!!!!!!!! Integrated version, much quicker but misses some processed files displayed for unknown reason
 int GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_index_children, int* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* pcomputing_threshold_time, clock_t* plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time) {
 	CString processed_filename;
 	CString processed_filename_acquisition;
@@ -3424,6 +3434,7 @@ int GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_
 			CDeTeCtMFCDlg::getLog()->RedrawWindow();
 
 			if (clock() > *pcomputing_threshold_time) DisplayProcessingTime(pcomputing_threshold_time, plast_time, refresh_duration, single_time, total_time);
+//if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename);
 			totalProgress_wstring_tmp = L"Total\n(" + std::to_wstring(acquisitions_processed + (*pacquisition_index_children)) + L"/" + std::to_wstring(MAX(*pacquisitions_to_be_processed, acquisitions_processed + (*pacquisition_index_children))) + L")";
 			CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring_tmp.c_str());
 			CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS* (float)(acquisitions_processed + (*pacquisition_index_children)) / MAX(*pacquisitions_to_be_processed, acquisitions_processed + (*pacquisition_index_children))));
@@ -3671,7 +3682,7 @@ void WriteIni() {
 	::WritePrivateProfileString(L"processing", L"reprocessing", str, DeTeCtIniFilename);
 }
 
-void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int *pacquisitions_to_be_processed) {
+void AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const size_t index_current, const CString out_directory, int *pacquisitions_to_be_processed) {
 	CString tmp, tmp2;
 	if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
 		CreateQueueFileName();

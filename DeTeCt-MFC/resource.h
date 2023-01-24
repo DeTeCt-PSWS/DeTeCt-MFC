@@ -173,13 +173,15 @@
 #define ID_Menu                         32789
 #define ID_SETTINGS_USER                32790
 #define ID_SETTINGS_ADVANCED            32791
+#define ID_HELP_RESETCONFIGURATIONUPDATES 32792
+#define ID_HELP_RERUNCONFIGURATIONUPDATES 32793
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        264
-#define _APS_NEXT_COMMAND_VALUE         32792
+#define _APS_NEXT_COMMAND_VALUE         32794
 #define _APS_NEXT_CONTROL_VALUE         1112
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

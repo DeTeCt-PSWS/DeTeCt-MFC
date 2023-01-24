@@ -14,19 +14,21 @@ MODIFIED by MARC DELCROIX 05/2021
 */
 
 #include "stdafx.h"
-#include "AutoUpdate.h"
+#include "AutoUpdate.hpp"
 #include <urlmon.h>    
 #include <iostream>
 
-#pragma comment (lib, "urlmon.lib")
+#pragma comment(lib, "urlmon.lib")
 #pragma comment(lib, "Version.lib")
 
 #include "dtcgui.hpp"
 #include <string>
 #include <fstream>
-#include "common2.h"
+//#include <experimental\filesystem>
+#include "common2.hpp"
 
 #include "processes_queue.hpp"
+//namespace filesys = std::experimental::filesystem;
 
 BOOL			RemoveFromIni(const CString line_to_remove);
 
@@ -193,7 +195,7 @@ BOOL AutoUpdate::SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CStr
 		}
 	}
 	else {
-		(*log_cstring_lines).push_back((CString)"Warning: cannot download update configuration file, please check your internet connection."); // + m_VersionsFullPath);
+		(*log_cstring_lines).push_back((CString)"Warning: cannot download update configuration file for " + m_SelfFileName + (CString)", please check your internet connection or executable filename."); // + m_VersionsFullPath);
 		return FALSE;
 	}
 }
@@ -411,6 +413,7 @@ BOOL	AutoUpdate::SG_VersionsCompare(const SG_Version ver1, const SG_Version ver2
 
 BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 {
+	if (m_DownloadLink.GetLength() != m_DownloadLink_Prod.GetLength()) MessageBox(NULL, _T("Warning: update download link ") + m_DownloadLink + _T(" is set to test."), _T("DeTeCt update"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 	if (tempversion) return TRUE;	// We don't check for updates if we are running a temp version
 	
 	// original
@@ -425,24 +428,26 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 
 	if (SG_Version_number(ver_server) < SG_Version_number(ver_current)) {
 		(*log_cstring_lines).push_back((CString)"Info: current version " + version_CString(ver_current) + (CString)" is more recent than update version " + version_CString(ver_server) + (CString)" !");
-		return FALSE;
+		return TRUE;
 	}
 	else if (SG_Version_number(ver_server) == SG_Version_number(ver_current)) {
 		if (DeleteFile(m_SelfFullPath + OLDSUFFIX)) { // exe backup exists so update finished
+			//if (opts.interactive) MessageBox(NULL, m_SelfFileName + _T(" successfully updated to version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
+			Post_update_ini_parameters_resources_files(ver_current, log_cstring_lines, FALSE);
 			(*log_cstring_lines).push_back((CString)"Info: successful update to version " + version_CString(ver_server));
-			if (opts.interactive) MessageBox(NULL, m_SelfFileName + _T(" successfully updated to version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
-			if (Update_ini_parameters(opts.version)) (*log_cstring_lines).push_back((CString)"Info: ini parameters updated.");
-			return FALSE;
+			MessageBox(NULL, m_SelfFileName + _T(" successfully updated to version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
+			return TRUE;
 		}
 		else {
-			(*log_cstring_lines).push_back((CString)"Info: current version " + version_CString(ver_current) + (CString)" is already uptodate");
+			(*log_cstring_lines).push_back((CString)"Info: current version " + version_CString(ver_current) + (CString)" is already uptodate with " + version_CString(ver_server));
+			return TRUE;
 		}
-		return FALSE;
 	}
 
 	if ((!opts.autostakkert) && (opts.parent_instance)) { // No update if autostakkert mode or child mode !
 		(*log_cstring_lines).push_back((CString)"Info: updating to new version " + version_CString(ver_server));
-		if (opts.interactive) (NULL, (CString)"Updating " + m_SelfFileName + _T(" from version ") + version_CString(ver_current) + _T(" to new version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND);
+		//if (opts.interactive) MessageBox(NULL, (CString)"Updating " + m_SelfFileName + _T(" from version ") + version_CString(ver_current) + _T(" to new version ") + version_CString(ver_server), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND);
+		MessageBox(NULL, (CString)"Updating " + m_SelfFileName + _T(" from version ") + version_CString(ver_current) + _T(" to new version ") + version_CString(ver_server)+ _T("\nIt might take some time before everything is downloaded and updated.\n\nPlease wait for " + m_SelfFileName + " to restart and to appear."), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
 
 		MyCallback pCallback;
 		CString ExeName = m_SelfFullPath.Left(m_SelfFullPath.ReverseFind(_T('\\')) + 1) + UPDATEPREFIX + m_SelfFileName;
@@ -477,6 +482,11 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 			}
 			//wprintf(L"Downloaded file '%s' which is a newer version. Result = %u\n", m_NextVersion, hr);
 			if (opts.debug) (*log_cstring_lines).push_back((CString)"Info: downloaded file '" + m_NextVersion + (CString)"' which is a newer version.");
+			//if (Pre_update_ini_parameters_resources_files(opts.version, log_cstring_lines)) {
+			if (Pre_update_ini_parameters_resources_files(ver_current, log_cstring_lines, FALSE)) {
+				(*log_cstring_lines).push_back((CString)"Info: ressource files updated.");
+				//MessageBox(NULL, _T("Ressource files updated"), _T("DeTeCt update"), MB_OK + MB_ICONINFORMATION + MB_SETFOREGROUND + MB_TOPMOST);
+			}
 			if (ReplaceExeVersion(m_SelfFullPath, ExeName, log_cstring_lines)) {
 				(*log_cstring_lines).push_back((CString)"Info: updated new version of file " + m_SelfFileName);
 				if (SG_Run(m_SelfFullPath.GetBuffer(), log_cstring_lines))
@@ -490,7 +500,6 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 					//wprintf(L"Couldn't start the temp version (%s)\n", ExeName);
 					(*log_cstring_lines).push_back((CString)"Error: couldn't start the new version (" + ExeName + _T(")"));
 				}
-
 			}
 			else
 			{
@@ -500,8 +509,8 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 		}
 		else
 			(*log_cstring_lines).push_back((CString)"Error: no new version (" + ExeName + _T(") on the server"));
-		if (hr == 1) return true;
-		else return false;
+		if (hr == 1) return TRUE;
+		else return FALSE;
 		//return (hr) ? TRUE : FALSE;
 	}
 	else { // Ask for individual launch for update
@@ -510,6 +519,9 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 	}
 }
 
+BOOL AutoUpdate::ForceAllUpdates(const SG_Version version_current, std::vector<CString>* log_cstring_lines) {
+	return AutoUpdate::Update_ini_parameters_resources_files(version_current, FALSE, log_cstring_lines, TRUE);
+}
 
 long	AutoUpdate::SG_Version_number(const SG_Version version) {
 	return version.SubRevision + 100 * (version.Revision + 100 * (version.Minor + 100 * (version.Major)));
@@ -521,8 +533,15 @@ CString AutoUpdate::version_CString(const SG_Version version) {
 	return strVer;
 }
 
-BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
-	SG_Version	version_ini = SG_Version_from_ini(SG_Version_string);
+BOOL	AutoUpdate::Pre_update_ini_parameters_resources_files(const SG_Version version_current, vector<CString>(*log_cstring_lines), const BOOL force_all_updates) {
+	return AutoUpdate::Update_ini_parameters_resources_files(version_current, TRUE, log_cstring_lines, force_all_updates);
+}
+
+BOOL	AutoUpdate::Post_update_ini_parameters_resources_files(const SG_Version version_current, vector<CString>(*log_cstring_lines), const BOOL force_all_updates) {
+	return AutoUpdate::Update_ini_parameters_resources_files(version_current, FALSE, log_cstring_lines, force_all_updates);
+}
+BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_current, BOOL pre_update, vector<CString> (*log_cstring_lines), const BOOL force_all_updates) {
+	//SG_Version	version_current = SG_Version_from_ini(SG_Version_string);
 	SG_Version	version_update = { 10, 10, 10, 10 };
 	BOOL		update = FALSE;
 
@@ -534,18 +553,18 @@ BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
 	version_update.Minor		= 4;
 	version_update.Revision		= 3;
 	version_update.SubRevision	= 0;
-	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		opts.impact_distance_max	= 0.03;		// to detect 2021.09.13 impact as high
 		opts.ROI_min_size			= 70;		// to ignore too small ROIs where impact could be missed
 		opts.impact_duration_min	= 0.4;		// to detect 2020.08.11 impact as high
 		WriteIni();
 		update = TRUE;
 	}
-	version_update.Major = 3;
-	version_update.Minor = 5;
-	version_update.Revision = 0;
-	version_update.SubRevision = 0;
-	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+	version_update.Major		= 3;
+	version_update.Minor		= 5;
+	version_update.Revision		= 0;
+	version_update.SubRevision	= 0;
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		RemoveFromIni(L";Option file");
 		RemoveFromIni(L"; debug");
 		RemoveFromIni(L"debug=");
@@ -554,28 +573,42 @@ BOOL	AutoUpdate::Update_ini_parameters(const char* SG_Version_string) {
 		update = TRUE;
 	}
 
-	version_update.Major = 3;
-	version_update.Minor = 6;
-	version_update.Revision = 0;
-	version_update.SubRevision = 0;
-	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+	version_update.Major		= 3;
+	version_update.Minor		= 6;
+	version_update.Revision		= 0;
+	version_update.SubRevision	= 0;
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		opts.detail = FALSE;				// to size down zip files
 		opts.impact_confidence_min = 2.10;	// to improve detection
 		WriteIni();
 		update = TRUE;
 	}
 
-	version_update.Major = 3;
-	version_update.Minor = 6;
-	version_update.Revision = 1;
-	version_update.SubRevision = 0;
-	if (SG_Version_number(SG_Version_from_ini(opts.version)) < SG_Version_number(version_update)) {
+	version_update.Major		= 3;
+	version_update.Minor		= 6;
+	version_update.Revision		= 1;
+	version_update.SubRevision	= 0;
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		opts.detail = FALSE;				// to size down zip files
 		opts.impact_confidence_min = 2.10;	// to improve detection		// was not set as default in 3.6.0
 		WriteIni();
 		update = TRUE;
 	}
-	
+	version_update.Major = 3;
+	version_update.Minor = 7;
+	version_update.Revision = 0;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
+		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	//if (update) (*log_cstring_lines).push_back((CString)"Info: .ini parameters and/or files updated");
 	return update;
 }
 
@@ -641,4 +674,50 @@ BOOL RemoveFromIni(const CString line_to_remove) {
 		return TRUE;
 	}
 	else return FALSE;
+}
+
+BOOL AutoUpdate::DownloadFile(const CString FileName, std::vector<CString>* log_cstring_lines) {
+	MyCallback pCallback;
+	CString FullPathName = m_SelfFullPath.Left(m_SelfFullPath.ReverseFind(_T('\\')) + 1) + FileName;
+
+	if (filesys::exists(CString2string(FullPathName))) {
+		(*log_cstring_lines).push_back((CString)"Info: " + FileName + (CString)" already existing.");
+		return TRUE;
+	}
+
+	CString URL = AutoUpdate::m_DownloadLink + FileName;
+	DeleteUrlCacheEntry(URL);
+	HRESULT hr = 0;
+	hr = URLDownloadToFile(
+		NULL,   // A pointer to the controlling IUnknown interface (not needed here)
+		URL,
+		FullPathName, 0,		      // Reserved. Must be set to 0.
+		&pCallback); // status callback interface (not needed for basic use)
+	if (SUCCEEDED(hr))
+	{
+		(*log_cstring_lines).push_back((CString)"Info: " + FileName + (CString)" successfully downloaded.");
+		return TRUE;
+	}
+	else {
+		(*log_cstring_lines).push_back((CString)"Error: " + FileName + (CString)" could not downloaded.");
+		return false;
+	}
+}
+
+BOOL AutoUpdate::RemoveFile(const CString FileName, std::vector<CString>* log_cstring_lines) {
+	MyCallback pCallback;
+	CString FullPathName = m_SelfFullPath.Left(m_SelfFullPath.ReverseFind(_T('\\')) + 1) + FileName;
+
+	if (filesys::exists(CString2string(FullPathName))) {
+		if (filesys::remove(CString2string(FullPathName))) {
+			(*log_cstring_lines).push_back((CString)"Info: " + FileName + (CString)" deleted.");
+		return TRUE;
+		}
+		else {
+			(*log_cstring_lines).push_back((CString)"Warning: " + FileName + (CString)" cannot be deleted.");
+			return FALSE;
+		}
+		return TRUE;
+	}
+	else return TRUE;
 }

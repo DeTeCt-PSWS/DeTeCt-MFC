@@ -7,6 +7,8 @@
 
 #include "serfmt.h"
 #include "filefmt.h"
+//#include <opencv2/videoio/videoio_c.h> // test OpenCV 4.7.0 
+#include <opencv2/videoio.hpp> // test OpenCV 4.7.0 
 //#include "common.h"
 
 //#include <opencv2/videoio/videoio_c.h> //TEST opencv3
@@ -66,7 +68,8 @@ struct _DtcCapture
 	int						framecount;
 	union
 	{
-		CvCapture			*capture;
+		//CvCapture			*capture;
+		cv::VideoCapture	*videocapture;
 		SerCapture			*sercapture;
 		FileCapture			*filecapture;
 		//cv::VideoCapture *videocapture;

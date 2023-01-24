@@ -112,6 +112,19 @@ Detection:		**stretch black level in detection max-mean/mean images
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+v3.7.0
+Autoupdate:		Pop-up windows to inform about update ongoing and done
+				Implementation of dll files changes handling
+				Explicit message when update not possible (exe filename)
+				Rerun configuration updates function (entry in help menu)
+Dev:			All code but external modules compiled in C++ (incl. IplImage migration to Mat)
+				Migration to openCV 4.6.0 and associated ffmpeg dll
+GUI:			(c) till 2023
+Buffix:			Reading of Uranus-C raw avi video (A. Frantzis) - fixed by openCV update
+Bugfix:			Automatic relaunch after update not working (fix WndResizer bug (null pointer not detected))
+Bugfix:			#of files to be processed when fileprocessing interrupted because ROI too small
+Bugfix:			bMat usage still activated
+
 v3.6.2
 Detection:		Speed improvement (~60%) in multi instances mode (processing bigger acquisitions first)
 Files:			Improvement of numbering detection in filename

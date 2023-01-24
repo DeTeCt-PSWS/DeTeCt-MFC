@@ -14,16 +14,17 @@
 #include <stdio.h>
 #include <ctype.h>
 
-extern "C" {
+//extern "C" {
 #include "wrapper.h"
-}
-#include "wrapper2.h"
+//}
+#include "wrapper2.hpp"
 #include "serfmt.h"
 #include "dtcgui.hpp"
 
-#include "common2.h"
+#include "common2.hpp"
 
-//#include <opencv2/imgproc.hpp> //TEST opencv3
+#include <opencv2/imgproc.hpp>  // test OpenCV 4.7.0 
+#include "filefmt2.hpp" // test OpenCV 4.7.0 
 
 //internal functions
 
@@ -50,7 +51,7 @@ extern "C" {
 
 cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 	(*perror) = 0;
-	void		*ser_frame_data = nullptr;	// raw SER frame data
+	void		*ser_frame_data = NULL;	// raw SER frame data nullptr
 	int			conversion = 0;				// conversion for SER Bayer modes
 	int			mat_type = 0;
 	cv::Mat		matrix_frame;					// matrix used to contain frame data
@@ -64,6 +65,10 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 	switch (capture->type) {
 	case CAPTURE_SER:
 		ser_frame_data = serQueryFrameData(capture->u.sercapture, ignore, perror);
+		if (ser_frame_data == NULL) {
+			(*perror) = 1;
+			return matrix_frame; //empty matrix_frame
+		}
 		switch (capture->u.sercapture->header.ColorID) {
 			case SER_BAYER_RGGB: conversion = cv::COLOR_BayerRG2RGB; break;
 			case SER_BAYER_BGGR: conversion = cv::COLOR_BayerBG2RGB; break;
@@ -72,7 +77,7 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 			default: conversion = 0; break;
 		}
 		/* Creation of the matrix with the SER frame data: w·h, 8/16 unsigned bit 1/3 channel image */
-		if (capture->u.sercapture->current_frame <= capture->u.sercapture->header.FrameCount && ser_frame_data == NULL) {
+		if ((capture->u.sercapture->current_frame <= capture->u.sercapture->header.FrameCount) && (ser_frame_data == NULL)) {
 			if (capture->u.sercapture->nChannels == 3)
 				black = cv::Scalar(0, 0, 0);
 			else
@@ -101,14 +106,16 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 		return matrix_frame;
 		break;
 	case CAPTURE_FITS: case CAPTURE_FILES:
-		matrix_frame = cv::cvarrToMat(fileQueryFrame(capture->u.filecapture, ignore, perror));
+//		matrix_frame = cv::cvarrToMat(fileQueryFrame(capture->u.filecapture, ignore, perror));
+		matrix_frame = fileQueryFrameMat(capture->u.filecapture, ignore, perror); // test OpenCV 4.7.0
 		/* The matrix might be empty (after the last frame) */
 		if (matrix_frame.data) {
 			/*
 			* Normalise 16U matrices
 			* CV_8UC1 = 0 (0 * 8) and CV_8C3 = 16 (2 * 8)
 			*/
-			mat_type = (capture->u.filecapture->image->nChannels - 1) * 8;
+			//mat_type = (capture->u.filecapture->image->nChannels - 1) * 8;
+			mat_type = (matrix_frame.channels() - 1) * 8;
 			// find maximum number of bits used
 			minMaxLoc(matrix_frame, &minVal, &maxVal, &minLoc, &maxLoc);
 			if (maxVal > pow(2, capture->u.filecapture->MaxBits)) {
@@ -129,7 +136,13 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 		return matrix_frame;
 		break;
 	default: // CAPTURE_CV
-		return cv::cvarrToMat(cvQueryFrame(capture->u.capture));
+		/*(*perror) =				cvGrabFrame(capture->u.capture);
+		IplImage *image =		cvRetrieveFrame(capture->u.capture);
+		cv::Mat return_mat= cv::cvarrToMat(image);
+		return return_mat;*/
+		//return cv::cvarrToMat(cvQueryFrame(capture->u.capture));
+		capture->u.videocapture->read(matrix_frame);
+		return matrix_frame;
 		break;
 	}
 }
@@ -172,15 +185,19 @@ void dtcReleaseCapture(DtcCapture *capture)
 		case CAPTURE_SER:
 			/*fprintf(stdout,"dtcReleaseCapture: Releasing ser capture\n");
 			fprintf(stdout, "dtcReleaseCapture: Image pointer %d\n", capture->u.sercapture->image);*/
-			if (&capture->u.capture != NULL) serReleaseCapture(capture->u.sercapture);
+			//if (&capture->u.capture != NULL) serReleaseCapture(capture->u.sercapture);
+			if (&capture->u.videocapture != NULL) serReleaseCapture(capture->u.sercapture);
 			break;
 		case CAPTURE_FITS:
 		case CAPTURE_FILES:
-			if (&capture->u.capture != NULL) fileReleaseCapture(capture->u.filecapture);
+			//if (&capture->u.capture != NULL) fileReleaseCapture(capture->u.filecapture);
+			if (&capture->u.videocapture != NULL) fileReleaseCapture(capture->u.filecapture);
 			break;
 		default: // CAPTURE_CV
 			//capture->u.videocapture->release();
-			if (&capture->u.capture != NULL) cvReleaseCapture(&capture->u.capture);
+			//if (&capture->u.capture != NULL) cvReleaseCapture(&capture->u.capture);
+			//if (&capture->u.videocapture != NULL) capture->u.videocapture->release();
+			if (&capture->u.videocapture != NULL) delete capture->u.videocapture;
 		}
 		//free(capture->pCaptureInfo);
 		capture = NULL;

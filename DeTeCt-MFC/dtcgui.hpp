@@ -4,17 +4,17 @@
 #endif
 
 #include "dtc.h"
-#include "img2.h"
-extern "C" {
+#include "img2.hpp"
+//extern "C" {
 	#include "max.h"
 	#include "datation.h"
-}
+//}
 #include "serfmt.h"
 #include "wrapper.h"
-#include "wrapper2.h"
-#include "auxfunc.h"
-#include "datation2.h"
-#include "dtcas3.h"
+#include "wrapper2.hpp"
+#include "auxfunc.hpp"
+#include "datation2.hpp"
+#include "dtcas3.hpp"
 
 extern std::string app_title;
 
@@ -131,7 +131,7 @@ typedef enum _Instance_type Instance_type;
 
 void			read_files(std::string folder, AcquisitionFilesList *acquisition_files);
 
-int				itemcmp(const void *a, const void *b);
+//int				itemcmp(const void *a, const void *b);
 int				framecmp(const void *a, const void *b);
 
 int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, double radius, double incrLum, int impact_frames_min);
@@ -148,6 +148,6 @@ void			zip(char *zipfilename, char *item_to_be_zipped, std::wstring output_filen
 Instance_type	DisplayInstanceType(int *nbinstances);
 
 void			WriteIni();
-void			AcquisitionFileListToQueue(AcquisitionFilesList* pacquisition_files, const CString tag_current, const int index_current, const CString out_directory, int* acquisitions_to_be_processed);
+void			AcquisitionFileListToQueue(AcquisitionFilesList* pacquisition_files, const CString tag_current, const size_t index_current, const CString out_directory, int* acquisitions_to_be_processed);
 
 //BOOL			RemoveFromIni(const CString line_to_remove);

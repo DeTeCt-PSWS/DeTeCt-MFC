@@ -1,13 +1,13 @@
 #include "processes_queue.hpp"
 
-#include "dtcas3.h"
+#include "dtcas3.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <cstdio>
 
 #include "cmdline.h" 
-#include "common2.h"
+#include "common2.hpp"
 
 void read_autostakkert_session_config_line(std::string line, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count);
 

@@ -149,6 +149,7 @@ void print_array(ITEM **array, int size)
 }
 */
 
+
 int itemcmp(const void *a, const void *b)
 {
 	if ((*((ITEM **) a))->point->val < (*((ITEM **) b))->point->val) return 1;

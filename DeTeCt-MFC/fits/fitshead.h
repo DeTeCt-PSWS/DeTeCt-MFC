@@ -38,6 +38,315 @@
 extern "C" {
 #endif
 
+/**********************************************************************************/
+/* Full declarations defined just for DeTeCt
+/**********************************************************************************/
+/* Subroutines in hget.c */
+	int hgeti2(			/* Extract short value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		short* val);		/* short integer value (returned) */
+	int hgeti4c(		/* Extract int value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		const char* wchar,	/* WCS to use (A-Z or null) */
+		int* val);		/* integer value (returned) */
+	int hgeti4(			/* Extract int value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		int* val);		/* integer value (returned) */
+	int hgetr4(			/* Extract float value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		float* val);		/* float value (returned) */
+	int hgetr8c(		/* Extract double value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		const char* wchar,	/* WCS to use (A-Z or null) */
+		double* val);		/* double value (returned) */
+	int hgetr8(			/* Extract double value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		double* val);		/* double value (returned) */
+	int hgetra(			/* Extract right ascension from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		double* ra);		/* RA in degrees (returned) */
+	int hgetdec(		/* Extract declination from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		double* dec);		/* Dec in degrees (returned) */
+	int hgetdate(		/* Extract date from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		double* date);		/* Date in fractional years (returned) */
+	int hgetl(			/* Extract boolean value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		int* lval);		/* 1 if T, 0 if F (returned) */
+	int hgetsc(			/* Extract string value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		const char* wchar,	/* WCS to use (A-Z or null) */
+		const int lstr,		/* maximum length of returned string */
+		char* string);		/* null-terminated string value (returned) */
+	int hgets(			/* Extract string value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		const int lstr,		/* maximum length of returned string */
+		char* string);		/* null-terminated string value (returned) */
+	int hgetm(			/* Extract string from multiple keywords */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		const int lstr,		/* maximum length of returned string */
+		char* string);		/* null-terminated string value (returned) */
+	int hgetndec(		/* Find number of decimal places in FITS value*/
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		int* ndec);		/* number of decimal places (returned) */
+
+	char* hgetc(		/* Return pointer to value for FITS keyword */
+		const char* hstring,	/* FITS header string */
+		const char* keyword);	/* FITS keyword */
+
+	char* ksearch(		/* Return pointer to keyword in FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword);	/* FITS keyword */
+	char* blsearch(
+		const char* hstring,	/* FITS header string */
+		const char* keyword);	/* FITS keyword */
+
+	char* strsrch(		/* Find string s2 within string s1 */
+		const char* s1,		/* String to search */
+		const char* s2);	/* String to look for */
+	char* strnsrch(		/* Find string s2 within string s1 */
+		const char* s1,		/* String to search */
+		const char* s2,		/* String to look for */
+		const int ls1);		/* Length of string being searched */
+
+	char* strcsrch(		/* Find string s2 within string s1 (no case) */
+		const char* s1,		/* String to search */
+		const char* s2);	/* String to look for */
+	char* strncsrch(		/* Find string s2 within string s1 (no case) */
+		const char* s1,		/* String to search */
+		const char* s2,		/* String to look for */
+		const int ls1);		/* Length of string being searched */
+
+	int hlength(		/* Set length of unterminated FITS header */
+		const char* header,	/* FITS header */
+		const int lhead);	/* Allocated length of FITS header */
+	int gethlength(		/* Get length of current FITS header */
+		char* header);		/* FITS header */
+
+	double str2ra(		/* Return RA in degrees from string */
+		const char* in);	/* Character string (hh:mm:ss.sss or dd.dddd) */
+	double str2dec(		/* Return Dec in degrees from string */
+		const char* in);	/* Character string (dd:mm:ss.sss or dd.dddd) */
+
+	int isnum(			/* Return 1 if number, else 0 */
+		const char* string);	/* Character string which may be a number */
+	int notnum(			/* Return 0 if number, else 1 */
+		const char* string);	/* Character string which may be a number */
+	int numdec(			/* Return number of decimal places in number */
+		const char* string);	/* Character string which may be a number */
+	void strfix(		/* Clean up extraneous characters in string */
+		char* string,		/* Character string which may be a number */
+		int fillblank,		/* If 1, blanks are replaced by underscores */
+		int dropzero);		/* If 1, drop trailing zeroes from string */
+
+	char* getltime(void);	/* Return current local time in ISO format */
+	char* getutime(void);	/* Return current UT as an ISO-format string */
+
+	/* Subroutines in iget.c */
+	int mgetstr(		/* Extract string from multiline FITS keyword */
+		const char* hstring,	/* FITS header string */
+		const char* mkey,	/* FITS keyword root _n added for extra lines */
+		const char* keyword,	/* IRAF keyword */
+		const int lstr,		/* maximum length of returned string */
+		char* string);		/* null-terminated string value (returned) */
+	int mgeti4(			/* Extract int from multiline FITS keyword */
+		const char* hstring,	/* FITS header string */
+		const char* mkey,	/* FITS keyword root _n added for extra lines */
+		const char* keyword,	/* IRAF keyword */
+		int* ival);		/* int keyword value (returned) */
+	int mgetr8(			/* Extract double from multiline FITS keyword */
+		const char* hstring,	/* FITS header string */
+		const char* mkey,	/* FITS keyword root _n added for extra lines */
+		const char* keyword,	/* IRAF keyword */
+		double* dval);		/* double keyword value (returned) */
+	int igeti4(			/* Extract int from IRAF keyword string */
+		const char* hstring,	/* Multiline IRAF keyword string value */
+		const char* keyword,	/* IRAF keyword */
+		int* val);		/* int value (returned) */
+	int igetr4(			/* Extract float from IRAF keyword string */
+		const char* hstring,	/* Multiline IRAF keyword string value */
+		const char* keyword,	/* IRAF keyword */
+		float* val);		/* float value (returned) */
+	int igetr8(			/* Extract double from IRAF keyword string */
+		const char* hstring,	/* Multiline IRAF keyword string value */
+		const char* keyword,	/* IRAF keyword */
+		double* val);		/* double value (returned) */
+	int igets(			/* Extract string from IRAF keyword string */
+		const char* hstring,	/* Multiline IRAF keyword string value */
+		const char* keyword,	/* IRAF keyword */
+		const int lstr,		/* maximum length of returned string */
+		char* string);		/* null-terminated string value (returned) */
+	char* igetc(		/* Extract string from IRAF keyword string */
+		const char* hstring,	/* Multiline IRAF keyword string value */
+		const char* keyword);	/* IRAF keyword */
+
+	/* Subroutines in hput.c */
+	/* All hput* routines return 0 if successful, else -1 */
+	int hputi2(		/* Implant short value into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		short ival);	/* short value */
+	int hputi4(		/* Implant int value into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const int ival);	/* int value */
+	int hputr4(		/* Implant float value into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const float* rval);	/* float (4 byte) value */
+	int hputr8(		/* Implant short into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const double dval);	/* double value */
+	int hputnr8(	/* double with specified number of decimal places */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const int ndec,	/* Number of decimal places in keyword value */
+		const double dval);	/* double value */
+	int hputs(			/* Quoted character string into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const char* cval);	/* Character string value */
+	int hputm(		/* Quoted character string, mutiple keywords */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const char* cval);	/* Character string value */
+	int hputcom(	/* Add comment to keyword line in FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const char* comment);	/* Comment string */
+	int hputra(	/* Right ascension in degrees into hh:mm:ss.sss */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const double ra);	/* Right ascension in degrees */
+	int hputdec(		/* Declination in degrees into dd:mm:ss.ss */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const double dec);	/* Declination in degrees */
+	int hputl(			/* Implant boolean value into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const int lval);	/* 0->F, else ->T */
+	int hputc(			/* Implant character string without quotes */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const char* cval);	/* Character string value */
+
+	int hdel(			/* Delete a keyword line from a FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword);	/* FITS keyword to delete */
+	int hadd(			/* Add a keyword line from a FITS header */
+		char* hplace,		/* Location in FITS header string (modified) */
+		const char* keyword);	/* FITS keyword to add */
+	int hchange(		/* Change a keyword name in a FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword1,	/* Current FITS keyword name */
+		const char* keyword2);	/* New FITS keyword name */
+
+	void ra2str(		/* Convert degrees to hh:mm:ss.ss */
+		char* string,		/* Character string (returned) */
+		int lstr,		/* Length of string */
+		const double ra,	/* Right ascension in degrees */
+		const int ndec);	/* Number of decimal places in seconds */
+	void dec2str(		/* Convert degrees to dd:mm:ss.ss */
+		char* string,		/* Character string (returned) */
+		int lstr,		/* Length of string */
+		const double dec,	/* Declination in degrees */
+		const int ndec);	/* Number of decimal places in arcseconds */
+	void deg2str(		/* Format angle into decimal degrees string */
+		char* string,		/* Character string (returned) */
+		int lstr,		/* Length of string */
+		const double deg,	/* Angle in degrees */
+		const int ndec);	/* Number of decimal places in degrees */
+	void num2str(		/* Format number into string */
+		char* string,		/* Character string (returned) */
+		const double  num,	/* Number */
+		const int field,	/* Total field size in characters */
+		const int ndec);	/* Number of decimal places */
+	void setheadshrink(		/* 0 to keep blank line when keyword deleted */
+		const int hsh);		/* 1 to shrink  header by one line */
+	void setleaveblank(		/* 1 to keep blank line where keyword deleted */
+		const int hsh);		/* 0 to shrink  header by one line */
+
+#ifdef _not_defined_to_block_original_code
+
+
+	/* Extract a value from a FITS header for given keyword */
+	extern int hgeti4(			/* Extract int value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		int* val);		/* integer value (returned) */
+	extern int hgetdate(		/* Extract date from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		double* date);		/* Date in fractional years (returned) */
+	extern char* hgetc(		/* Return pointer to value for FITS keyword */
+		const char* hstring,	/* FITS header string */
+		const char* keyword);	/* FITS keyword */
+	extern char* ksearch(		/* Return pointer to keyword in FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword);	/* FITS keyword */
+
+	/* Set length of header which is not null-terminated */
+	int hlength(		/* Set length of unterminated FITS header */
+		const char* header,	/* FITS header */
+		const int lhead);	/* Allocated length of FITS header */
+
+	/* Get length of current FITS header */
+	int hgetl(			/* Extract boolean value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		int* lval);		/* 1 if T, 0 if F (returned) */
+	int hgets(			/* Extract string value from FITS header */
+		const char* hstring,	/* FITS header string */
+		const char* keyword,	/* FITS keyword */
+		const int lstr,		/* maximum length of returned string */
+		char* string);		/* null-terminated string value (returned) */
+
+	/* Check to see whether a string is a number or not */
+	extern int isnum(			/* Return 1 if number, else 0 */
+		const char* string);	/* Character string which may be a number */
+
+	/* Subroutines in hput.c */
+	int hputl(			/* Implant boolean value into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const int lval);	/* 0->F, else ->T */
+	int hputs(			/* Quoted character string into FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword,	/* FITS keyword */
+		const char* cval);	/* Character string value */
+
+	/* Find beginning of fillable blank line before FITS header keyword */
+	char* blsearch(
+		const char* hstring,	/* FITS header string */
+		const char* keyword);	/* FITS keyword */
+	int hdel(			/* Delete a keyword line from a FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword);	/* FITS keyword to delete */
+	int hchange(		/* Change a keyword name in a FITS header */
+		char* hstring,		/* FITS header string (modified) */
+		const char* keyword1,	/* Current FITS keyword name */
+		const char* keyword2);	/* New FITS keyword name */
+
+//#ifdef _not_defined_to_block_original_code
+
+
 
 #ifdef __STDC__   /* Full ANSI prototypes */
 
@@ -285,10 +594,14 @@ extern "C" {
 
 #else /* K&R prototypes */
 
+
+/* Implant a value into a FITS header for given keyword */
+
+
 /* Subroutines in hget.c */
 
 /* Extract a value from a FITS header for given keyword */
-extern int hgeti4();	/* int (Multiple WCS) */
+//extern int hgeti4();	/* int (Multiple WCS) */
 extern int hgeti4c();	/* int */
 extern int hgeti2();	/* short */
 extern int hgetr4();	/* float */
@@ -296,12 +609,12 @@ extern int hgetr8();	/* double */
 extern int hgetr8c();	/* double (Multiple WCS) */
 extern int hgetra();	/* Right ascension in degrees from string */
 extern int hgetdec();	/* Declination in degrees from string */
-extern int hgetdate();	/* Date in years from FITS date string */
-extern int hgetl();	/* T->1, F->0 from FITS logical entry */
-extern int hgets();	/* Previously allocated string */
+//extern int hgetdate();	/* Date in years from FITS date string */
+//extern int hgetl();	/* T->1, F->0 from FITS logical entry */
+//extern int hgets();	/* Previously allocated string */
 extern int hgetsc();	/* Previously allocated string (Multiple WCS) */
 extern int hgetm();	/* Previously allocated string from multiple keywords */
-extern char *hgetc();	/* Return pointer to string */
+//extern char *hgetc();	/* Return pointer to string */
 extern int hgetndec();	/* Number of decimal places in keyword value */
 
 /* Subroutines to convert strings to RA and Dec in degrees */
@@ -309,15 +622,16 @@ extern double str2ra();
 extern double str2dec();
 
 /* Check to see whether a string is a number or not */
-extern int isnum();
+//extern int isnum();
 extern int notnum();
 extern int decnum();
 
 /* Find given keyword entry in FITS header */
-extern char *ksearch();
+//extern char *ksearch();
+
 
 /* Find beginning of fillable blank line before FITS header keyword */
-extern char *blsearch();
+//extern char *blsearch();
 
 /* Search for substring s2 within string s1 */
 extern char *strsrch ();	/* s1 null-terminated */
@@ -327,7 +641,7 @@ extern char *strncsrch ();	/* s1 ls1 characters long (case-insensitive) */
 extern void strfix();	/* Drop or change extraneous characters in string */
 
 /* Set length of header which is not null-terminated */
-extern int hlength();
+//extern int hlength();
 
 /* Get length of current FITS header */
 extern int gethlength();
@@ -352,15 +666,15 @@ extern int hputr8();	/* double */
 extern int hputnr8();	/* double with specified number of decimal places */
 extern int hputra();	/* Right ascension in degrees into hh:mm:ss.sss */
 extern int hputdec();	/* Declination in degrees into dd:mm:ss.ss */
-extern int hputl();	/* 0 -> F, else T FITS logical entry */
-extern int hputs();	/* Quoted character string */
+//extern int hputl();	/* 0 -> F, else T FITS logical entry */
+//extern int hputs();	/* Quoted character string */
 extern int hputm();	/* Quoted character string into mutiple keywords */
 extern int hputc();	/* Character string without quotes (returns 0 if OK) */
 extern int hputcom();	/* Comment after keyword=value (returns 0 if OK) */
 
-extern int hdel();	/* Delete a keyword line from a FITS header */
+//extern int hdel();	/* Delete a keyword line from a FITS header */
 extern int hadd();	/* Add a keyword line to a FITS header */
-extern int hchange();	/* Change a keyword name in a FITS header */
+//extern int hchange();	/* Change a keyword name in a FITS header */
 extern void setheadshrink(); /* Set flag for deleted keyword space disposition*/
 extern void setleaveblank(); /* Set flag for deleted keyword space disposition*/
 
@@ -376,6 +690,8 @@ extern char *getltime(); /* Return current local time in ISO format */
 extern char *getutime(); /* Return current UT as an ISO-format string */
 
 #endif	/* __STDC__ */
+
+#endif // _not_defined_to_block_original_code
 
 #ifdef __cplusplus
 }

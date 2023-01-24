@@ -26,7 +26,7 @@ typedef struct _Datation_source Datation_source;
 
 
 #ifdef __cplusplus 
-	extern "C" {
+	//extern "C" {
 #endif
 
 	/****************************************************************************************************/
@@ -52,6 +52,6 @@ typedef struct _Datation_source Datation_source;
 	int 	month_nb(char *month_letter);
 
 #ifdef __cplusplus 
-}
+//}
 #endif
 #endif /* __DATATION_H__ */

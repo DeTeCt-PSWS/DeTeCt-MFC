@@ -15,6 +15,12 @@
 #include "dtc.h"
 #include "datation.h"
 
+/**********************************************************************************************/
+/******************************* Internal functions *******************************************/
+/**********************************************************************************************/
+
+cv::VideoCapture* VideoCaptureFromFile(const char* filename);
+
 /**********************************************************************************************//**
 * @fn	DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
 *
@@ -39,6 +45,7 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 	get_fileextension(fname, ext, EXT_MAX);
 	lcase(ext, ext);
 	capt = (DtcCapture*)malloc(sizeof(DtcCapture));
+	capt->framecount = 0;
 	if (capt == NULL) {
 		assert(capt != NULL);
 	}
@@ -100,30 +107,46 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 		}
 		else {
 			capt->type = CAPTURE_CV;
-			capt->u.capture = NULL;
+			capt->u.videocapture = NULL;
+			//capt->u.capture = NULL;
 			//if (!(capt->u.capture = cvCreateFileCapture(fname, CV_LOAD_IMAGE_ANYCOLOR))) {
 			/*capt->u.capture = cvCaptureFromFile(fname);
 			if (capt->u.capture == NULL) {*/
 			//if ((capt->u.capture = cvCaptureFromFile(fname)) != 0) {
-			if (!(capt->u.capture = cvCaptureFromFile(fname))) {
-
+//			if (!(capt->u.capture = cvCaptureFromFile(fname))) {
+/*			if (!(capt->u.capture = cvCreateFileCapture(fname))) {
+*/
 				//if (!(capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname)))) {
 				//free(capt->u.capture);
-				free(capt);
-				capt = NULL;
-				char msgtext[MAX_STRING] = { 0 };
-				snprintf(msgtext, MAX_STRING, "cannot read capture file %s\n", fname);
-				Warning(WARNING_MESSAGE_BOX, "cannot read capture file", __func__, msgtext);
-				//exit(EXIT_FAILURE);
-				return NULL;
-			}
-			capt->framecount = (int)(dtcGetCaptureProperty(capt, CV_CAP_PROP_FRAME_COUNT));
+				//capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname));
+				//cv::VideoCapture NewVideo = cv::VideoCapture(fname);
+				//capt->u.videocapture = VideoCaptureFromFile(fname);
+				capt->u.videocapture = new cv::VideoCapture(fname, cv::CAP_ANY); // to be tested cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
+				//capt->u.videocapture->open(fname, cv::CAP_ANY);
+				if (capt->u.videocapture->isOpened()) capt->framecount = (int)(dtcGetCaptureProperty(capt, cv::CAP_PROP_FRAME_COUNT));
+				if ((!capt->u.videocapture->isOpened()) || (capt->framecount < 0)) {
+					delete capt->u.videocapture;
+					free(capt);
+					capt = NULL;
+					char msgtext[MAX_STRING] = { 0 };
+					snprintf(msgtext, MAX_STRING, "cannot read capture file %s\n", fname);
+					Warning(WARNING_MESSAGE_BOX, "cannot read capture file", __func__, msgtext);
+					//exit(EXIT_FAILURE);
+					return NULL;
+				}
+			//capt->u.capture = cvCreateFileCapture(fname);
 		}
 		(*pframecount) = capt->framecount;
 		//initDtcCaptureInfo(capt->pCaptureInfo);
 		initDtcCaptureInfo(&capt->CaptureInfo);
 	}
 	return capt;
+}
+
+cv::VideoCapture* VideoCaptureFromFile(const char* filename) {
+	cv::VideoCapture* pVideoCapture = new cv::VideoCapture(filename);
+	
+	return pVideoCapture;
 }
 
 double dtcGetCaptureProperty(DtcCapture *capture, int property_id)
@@ -135,21 +158,21 @@ double dtcGetCaptureProperty(DtcCapture *capture, int property_id)
 	switch (capture->type)
 	{
 	case CAPTURE_SER:
-		if (property_id == CV_CAP_PROP_FPS)
+		if (property_id == cv::CAP_PROP_FPS)
 			val = DEFAULT_FPS;
 		else
 			val = 0.0;
 		break;
 	case CAPTURE_FITS:
 	case CAPTURE_FILES:
-		if (property_id == CV_CAP_PROP_FPS)
+		if (property_id == cv::CAP_PROP_FPS)
 			val = DEFAULT_FPS;
 		else
 			val = 0.0;
 		break;
 	default: // CAPTURE_CV
-		val = cvGetCaptureProperty(capture->u.capture, property_id);
-		//capture->u.videocapture->get(property_id);
+		//val = cvGetCaptureProperty(capture->u.capture, property_id);
+		val = capture->u.videocapture->get(property_id);
 	}
 	return val;
 }
