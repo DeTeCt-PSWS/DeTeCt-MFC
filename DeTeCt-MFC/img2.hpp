@@ -84,6 +84,8 @@
 
 	cv::Mat 		dtcGetHistogramImage(cv::Mat src, float scale, double thr);	//cvCreateImage
 
+	int				dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr);
+
 //	static void		dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);   // test OpenCV 4.7.0 
 	int				doublecmp(const void *a, const void *b);
 	void			printtbuf(double *uc, size_t s);

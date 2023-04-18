@@ -268,13 +268,14 @@ public:
 	CButton CleanDir;
 	afx_msg void OnBnClickedClean();
 
+	/* Note: OnDeltaposSpin function only needed for non integer values */
 	//Impact
 	CEdit meanValue;
 	CSpinButtonCtrl meanValueSpin;
 	afx_msg void OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult); //Meanvalue
 	CEdit impactMinTime;
 	CSpinButtonCtrl minTimeSpin;
-	afx_msg void OnDeltaposSpin2(NMHDR* pNMHDR, LRESULT* pResult); //Impactm min time
+	//afx_msg void OnDeltaposSpin2(NMHDR* pNMHDR, LRESULT* pResult); //Impactm min time
 	CEdit impactRadius;
 	CSpinButtonCtrl radiusSpin;
 	CEdit impactBrightThresh;
@@ -290,6 +291,14 @@ public:
 	afx_msg void OnDeltaposSpin13(NMHDR* pNMHDR, LRESULT* pResult); //roiSecFactor
 	CEdit roiMedianBufSize;
 	CSpinButtonCtrl medianBufSpin;
+
+	//Background detection
+	CEdit bgPeakFactor;
+	CSpinButtonCtrl bgPeakFactorSpin;
+	afx_msg void OnDeltaposSpin18(NMHDR* pNMHDR, LRESULT* pResult); 
+	CEdit  bgValuesNum;
+	CSpinButtonCtrl bgValuesNumSpin;
+	//afx_msg void OnDeltaposSpin19(NMHDR* pNMHDR, LRESULT* pResult);
 
 	//Other processing configuration
 	CEdit impactFrameNum;

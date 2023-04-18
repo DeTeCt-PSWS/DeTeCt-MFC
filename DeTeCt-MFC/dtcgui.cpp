@@ -43,6 +43,7 @@
 #endif
 #include <experimental\filesystem>
 #include <iomanip> // test OpenCV 4.7.0 
+
 namespace filesys = std::experimental::filesystem;
 
 //#include <opencv2/imgproc.hpp>  //TEST opencv3
@@ -1079,9 +1080,17 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 							message = "-------------- " + short_filename + " end --------------";
 							LogString(+(CString)message.c_str(), output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
 
-							LogString(L"WARNING: ROI " +
-								(CString)std::to_string(croi.width).c_str() + L"x" + (CString)std::to_string(croi.height).c_str() + L" to small (" +
-								(CString)std::to_string(opts.ROI_min_size).c_str() + L"x" + (CString)std::to_string(opts.ROI_min_size).c_str() + L"), ignoring acquisition and stopping processing", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
+							
+							//if ((croi.width <= 0) || (croi.height <= 0)) {
+							//	LogString(L"ERROR: ROI cannot be obtained, negative or zero centre of brightness, ignoring acquisition and stopping processing", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
+							//}
+							//else {
+								LogString(L"WARNING: ROI " +
+									(CString)std::to_string(croi.width).c_str() + L"x" + (CString)std::to_string(croi.height).c_str() + L" too small (" +
+									(CString)std::to_string(opts.ROI_min_size).c_str() + L"x" + (CString)std::to_string(opts.ROI_min_size).c_str() + L"), ignoring acquisition and stopping processing", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
+							//}
+							//message_cstring = (CString)"\n" + (CString)message.c_str() + (CString)"\n";
+							//CDeTeCtMFCDlg::getfileName()->SetWindowText(message_cstring);
 							dtcReleaseCapture(pCapture);
 							pCapture = NULL;
 							acquisitions_to_be_processed--;
@@ -1132,7 +1141,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 // *******************************************************************
 					//while ((pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).data && (pFrame.dims > 0)) {
 					while (!(pFrame = dtcQueryFrame2(pCapture, opts.ignore, &frame_error)).empty()) {
-							cv::medianBlur(pFrame, pFrame, 3);
+						cv::medianBlur(pFrame, pFrame, 3);
 						video_duration += (int)dtcGetCaptureProperty(pCapture, cv::CAP_PROP_POS_MSEC);   // test OpenCV 4.7.0 
 						nframe++;
 						if ((frame_error) != 0) {
@@ -1149,8 +1158,11 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 							cv::Rect roi;
 							DiffImage diffImage;
 							pGryMat = dtcGetGrayMat(&pFrame, pCapture);
+							//deactivated as background different for each frame
+							//int background = dtcGetBackgroundFromHistogram(pGryMat, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0);
+							//cv::threshold(pGryMat, pGryMat, background, 0, CV_THRESH_TOZERO); //deactivated as background ddifferent for each frame
+							//LogString(L"Background = " + (CString)std::to_string(background).c_str(), output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
 							if (opts.flat_preparation) pGryFullMat = dtcGetGrayMat(&pFrame, pCapture);
-							cv::medianBlur(pGryMat, pGryMat, 1);
 							//dtcApplyMaskToFrame(pGryMat);
 							//cv::GaussianBlur(pGryMat, pGryMat, cv::Size(1, 1), 1);
 							if (darkfile_ok == 1) {
@@ -1269,8 +1281,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 							//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean == 0.0)) {
 							//if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean <= (0.1 * firstFrameMean))) {
 
-	//Modification v3.2.1 comparison first ROI with full frame: applying size ratio and 80% tolerance in transparency
-							if ((cm.x <= 0) || (cm.y <= 0) || (currentFrameMean <= (0.2 * firstFrameMean * pFirstFrameROIMat.rows * pFirstFrameROIMat.cols / (pGryMat.rows * pGryMat.cols)))) {
+//Modification v3.2.1 comparison first ROI with full frame: applying size ratio and 80% tolerance in transparency
+							if ((cm.x < 0) || (cm.y < 0) || (currentFrameMean <= (0.2 * firstFrameMean * pFirstFrameROIMat.rows * pFirstFrameROIMat.cols / (pGryMat.rows * pGryMat.cols)))) {
 								frame_errors++;
 							}
 							else {
@@ -2040,7 +2052,7 @@ instances_update_duration += clock() - start_update_time;
 					sprintf(rating_filename_suffix, "null");
 					rating = Rating_type::Null;
 				}
-
+logmessage = logmessage + "distance = " + std::to_string(distance) + "\nconfidence = " + std::to_string(confidence) + "\nmax-mean = " + std::to_string(max_mean_stat[2] - max_mean_stat[1]) + "\n";
 				if ((nframe > 0) && (strlen(rating_filename_suffix) > 0)) {
 					init_string(tmpstring);
 					init_string(tmpstring2);
@@ -3613,6 +3625,11 @@ void WriteIni() {
 	::WritePrivateProfileString(L"roi", L"ROI_min_px_val", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.ROI_min_size);
 	::WritePrivateProfileString(L"roi", L"ROI_min_size", str, DeTeCtIniFilename);
+	str.Format(L"%.2f", opts.bg_detection_peak_factor);
+	::WritePrivateProfileString(L"background", L"bg_detection_peak_factor", str, DeTeCtIniFilename);
+	str.Format(L"%d", opts.bg_detection_consecutive_values);
+	::WritePrivateProfileString(L"background", L"bg_detection_consecutive_values", str, DeTeCtIniFilename);
+
 	str.Format(L"%d", opts.minframes);
 	::WritePrivateProfileString(L"other", L"frmin", str, DeTeCtIniFilename);
 	str.Format(L"%.2f", opts.histScale);

@@ -156,6 +156,9 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.clean_dir = FALSE;			// Cleans directory before processing
 	opts.show_detect_image = TRUE;				// show detection image
 	opts.show_mean_image = FALSE;			// show mean image
+	opts.bg_detection_peak_factor = 0;			// for min threshold to detect background
+	opts.bg_detection_consecutive_values = 0;	// # of consecutive frames to be below peak factor for background detection
+
 // Status
 	opts.interactive_bak = FALSE;			// Backup of interactive status
 	opts.autostakkert = FALSE;			// Launched from autostakkert

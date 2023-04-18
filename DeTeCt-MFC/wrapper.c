@@ -19,7 +19,7 @@
 /******************************* Internal functions *******************************************/
 /**********************************************************************************************/
 
-cv::VideoCapture* VideoCaptureFromFile(const char* filename);
+//cv::VideoCapture* VideoCaptureFromFile(const char* filename); not used anymore
 
 /**********************************************************************************************//**
 * @fn	DtcCapture *dtcCaptureFromFile2(const char *fname, int *pframecount)
@@ -121,7 +121,7 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 				//capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname));
 				//cv::VideoCapture NewVideo = cv::VideoCapture(fname);
 				//capt->u.videocapture = VideoCaptureFromFile(fname);
-				capt->u.videocapture = new cv::VideoCapture(fname, cv::CAP_ANY); // to be tested cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
+			capt->u.videocapture = new cv::VideoCapture(fname, cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY}); // cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
 				//capt->u.videocapture->open(fname, cv::CAP_ANY);
 				if (capt->u.videocapture->isOpened()) capt->framecount = (int)(dtcGetCaptureProperty(capt, cv::CAP_PROP_FRAME_COUNT));
 				if ((!capt->u.videocapture->isOpened()) || (capt->framecount < 0)) {
@@ -143,11 +143,16 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 	return capt;
 }
 
+/* Not used
 cv::VideoCapture* VideoCaptureFromFile(const char* filename) {
-	cv::VideoCapture* pVideoCapture = new cv::VideoCapture(filename);
+	CString filename_cstring;
+	char2CString(filename, &filename_cstring);
+
+	cv::VideoCapture* pVideoCapture = new cv::VideoCapture(filename_cstring, cv::CAP_ANY, { cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY });
 	
 	return pVideoCapture;
 }
+*/
 
 double dtcGetCaptureProperty(DtcCapture *capture, int property_id)
 {
@@ -172,7 +177,16 @@ double dtcGetCaptureProperty(DtcCapture *capture, int property_id)
 		break;
 	default: // CAPTURE_CV
 		//val = cvGetCaptureProperty(capture->u.capture, property_id);
+		
 		val = capture->u.videocapture->get(property_id);
+		if ((property_id == cv::CAP_PROP_FRAME_COUNT) && (val == 0)) {
+			int		total_frames = 0;
+			cv::Mat	matrix_frame;					// matrix used to contain frame data
+
+			while (capture->u.videocapture->read(matrix_frame)) total_frames++;
+			capture->u.videocapture->set(cv::CAP_PROP_POS_FRAMES, 0);
+			val = total_frames;
+		}
 	}
 	return val;
 }

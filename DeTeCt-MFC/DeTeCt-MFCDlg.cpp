@@ -268,7 +268,11 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.bayer =		::GetPrivateProfileInt(L"other",	L"debayer",					0, DeTeCtIniFilename);
 	opts.medSize =		::GetPrivateProfileInt(L"roi",		L"medbuf",					5, DeTeCtIniFilename);
 	opts.ROI_min_px_val=::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",			10, DeTeCtIniFilename);
-	opts.ROI_min_size = ::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			70, DeTeCtIniFilename);
+	opts.ROI_min_size = ::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			68, DeTeCtIniFilename);
+						::GetPrivateProfileString(L"background", L"bg_detection_peak_factor", L"0.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.bg_detection_peak_factor = std::stod(optionStr);
+	opts.bg_detection_consecutive_values = ::GetPrivateProfileInt(L"background", L"bg_detection_consecutive_values", 5, DeTeCtIniFilename);
+
 	opts.wait = 1;
 						::GetPrivateProfileString(L"roi",	L"sizfac",					L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.facSize = std::stod(optionStr);
@@ -1800,16 +1804,20 @@ IMPLEMENT_DYNAMIC(PrefDialog, CDialog)
 /**
 * Maps the IDS of the controls defined above to the actions which are the functions below
 */
+
+/* Note: OnDeltaposSpin function only needed for non integer values */
 BEGIN_MESSAGE_MAP(PrefDialog, CDialog)
 	ON_BN_CLICKED(ID_PREFOK,			&PrefDialog::OnBnClickedOk)
-	ON_BN_CLICKED(IDC_CHECK15,			&PrefDialog::OnBnClickedCheck15)			//use filter
-	ON_BN_CLICKED(IDC_BUTTON1,			&PrefDialog::OnBnClickedButton1)			//Reset to default
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1,	&PrefDialog::OnDeltaposSpin1)	//Mean value (min impact strength)
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN2,	&PrefDialog::OnDeltaposSpin2)	//Impact mean time
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN14,	&PrefDialog::OnDeltaposSpin14)	//Histscale
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN12,	&PrefDialog::OnDeltaposSpin12)	//ROI size factor
-	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN13,	&PrefDialog::OnDeltaposSpin13)	//ROI sec factor
-	ON_CBN_SELCHANGE(IDC_COMBO2,		&PrefDialog::OnCbnSelchangeCombo2)		//Debayer
+	ON_BN_CLICKED(IDC_CHECK15,			&PrefDialog::OnBnClickedCheck15)	//use filter
+	ON_BN_CLICKED(IDC_BUTTON1,			&PrefDialog::OnBnClickedButton1)	//Reset to default
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1,	&PrefDialog::OnDeltaposSpin1)		//Mean value (min impact strength)
+	//ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN2,	&PrefDialog::OnDeltaposSpin2)	//Impact mean time
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN14,	&PrefDialog::OnDeltaposSpin14)		//Histscale
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN12,	&PrefDialog::OnDeltaposSpin12)		//ROI size factor
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN13,	&PrefDialog::OnDeltaposSpin13)		//ROI sec factor
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN18, &PrefDialog::OnDeltaposSpin18)		//bg Peak factor
+	//ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN19, &PrefDialog::OnDeltaposSpin19)	//bg consecutive values
+	ON_CBN_SELCHANGE(IDC_COMBO2,		&PrefDialog::OnCbnSelchangeCombo2)	//Debayer
 END_MESSAGE_MAP()
 
 
@@ -1875,26 +1883,24 @@ BOOL PrefDialog::OnInitDialog()
 	meanValueSpin.SetBuddy(&meanValue);
 	meanValueSpin.SetRange(0, 1);
 	minTimeSpin.SetBuddy(&impactMinTime);
-	minTimeSpin.SetRange(0, 1);
-	radiusSpin.SetBuddy(&impactRadius);
+	minTimeSpin.SetRange(1, 1000);
+	radiusSpin.SetBuddy(&impactRadius);//double?
 	radiusSpin.SetRange(5, 20);
-	brightThreshSpin.SetBuddy(&impactBrightThresh);
+	brightThreshSpin.SetBuddy(&impactBrightThresh); //double?
 	brightThreshSpin.SetRange(0, 255);
 	
 	ss << std::fixed << std::setprecision(2) << opts.incrLumImpact;
 	meanValue.SetWindowText(ss.str().c_str());
 	impactFrameNum.SetWindowText(std::to_wstring(opts.nframesRef).c_str());
 	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(2) << opts.incrFrameImpact;
+	ss << opts.incrFrameImpact;
 	impactMinTime.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << opts.radius;
+	ss << std::fixed << std::setprecision(0) << opts.radius;//double?
 	impactRadius.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(0) << opts.threshold;
 	impactBrightThresh.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(2) << opts.facSize;
 	applyMask.SetCheck(opts.thrWithMask);
 
 	saveIntFramesADUdtc.SetCheck(opts.allframes);
@@ -1910,6 +1916,8 @@ BOOL PrefDialog::OnInitDialog()
 	medianBufSpin.SetBuddy(&roiMedianBufSize);
 	medianBufSpin.SetRange(5, 50);
 	
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.facSize;
 	roiSizeFactor.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << opts.secSize;
@@ -1918,6 +1926,19 @@ BOOL PrefDialog::OnInitDialog()
 	ss << std::fixed << std::setprecision(0) << opts.medSize;
 	roiMedianBufSize.SetWindowText(ss.str().c_str());
 
+	//background detection
+	bgPeakFactorSpin.SetBuddy(&bgPeakFactor);
+	bgPeakFactorSpin.SetRange(0, 100);
+	bgValuesNumSpin.SetBuddy(&bgValuesNum);
+	bgValuesNumSpin.SetRange(1, 50);
+
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.bg_detection_peak_factor;
+	bgPeakFactor.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << opts.bg_detection_consecutive_values;
+	bgValuesNum.SetWindowText(ss.str().c_str());
+	
 	//Other processingconfiguration
 	nframeSpin.SetBuddy(&impactFrameNum);
 	nframeSpin.SetRange(1, 50);
@@ -2005,6 +2026,12 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT15, roiMedianBufSize);
 	DDX_Control(pDX, IDC_SPIN15, medianBufSpin);
 
+	//Background detection
+	DDX_Control(pDX, IDC_EDIT18, bgPeakFactor);
+	DDX_Control(pDX, IDC_SPIN18, bgPeakFactorSpin);
+	DDX_Control(pDX, IDC_EDIT19, bgValuesNum);
+	DDX_Control(pDX, IDC_SPIN19, bgValuesNumSpin);
+
 	//Other processing configuration
 	DDX_Control(pDX, IDC_SPIN16, nframeSpin);
 	DDX_Control(pDX, IDC_EDIT17, minimumFrames);
@@ -2071,6 +2098,12 @@ void PrefDialog::OnBnClickedOk()
 	opts.secSize = std::stof(str.GetString());
 	roiMedianBufSize.GetWindowTextW(str);
 	opts.medSize = std::stol(str.GetString());
+
+	//Background detection
+	bgPeakFactor.GetWindowTextW(str);
+	opts.bg_detection_peak_factor = std::stof(str.GetString());
+	bgValuesNum.GetWindowTextW(str);
+	opts.bg_detection_consecutive_values = std::stoi(str.GetString());
 
 	//Other processing configuration
 	impactFrameNum.GetWindowTextW(str);
@@ -2159,6 +2192,12 @@ void PrefDialog::OnBnClickedButton1()
 	ss << std::fixed << std::setprecision(0) << 5.0;
 	roiMedianBufSize.SetWindowText(ss.str().c_str());
 	
+	//Background detection
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.05;
+	bgPeakFactor.SetWindowText(ss.str().c_str());
+	bgValuesNum.SetWindowText(std::to_wstring(5).c_str());
+
 	//Other processing configuration
 	minimumFrames.SetWindowText(std::to_wstring(15).c_str());
 	ss.str(std::wstring());
@@ -2197,12 +2236,18 @@ void PrefDialog::OnBnClickedButton1()
 
 void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	float fMin = 0.0f;
+	float fMax = 1.0f;
+	float fStep = 0.1f;
+	
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
 	CString str;
 	meanValue.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.1f;
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	meanValue.SetWindowTextW(ss.str().c_str());
@@ -2221,19 +2266,18 @@ void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
  * @param [out]	  	pResult	If non-null, the result.
  **************************************************************************************************/
 
-void PrefDialog::OnDeltaposSpin2(NMHDR *pNMHDR, LRESULT *pResult)
+/*void PrefDialog::OnDeltaposSpin2(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	CString str;
 	impactMinTime.GetWindowTextW(str);
-	float val = std::stof(str.GetString());
-	//val += pNMUpDown->iDelta * 0.1;
+	int val = std::stoi(str.GetString());
 	val += pNMUpDown->iDelta;
 	std::wstringstream ss;
 	ss << val;
 	impactMinTime.SetWindowTextW(ss.str().c_str());
 	*pResult = 0;
-}
+}*/
 
 /**************************************************************************************************
  * @fn	void PrefDialog::OnDeltaposSpin14(NMHDR *pNMHDR, LRESULT *pResult)
@@ -2249,11 +2293,17 @@ void PrefDialog::OnDeltaposSpin2(NMHDR *pNMHDR, LRESULT *pResult)
 
 void PrefDialog::OnDeltaposSpin14(NMHDR *pNMHDR, LRESULT *pResult)
 {
+	float fMin = 0.0f;
+	float fMax = 1.0f;
+	float fStep = 0.1f;
+	
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	CString str;
 	histScale.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.1f;
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	histScale.SetWindowTextW(ss.str().c_str());
@@ -2272,13 +2322,19 @@ void PrefDialog::OnDeltaposSpin14(NMHDR *pNMHDR, LRESULT *pResult)
  * @param [out]	  	pResult	If non-null, the result.
  **************************************************************************************************/
 
-void PrefDialog::OnDeltaposSpin12(NMHDR *pNMHDR, LRESULT *pResult)
+void PrefDialog::OnDeltaposSpin12(NMHDR* pNMHDR, LRESULT* pResult)
 {
+	float fMin = 0.0f;
+	float fMax = 2.0f;
+	float fStep = 0.05f;
+	
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	CString str;
 	roiSizeFactor.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.05f;
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	roiSizeFactor.SetWindowTextW(ss.str().c_str());
@@ -2297,18 +2353,81 @@ void PrefDialog::OnDeltaposSpin12(NMHDR *pNMHDR, LRESULT *pResult)
  * @param [out]	  	pResult	If non-null, the result.
  **************************************************************************************************/
 
-void PrefDialog::OnDeltaposSpin13(NMHDR *pNMHDR, LRESULT *pResult)
+void PrefDialog::OnDeltaposSpin13(NMHDR* pNMHDR, LRESULT* pResult)
 {
+	float fMin = 0.0f;
+	float fMax = 1.0f;
+	float fStep = 0.05f;
+	
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	CString str;
 	roiSecFactor.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
-	val += pNMUpDown->iDelta * 0.05f;
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
 	roiSecFactor.SetWindowTextW(ss.str().c_str());
 	*pResult = 0;
 }
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin18(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the background detection peak factor.
+ *
+ * @author	Marc
+ * @date	2023-04-13
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin18(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin =	0.01f;
+	float fMax =	1.0f;
+	float fStep =	0.01f;
+	
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	bgPeakFactor.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	bgPeakFactor.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin19(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the background detection consecutive frames.
+ *
+ * @author	Marc
+ * @date	2023-04-13
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+/*void PrefDialog::OnDeltaposSpin19(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	bgValuesNum.GetWindowTextW(str);
+	int val = std::stoi(str.GetString());
+	val += pNMUpDown->iDelta;
+	std::wstringstream ss;
+	//ss << std::fixed << std::setprecision(2) << val;
+	ss << val;
+	bgValuesNum.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}*/
 
 
 void PrefDialog::OnCbnSelchangeCombo2()

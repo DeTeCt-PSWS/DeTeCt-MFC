@@ -86,9 +86,12 @@
 #define IDC_SPIN14                      1040
 #define IDC_EDIT15                      1041
 #define IDC_SPIN15                      1042
+#define IDC_EDIT18                      1043
 #define IDC_CHECK11                     1044
+#define IDC_SPIN18                      1044
 #define IDC_CHECK12                     1045
 #define IDC_CHECK13                     1046
+#define IDC_EDIT19                      1046
 #define IDC_CHECK14                     1047
 #define IDC_COMBO1                      1048
 #define IDC_CHECK15                     1049
@@ -99,6 +102,7 @@
 #define IDC_SPIN17                      1054
 #define IDC_BUTTON1                     1055
 #define IDC_LIST1                       1056
+#define IDC_SPIN19                      1056
 #define IDC_PROGRESS1                   1057
 #define IDC_PROGRESS2                   1058
 #define IDC_MFCLINK1                    1060

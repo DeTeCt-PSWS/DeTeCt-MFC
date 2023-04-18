@@ -150,12 +150,13 @@ BOOL AutoUpdate::SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CStr
 		CT2A tmp(m_SelfFileName + ";");
 		std::string tag_string(tmp);
 		CString object;
+		BOOL exe_version_found = FALSE;
 
 		if (ConfigFile) {
 			std::string line;
 			object = "";
-			while ((object == "") && (std::getline(ConfigFile, line))) {
-				if (line.find(tag_string) != std::string::npos) {
+			while (std::getline(ConfigFile, line)) {
+				if (line.find(tag_string) != std::string::npos) { // executable file - read version
 					line.erase(line.find(tag_string), tag_string.size());
 					object = line.c_str();
 					if (line.find(".") != std::string::npos) {
@@ -170,27 +171,32 @@ BOOL AutoUpdate::SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CStr
 								if ((line.size() > 0) && (line.find(".") == std::string::npos)) {
 									ver->SubRevision = stoi(line);
 									if (opts.debug) (*log_cstring_lines).push_back((CString)"Info: Found current version in config file '" + m_VersionsFullPath + "' : " + (CString)std::to_string(ver->Major).c_str() + _T(".") + (CString)std::to_string(ver->Minor).c_str() + _T(".") + (CString)std::to_string(ver->Revision).c_str() + _T(".") + (CString)std::to_string(ver->SubRevision).c_str() + _T("."));
-									ConfigFile.close();
-									DeleteFile(m_VersionsFullPath);
-									return TRUE;
+									exe_version_found = TRUE;
 								}
 							}
 						}
 					}
-					(*log_cstring_lines).push_back((CString)"Error: incorrect syntax for '" + m_SelfFileName + "' version (" + object + ") in configuration file " + m_VersionsFullPath);
-					ConfigFile.close();
-					DeleteFile(m_VersionsFullPath);
-					return FALSE;
+					else {
+						(*log_cstring_lines).push_back((CString)"Error: incorrect syntax for '" + m_SelfFileName + "' version (" + object + ") in configuration file " + m_VersionsFullPath);
+						ConfigFile.close();
+						DeleteFile(m_VersionsFullPath);
+						return FALSE;
+					}
+				}
+				else { // DLL file to download
+					if (line.find(".ini") == std::string::npos) { // ignore DeTeCt.ini
+						std::string FileName = line.substr(0, line.find(";")) + line.substr(line.find(";") + 1, line.size() - line.find(";") + 1) + ".dll";
+						DownloadFile((CString)FileName.c_str(), log_cstring_lines);
+					}
 				}
 			}
-			(*log_cstring_lines).push_back((CString)"Error: cannot find '" + m_SelfFileName + "' in configuration file " + m_VersionsFullPath);
+			if (!exe_version_found) (*log_cstring_lines).push_back((CString)"Error: cannot find '" + m_SelfFileName + "' in configuration file " + m_VersionsFullPath);
 			ConfigFile.close();
 			DeleteFile(m_VersionsFullPath);
-			return FALSE;
+			return exe_version_found;
 		}
 		else {
 			(*log_cstring_lines).push_back((CString)"Info: cannot open configuration file " + m_VersionsFullPath);
-			ConfigFile.close();
 			return FALSE;
 		}
 	}
@@ -594,10 +600,10 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		WriteIni();
 		update = TRUE;
 	}
-	version_update.Major = 3;
-	version_update.Minor = 7;
-	version_update.Revision = 0;
-	version_update.SubRevision = 0;
+	version_update.Major		= 3;
+	version_update.Minor		= 7;
+	version_update.Revision		= 0;
+	version_update.SubRevision	= 0;
 	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
 		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
 		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
@@ -605,9 +611,42 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 	}
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+
+	version_update.Major		= 3;
+	version_update.Minor		= 7;
+	version_update.Revision		= 1;
+	version_update.SubRevision	= 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		opts.ROI_min_size = 68;		// to ignore too small ROIs where impact could be missed
+		opts.maxinstances = 1;		// to avoid high CPU usage
+		WriteIni();
 		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
 		update = TRUE;
 	}
+
+	version_update.Major = 3;
+	version_update.Minor = 7;
+	version_update.Revision = 2;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		opts.ROI_min_size = 68;		// to ignore too small ROIs where impact could be missed
+		WriteIni();
+		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+
 	//if (update) (*log_cstring_lines).push_back((CString)"Info: .ini parameters and/or files updated");
 	return update;
 }
@@ -699,7 +738,7 @@ BOOL AutoUpdate::DownloadFile(const CString FileName, std::vector<CString>* log_
 		return TRUE;
 	}
 	else {
-		(*log_cstring_lines).push_back((CString)"Error: " + FileName + (CString)" could not downloaded.");
+		(*log_cstring_lines).push_back((CString)"Error: " + FileName + (CString)" could not be downloaded.");
 		return false;
 	}
 }

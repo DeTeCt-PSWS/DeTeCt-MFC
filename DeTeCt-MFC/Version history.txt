@@ -61,26 +61,32 @@ Functionalities
 ---------------
 Instances:		available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
 Instances:		available logical processors to adapt # of instances (1 core/instance)
-Instances:		optimize multi instance mode by reordering processing list by acquisition size - not to be done if # of files <= absolute max instances
+(Instances:		optimize multi instance mode by reordering processing list by acquisition size - not to be done if # of files <= absolute max instances)
+Instances:		Children list to optimize exit
+				Children count to stop processes scan
+				TBD: optimize children count process
+				TBD: InstanceType to modify with GetIntParam?
 
-Autostakkert:	Search as3 file at same location than movie if not found (cf. j20200828 ir685)
+
 Alignement:		*TBD: Detection of bad frames (broken, bars)
-Detection:		Move use min duration in impact candidate function
-				Test max duration for impact candidate
-				Do not draw Null probability crosses
 
 Algorithm:		attempt to match impact candidates with brightest point in max-mean
 				*detect and ignore artifacts images (sliding brightness average?)
-				*TBD: build histogram of image to determine the bg (like AS does)
 				*TBD: Prioritize as3 over file even if as3 is read after
 				check distance criteria (not working ?)
 				ignore bad centered images (ROI in negative area)
 				check GetSimilarity function use
-ROI:			discard bad frames but continue till number of correct frames used
 
+ROI:			discard bad frames but continue till number of correct frames used
+ROI:			Scan of 90° from cog to edge (for Saturn)
+				Increase size of ROI (Martin)
+				TBD: Use as3 ROI
+
+Detection:		Move use min duration in impact candidate function
+				Test max duration for impact candidate
+				Do not draw Null probability crosses
 Detection:		Check csv for low positives
 Detection:		Ignore "DSO", "Star"
-
 (Detection:		Look for second+ differential photometry (yellow cross) candidates near max brightness (blue cross))
 Detection:		Change color of crosses in case of low/high/error
 Detection:		Scan directory
@@ -88,31 +94,34 @@ Detection:		log (x,y) for crosses
 Detection:		Max duration for impact
 Detection:		Null qualification for pixel like blue cross center
 Detection:		Do not draw blue cross when null qualification
-Autostakkert:	Log AS3 (median quality)
-Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
-GUI:			Advertise contributions by displaying current impact frequency estimation
-				**Extra tool to analyze images
-Instances:		Children list to optimize exit
-				Children count to stop processes scan
-				TBD: optimize children count process
-				TBD: InstanceType to modify with GetIntParam?
-GUI:			Pause/Resume button (M.Lewis)
-GUI:			Exit mode for all instances (like Pause/Resume)
-GUI:			Resume option after quitting detect (through  noreprocessing option and flags to identify impact directories aborted/processing ongoing) (Alexandros)
-GUI:			End after next video (M.Lewis)
-ROI:			Scan of 90° from cog to edge (for Saturn)
-				Histogram usage (like in AS)
-				Increase size of ROI (Martin)
-				TBD: Use as3 ROI
-				*TBD: build histogram of image to determine the bg (like AS does)
 Detection:		*ignore off planet impact detection (check level of background?)
 Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
 Detection:		**stretch black level in detection max-mean/mean images
 
+GUI:			Advertise contributions by displaying current impact frequency estimation
+				**Extra tool to analyze images
+GUI:			Pause/Resume button (M.Lewis)
+GUI:			Forecast processing time left (A. Frantzis)
+GUI:			Exit mode for all instances (like Pause/Resume)
+GUI:			Resume option after quitting detect (through  noreprocessing option and flags to identify impact directories aborted/processing ongoing) (Alexandros)
+GUI:			End after next video (M.Lewis)
+
+Autostakkert:	Search as3 file at same location than movie if not found (cf. j20200828 ir685)
+Autostakkert:	Log AS3 (median quality)
+Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
+
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
-v3.7.0
+v3.7.1 (Improvement of ROI and alignment)
+ROI:			ROI min size changed to 68x68 pixels
+				Detection of background from histogram
+				Removal of background for ROI sizing and alignment
+GUI:			Advanced settings : limits defined for all parameters
+Bugfix:			Autoupdate: download of mandatory dll(s) before updating exe
+Bugfix:			Set maxinstances back to 1 (was set to 12)
+
+v3.7.0 (Autoupdate fix and extension to handle dlls, migration to openCV 4.6.0 / C++, bugfixes incl. Uranus-C raw videos reading)
 Autoupdate:		Pop-up windows to inform about update ongoing and done
 				Implementation of dll files changes handling
 				Explicit message when update not possible (exe filename)
@@ -121,7 +130,7 @@ Dev:			All code but external modules compiled in C++ (incl. IplImage migration t
 				Migration to openCV 4.6.0 and associated ffmpeg dll
 GUI:			(c) till 2023
 Buffix:			Reading of Uranus-C raw avi video (A. Frantzis) - fixed by openCV update
-Bugfix:			Automatic relaunch after update not working (fix WndResizer bug (null pointer not detected))
+Bugfix:			Automatic relaunch after Autoupdate not working (fix WndResizer bug (null pointer not detected))
 Bugfix:			#of files to be processed when fileprocessing interrupted because ROI too small
 Bugfix:			bMat usage still activated
 

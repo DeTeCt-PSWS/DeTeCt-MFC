@@ -52,7 +52,7 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 	double min_ROI_value = 0.00;
 
 /* computes mean of brightness to setup minimum value for taking into account pixels in center of mass calculation */
-	for (y = yorig; y < height; y++)
+/*	for (y = yorig; y < height; y++)
 	{
 		ptr = (mat.data + y * step);
 		for (ptr += (x = xorig); x < width; x++)
@@ -60,8 +60,9 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 				Y += *ptr++;
 		}
 	}
-	min_ROI_value = Y / (width*height);
-	if (min_ROI_value > opts.ROI_min_px_val) min_ROI_value = opts.ROI_min_px_val;
+	min_ROI_value = Y / (width*height);*/
+	min_ROI_value = dtcGetBackgroundFromHistogram(mat, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0);
+	//if (min_ROI_value < opts.ROI_min_px_val)	min_ROI_value = opts.ROI_min_px_val;
 	
 	Y = 0.0;
 	for (y = yorig; y < height; y++)
@@ -114,6 +115,10 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	int width = img.cols;
 	int height = img.rows;
 
+	int background = dtcGetBackgroundFromHistogram(img, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0);
+	cv::Mat img_thr = img.clone();
+	cv::threshold(img, img_thr, background, 0, CV_THRESH_TOZERO);
+
 	if ((tbuf = (double*)calloc((size_t) (ceil(medsize)), sizeof(double))) == NULL ||
 		(mbuf = (double*)calloc(MAX(width, height), sizeof(double))) == NULL) {
 		perror("ERROR in dtcGetGrayImageROIcCM allocating memory");
@@ -129,9 +134,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	xmin = ymin = xmax = ymax = 0;
 
 	// Horizontal
-	for (y = cm.y, src = (uchar *)img.data + y * img.step + xorig, x = xorig;
-		x < (width - medsize);
-		x++, src += 1) {
+	for (y = cm.y, src = (uchar *)img_thr.data + y * img.step + xorig, x = xorig; x < (width - medsize); x++, src += 1) {
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += 1) {
 			tbuf[i] = tsrc[0];
 		}
@@ -147,7 +150,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	hwd = (int)floor((j - i) * secfact);
 
 	// Vertical
-	for (x = cm.x, y = yorig, src = (uchar *)img.data + x + y * img.step;
+	for (x = cm.x, y = yorig, src = (uchar *)img_thr.data + x + y * img.step;
 		y < (height - medsize);
 		y++, src += img.step) {
 		for (i = 0, tsrc = src; i < medsize; i++, tsrc += img.step) {
@@ -350,13 +353,13 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
  **************************************************************************************************/
 
 cv::Mat dtcApplyMask(cv::Mat img) {
-	int sx, sy; // size of the image
+	//int sx, sy; // size of the image
 	double min_brightness, max_brightness;
 	cv::Mat image, mask, background;
 
 	image = img.clone();
-	sx = image.cols;
-	sy = image.rows;
+	//sx = image.cols;
+	//sy = image.rows;
 	cv::minMaxLoc(image, &min_brightness, &max_brightness, NULL, NULL);
 	int avgBackground = (int) round((cv::mean(image.col(0))[0] + cv::mean(image.col(image.cols - 1))[0] + cv::mean(image.row(0))[0] + cv::mean(image.row(image.rows - 1))[0]) / 4.0);
 	img -= avgBackground;
@@ -373,7 +376,7 @@ cv::Mat dtcApplyMask(cv::Mat img) {
 	mask = image > min_brightness + (max_brightness - min_brightness) / 5.0;
 	//cv::blur(mask, mask, cv::Size(smoothSize, smoothSize)); // Not really necessary
 	//cv::imshow("Frame mask", mask);
-	cv::waitKey(1);
+	//cv::waitKey(1);
 	image.copyTo(img, mask);
 	mask.release();
 	mask = NULL;
@@ -768,8 +771,9 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 			gray = dtcApplyMask(gray.clone());
 //AS3
 			cm = dtcGetGrayMatCM(gray); // gets Center of Mass
-			if (cm.x <= 0 || cm.y < 0) throw std::logic_error("Negative or zero centre of mass, can't obtain Region of Interest");
-			win = dtcGetGrayImageROIcCM(gray, cm, (float) opts.medSize, opts.facSize, opts.secSize); // gets ROI
+			if (cm.x < 0 || cm.y < 0) throw std::logic_error("ROI cannot be obtained, negative or zero centre of brightness");
+			//if (cm.x <= 0 || cm.y <= 0) return cv::Rect(0, 0, 0, 0);
+			win = dtcGetGrayImageROIcCM(gray, cm, (float)opts.medSize, opts.facSize, opts.secSize); // gets ROI
 			roi = dtcMaxRect(win, roi);
 			gray.release();
 			gray = NULL;
@@ -826,7 +830,7 @@ void dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, 
 	cv::line(frame, cv::Point(point.x, point.y + lmin), cv::Point(point.x, point.y + lmax), colour, 2, 8, 0);
 }
 
-/**********************************************************************************************//**
+/***************************************************************************************************
  * @fn	cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
  *
  * @brief	Get histogram of the frame
@@ -872,6 +876,63 @@ cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
 	pHis = NULL;
 	return pHisImg;
 }
+
+/**********************************************************************************************
+ * @fn	cv::Mat dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr)
+ *
+ * @brief	Get background from histogram of the frame
+ *
+ * @author	Marc
+ * @date	2023-04-03
+ *
+ * @param	src  							Source frame for the histogram.
+ * @param	background_threshold_max_factor	The % of max number of pixels in histogram of the same brightness to select background
+ * @param	number_below_threshold			The number of consecutive values in histogrambelow the max factor to select background
+ * @param	thr  							The threshold value.
+ *
+ * @return	A cv::Mat with the histogram to be shown.
+ **************************************************************************************************/
+
+int dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr)
+{
+	int background					= 0;
+	cv::Mat pHis;
+	const int hsize					= 256;
+	int phsize[]					= { hsize };
+	float range[]					= { 0 , (float)hsize };
+	const float* ranges[]			= { range };
+	int counter_below_threshold		= 0;
+	double min_val					= 0;
+	double max_val					= 0;
+	double bg_val					= 0;
+	double nb_val					= 0;
+	cv::Point min_loc				= { 0,0 };
+	cv::Point max_loc				= { 0,0 };
+
+	cv::calcHist(cv::makePtr<cv::Mat>(src), 1, { 0 }, cv::Mat(), pHis, 1, phsize, ranges, true, false);
+	if (thr) {
+		pHis.at<float>(0) = 0;
+	}
+	cv::minMaxLoc(pHis, &min_val, &max_val, &min_loc, &max_loc);
+	bg_val = MAX(max_val * background_threshold_max_factor, min_val + 1);
+//	if (bg_val > 0) {
+		for (int i = 0; i < hsize; i++) {
+			nb_val = pHis.at<float>(i);
+			if (nb_val <= bg_val) {
+				counter_below_threshold++;
+				if (counter_below_threshold >= number_below_threshold) {
+					background = i;
+					break;
+				}
+			} else counter_below_threshold = 0;
+		}
+	//}
+	pHis.release();
+	pHis = NULL;
+	if (background > 0)	return background + 1;
+	else return 0;
+}
+
 
 /**********************************************************************************************//**
  * @fn	void dtcWriteFrame(cv::VideoWriter writer, cv::Mat img)
