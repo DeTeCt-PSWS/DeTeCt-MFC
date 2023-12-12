@@ -48,6 +48,17 @@ WinJupos:		use of planet and equatorial radius information from measurement file
 
 High priority:
 --------------
+E	Show computing progression in size not in number
+E	Show time remaining expectation
+E	FITS DATE/TIME format of SWIR PdM camera (2023-10-14 ; 16:20:38) + BITPIX -32
+E	Check usage of Date(UT), Noise, deviation, etc. from FC log
+E	Ignore last frame for ASI AIR (usage of Get similarity?) (Sahil)
+A	overexposed frames : ignore too much overexposed frames (eg 50%% of pixels ?)
+A	overexposed images : test black max-mean white mean for error
+D	Double calculation of ROI (initially + for each frame on a 3x bigger ROI than defined)
+A	Check satellite shadow on mean image for 2nd round of yellow cross
+E	Calculate max pixel on scale 1/3 for blue cross
+
 Bugs
 ----
 Bad count 268/306 for 10 instances on dataset
@@ -66,9 +77,6 @@ Instances:		Children list to optimize exit
 				Children count to stop processes scan
 				TBD: optimize children count process
 				TBD: InstanceType to modify with GetIntParam?
-
-
-Alignement:		*TBD: Detection of bad frames (broken, bars)
 
 Algorithm:		attempt to match impact candidates with brightest point in max-mean
 				*detect and ignore artifacts images (sliding brightness average?)
@@ -113,6 +121,13 @@ Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (A
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+v3.7.2 :
+
+Alignement:		Detection of bad frames (using similarity to first frame change over frames)
+GUI:			Ignore incorrect frames default on
+Log:			Planet name in zip filename
+
+
 v3.7.1 (Improvement of ROI and alignment)
 ROI:			ROI min size changed to 68x68 pixels
 				Detection of background from histogram

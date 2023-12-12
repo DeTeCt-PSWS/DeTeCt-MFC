@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.7.1"
+#define VERSION_NB		"3.7.2"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -154,6 +154,8 @@ struct options {
 	bool			show_mean_image;			// show mean image
 	double			bg_detection_peak_factor;			// for min threshold to detect background
 	int				bg_detection_consecutive_values;	// # of consecutive frames to be below peak factor for background detection
+	int				transparency_min_pc;					// tolerance in transparency for a frame compared to 1st frame
+	int				similarity_decrease_max_pc;			// max decrease between two frames similarity
 // Status
 	bool			interactive_bak;			// Backup of interactive status
 	bool			autostakkert;			// Launched from autostakkert

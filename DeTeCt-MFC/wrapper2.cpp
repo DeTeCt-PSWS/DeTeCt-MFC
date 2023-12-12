@@ -387,6 +387,7 @@ BOOL Is_PIPP_OK(const std::string file, PIPPInfo* pipp_info, std::wstringstream*
 		}
 		if (line.find("Frames discarded by ") != std::string::npos) (*pipp_info).total_discarded_frames += stoi(line.substr(line.find_last_of(":") + 1, line.length() - line.find_last_of(":") - 2));
 		if (line.find("Frames discarded for Input ") != std::string::npos) (*pipp_info).total_discarded_frames += stoi(line.substr(line.find_last_of(":") + 1, line.length() - line.find_last_of(":") - 2));
+		// "Frames discarded with no planet detected:" during alignment
 	}
 	input.close();
 
@@ -432,14 +433,15 @@ BOOL Is_PIPP_OK(const std::string file, PIPPInfo* pipp_info, std::wstringstream*
 		}
 	}*/
 
+//Checks integrity if quality estimated
 	if ((*pipp_info).quality) {
 		if ((*pipp_info).qreorder) {
 			(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", no integrity (frames reordered according to their quality)\n";
-			return FALSE; // Reordering of frames
+			return FALSE; // No intefrity because frames reordered
 		}
 		else if ((*pipp_info).qlimit) {
 			(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", no integrity (frames filtered according to their quality)\n";
-			return FALSE; // Filtering of frames
+			return FALSE; // No intefrity because frames filtered
 		}
 	}
 //if ((*pipp_info).total_output_frames != (*pipp_info).total_input_frames) {
@@ -447,7 +449,7 @@ BOOL Is_PIPP_OK(const std::string file, PIPPInfo* pipp_info, std::wstringstream*
 		(*pmessage) << "Ignoring PIPP file " << pipp_short_filename.c_str() << ", no integrity (" << ((*pipp_info).input_frames_dropped + (*pipp_info).output_frames_dropped) << " frame";
 		if (((*pipp_info).input_frames_dropped + (*pipp_info).output_frames_dropped) > 1) (*pmessage) << "s";
 		(*pmessage) << " dropped)\n";
-		return FALSE; // Frames dropped
+		return FALSE; // No intefrity because frames dropped from input or output
 	}
 /*	if ((*pipp_info).total_output_frames != (*pipp_info).total_frames) {
 		(*pmessage) << "PIPP " << pipp_short_filename.c_str() << " date to be calculated, file has been cropped by " << (*pipp_info).total_frames << " frame";

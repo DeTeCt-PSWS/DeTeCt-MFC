@@ -146,7 +146,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.minframes = 0;				// Minimum # of frames to start processing
 	opts.filter = { 0, {0,0,0,0} };
 	opts.dateonly = FALSE;			// Display date information and stops processing
-	opts.ignore = FALSE;			// Ignore incorrect frames
+	opts.ignore = TRUE;			// Ignore incorrect frames
 	opts.maxinstances = 1;				// Maximum number of DeTeCt instances running in parallel
 	opts.reprocessing = FALSE;			// Reprocessing files already in DeTeCt.log
 	opts.interactive = FALSE;			// Normal interactive mode or automatic mode
@@ -158,6 +158,9 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.show_mean_image = FALSE;			// show mean image
 	opts.bg_detection_peak_factor = 0;			// for min threshold to detect background
 	opts.bg_detection_consecutive_values = 0;	// # of consecutive frames to be below peak factor for background detection
+	opts.transparency_min_pc = 20;					// tolerance in transparency for a frame compared to 1st frame
+	opts.similarity_decrease_max_pc = 12;			// max decrease between two frames similarity
+
 
 // Status
 	opts.interactive_bak = FALSE;			// Backup of interactive status

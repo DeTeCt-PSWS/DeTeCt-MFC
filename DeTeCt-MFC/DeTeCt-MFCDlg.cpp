@@ -256,22 +256,24 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.nsaveframe = 0;
 	opts.ostype = OTYPE_NO;
 	opts.ovtype = OTYPE_NO;
-						::GetPrivateProfileString(L"impact",L"min_strength",			L"0.3", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
-	opts.timeImpact = std::stod(optionStr);
-	opts.incrLumImpact = std::stod(optionStr);
-	opts.incrFrameImpact=::GetPrivateProfileInt(L"impact",	L"frames",					5, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.4", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
-	opts.impact_duration_min = std::stod(optionStr);
-	opts.radius =		::GetPrivateProfileInt(L"impact",	L"radius",					10, DeTeCtIniFilename);
-	opts.nframesROI =	15;
-	opts.nframesRef =	::GetPrivateProfileInt(L"other",	L"refmin",					50, DeTeCtIniFilename);
-	opts.bayer =		::GetPrivateProfileInt(L"other",	L"debayer",					0, DeTeCtIniFilename);
-	opts.medSize =		::GetPrivateProfileInt(L"roi",		L"medbuf",					5, DeTeCtIniFilename);
-	opts.ROI_min_px_val=::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",			10, DeTeCtIniFilename);
-	opts.ROI_min_size = ::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			68, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"background", L"bg_detection_peak_factor", L"0.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
-	opts.bg_detection_peak_factor = std::stod(optionStr);
-	opts.bg_detection_consecutive_values = ::GetPrivateProfileInt(L"background", L"bg_detection_consecutive_values", 5, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"min_strength",			L"0.3", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.timeImpact =						std::stod(optionStr);
+	opts.incrLumImpact =					std::stod(optionStr);
+	opts.incrFrameImpact=					::GetPrivateProfileInt(L"impact",	L"frames",					5, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.4", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.impact_duration_min =				std::stod(optionStr);
+	opts.radius =							::GetPrivateProfileInt(L"impact",	L"radius",					10, DeTeCtIniFilename);
+	opts.nframesROI =						15;
+	opts.nframesRef =						::GetPrivateProfileInt(L"other",	L"refmin",					50, DeTeCtIniFilename);
+	opts.bayer =							::GetPrivateProfileInt(L"other",	L"debayer",					0, DeTeCtIniFilename);
+	opts.medSize =							::GetPrivateProfileInt(L"roi",		L"medbuf",					5, DeTeCtIniFilename);
+	opts.ROI_min_px_val =					::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",			10, DeTeCtIniFilename);
+	opts.ROI_min_size =						::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			68, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"background", L"bg_detection_peak_factor", L"0.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.bg_detection_peak_factor =			std::stod(optionStr);
+	opts.bg_detection_consecutive_values =	::GetPrivateProfileInt(L"background", L"bg_detection_consecutive_values",	5,	DeTeCtIniFilename);
+	opts.transparency_min_pc =				::GetPrivateProfileInt(L"rejection", L"transparency_min_pc",				20,	DeTeCtIniFilename);
+	opts.similarity_decrease_max_pc =		::GetPrivateProfileInt(L"rejection", L"similarity_decrease_max_pc",			12,	DeTeCtIniFilename);
 
 	opts.wait = 1;
 						::GetPrivateProfileString(L"roi",	L"sizfac",					L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
@@ -310,7 +312,7 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.allframes =	::GetPrivateProfileInt(L"impact",		L"inter",				FALSE, DeTeCtIniFilename);
 
 	opts.minframes =	::GetPrivateProfileInt(L"other",		L"frmin",				15, DeTeCtIniFilename);
-	opts.ignore =		::GetPrivateProfileInt(L"other",		L"ignore",				FALSE, DeTeCtIniFilename);
+	opts.ignore =		::GetPrivateProfileInt(L"other",		L"ignore",				TRUE, DeTeCtIniFilename);
 						::GetPrivateProfileString(L"other",		L"darkfile",			L"", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	strcpy(opts.darkfilename, CT2A(optionStr));
 	opts.videotest = 0;
@@ -448,13 +450,13 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	CDialog::OnInitDialog();
 	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE);
 
-	AS.SetCheck(0);
-	dark.SetCheck(0);
-	acquisitionLog.SetCheck(0);
-	SER.SetCheck(0);
-	SERtimestamps.SetCheck(0);
-	FITS.SetCheck(0);
-	FileInfo.SetCheck(0);
+	AS.SetCheck(false);
+	dark.SetCheck(false);
+	acquisitionLog.SetCheck(false);
+	SER.SetCheck(false);
+	SERtimestamps.SetCheck(false);
+	FITS.SetCheck(false);
+	FileInfo.SetCheck(false);
 	
 	execAS.SetCheck(opts.autostakkert);
 	if ((opts.autostakkert) || (opts.detect_PID > 0)) {
@@ -2150,15 +2152,15 @@ void PrefDialog::OnBnClickedCheck15()
 void PrefDialog::OnBnClickedButton1()
 {
 	//Processing visualisation
-	showROI.SetCheck(0);
-	showTrack.SetCheck(0);
-	showDif.SetCheck(0);
-	showRef.SetCheck(0);
-	showMask.SetCheck(0);
-	showThresh.SetCheck(0);
-	showSmooth.SetCheck(0);
-	showResult.SetCheck(0);
-	showHist.SetCheck(0);
+	showROI.SetCheck(false);
+	showTrack.SetCheck(false);
+	showDif.SetCheck(false);
+	showRef.SetCheck(false);
+	showMask.SetCheck(false);
+	showThresh.SetCheck(false);
+	showSmooth.SetCheck(false);
+	showResult.SetCheck(false);
+	showHist.SetCheck(false);
 
 	//Impact
 	std::wstringstream ss;
@@ -2174,12 +2176,12 @@ void PrefDialog::OnBnClickedButton1()
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(0) << 0.0;
 	impactBrightThresh.SetWindowText(ss.str().c_str());
-	applyMask.SetCheck(0);
+	applyMask.SetCheck(false);
 
-	saveIntFramesADUdtc.SetCheck(0);
-	NoZip.SetCheck(0);
-	Debug.SetCheck(0);
-	CleanDir.SetCheck(0);
+	saveIntFramesADUdtc.SetCheck(false);
+	NoZip.SetCheck(false);
+	Debug.SetCheck(false);
+	CleanDir.SetCheck(false);
 
 		//ROI
 	ss.str(std::wstring());
@@ -2204,7 +2206,7 @@ void PrefDialog::OnBnClickedButton1()
 	ss << std::fixed << std::setprecision(2) << 0.8;
 	histScale.SetWindowText(ss.str().c_str());
 	
-	ignoreIncorrectFrames.SetCheck(0);
+	ignoreIncorrectFrames.SetCheck(true);
 	useFilter.SetCheck(true);
 	filterSelect.EnableWindow(useFilter.GetCheck());
 
@@ -2582,7 +2584,7 @@ void PrefDialogUser::OnBnClickedButton1()
 {
 	strcpy(opts.darkfilename, "darkfile.tif");
 
-	//Explorer.SetCheck(1);
+	//Explorer.SetCheck(true);
 
 	ShowDetectImg.SetCheck(TRUE);
 	ShowMeanImg.SetCheck(FALSE);

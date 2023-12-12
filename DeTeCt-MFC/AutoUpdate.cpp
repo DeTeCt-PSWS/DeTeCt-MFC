@@ -641,7 +641,9 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		update = TRUE;
 	}
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
-		opts.ROI_min_size = 68;		// to ignore too small ROIs where impact could be missed
+		opts.ROI_min_size = 68;					// to ignore too small ROIs where impact could be missed
+		opts.transparency_min_pc = 20;			// tolerance in transparency for a frame compared to 1st frame
+		opts.similarity_decrease_max_pc = 12;	// max decrease between two frames similarity
 		WriteIni();
 		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
 		update = TRUE;
