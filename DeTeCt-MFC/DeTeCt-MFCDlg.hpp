@@ -57,7 +57,6 @@ protected:
 	// Generated message map functions
 	virtual BOOL OnInitDialog();
 	virtual BOOL EndDialog();
-	virtual BOOL OnCheckUpdate();
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
 	afx_msg void OnPaint();
 	afx_msg HCURSOR OnQueryDragIcon();
@@ -93,6 +92,7 @@ public:
 	static CStatic MaxInstances;
 	CSpinButtonCtrl ValueMaxInstances;
 	afx_msg void OnBnClickedOk();
+	afx_msg BOOL OnCheckUpdate();
 	afx_msg void OnFileOpenFolder();
 	afx_msg void OnHelpExit();
 	afx_msg void OnHelpTutorial();

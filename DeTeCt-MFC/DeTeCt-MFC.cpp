@@ -66,6 +66,8 @@ CDeTeCtMFCDlg	dlg;
 
 BOOL CDeTeCtMFCApp::InitInstance()
 {
+	//if (opts.debug) MessageBox(NULL, _T("Hello World 1"), _T("Hello World"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+
 	CString commandLineArgument = GetCommandLine();
 	CStringArray commandParametres;
 	int i = 0;
@@ -148,6 +150,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.dateonly = FALSE;			// Display date information and stops processing
 	opts.ignore = TRUE;			// Ignore incorrect frames
 	opts.maxinstances = 1;				// Maximum number of DeTeCt instances running in parallel
+	opts.force_single_instance = FALSE;	// Force single instance mode
 	opts.reprocessing = FALSE;			// Reprocessing files already in DeTeCt.log
 	opts.interactive = FALSE;			// Normal interactive mode or automatic mode
 	opts.autoexit = FALSE;			// Automatic exit when processing done
@@ -163,10 +166,12 @@ BOOL CDeTeCtMFCApp::InitInstance()
 
 
 // Status
-	opts.interactive_bak = FALSE;			// Backup of interactive status
-	opts.autostakkert = FALSE;			// Launched from autostakkert
-	opts.autostakkert_PID = 0;				// Parent autostakkert PID
-	opts.detect_PID = 0;				// Parent detect PID
+	opts.interactive_bak		= FALSE;	// Backup of interactive status
+	opts.reprocessing_bak		= FALSE;	// Backup of reprocessing status
+	opts.maxinstances_bak		= 1;		// Backup of Maximum number of DeTeCt instances status
+	opts.autostakkert			= FALSE;	// Launched from autostakkert
+	opts.autostakkert_PID		= 0;		// Parent autostakkert PID
+	opts.detect_PID = 0;					// Parent detect PID
 	opts.version[MAX_STRING] = { 0 };
 	opts.DeTeCtQueueFilename[MAX_STRING] = { 0 };
 	opts.LogConsolidatedDirname[MAX_STRING] = { 0 };
@@ -178,21 +183,27 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// Sets default values for options then reads options from ini file (before it could be changed by command line)
 	//opts.interactive = TRUE; // -interactive / -noautomatic
 	CDeTeCtMFCDlg::CDeTeCtMFCDlg(NULL);
-	opts.flat_preparation = FALSE;
 	opts.interactive_bak = opts.interactive;
+	opts.reprocessing_bak = opts.reprocessing;
+	opts.maxinstances_bak = opts.maxinstances;
 
-	opts.autostakkert = FALSE;
-	opts.autostakkert_PID = 0;
+	opts.flat_preparation = FALSE;
+
+	opts.autostakkert		= FALSE;
+	opts.autostakkert_PID	= 0;
 	opts.detect_PID = 0;
-	opts.parent_instance = FALSE;
-	opts.interactive_bak = opts.interactive;
+	opts.parent_instance	= FALSE;
 
 	// Checks if DeTeCt has been launched by AutoStakkert
 	if (IsParentAutostakkert(&opts.autostakkert_PID)) {
-		message_lines[index_message++] = "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
-		message_lines[index_message] = "\0";
-		opts.autostakkert = TRUE;
-		opts.parent_instance = FALSE;
+		message_lines[index_message++]	= "Launched from AutoStakkert, DO NOT CLOSE THIS WINDOW (close AutoStakkert when done)";
+		message_lines[index_message]	= "\0";
+		opts.autostakkert									= TRUE;
+		opts.parent_instance								= FALSE;
+		opts.force_single_instance							= TRUE;
+
+		if (opts.force_single_instance) opts.maxinstances	= 1;
+if (opts.debug) MessageBox(NULL, _T("Launched from AutoStakkert PID ") + CString(std::to_string(opts.autostakkert_PID).c_str()) + _T(", DO NOT CLOSE DETECT(close AutoStakkert when done)"), _T("Info 1"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 	}
 	else {
 		// in case code for displaying ProcessName is needed
@@ -317,21 +328,21 @@ BOOL CDeTeCtMFCApp::InitInstance()
 					message_lines[index_message] = "\0";
 				}
 			} else if (param_aspid == TRUE) {
-					param_aspid = FALSE;
-					BOOL has_only_digits = (param.find_first_not_of("0123456789") == std::string::npos);
-					int number = atoi(param.c_str());
-					if (has_only_digits) number = atoi(param.c_str());
-					if ((has_only_digits) && (number > 0)) {
-						param_used = TRUE;
-						opts.autostakkert_PID = number;
-						message_lines[index_message++] = "Using : PID " + param + " as parent Autostakkert ID";
-						message_lines[index_message] = "\0";
-					}
-					else {
-						message_lines[index_message++] = "WARNING : number " + param + " not a valid process ID";
-						message_lines[index_message] = "\0";
-					}
+				param_aspid = FALSE;
+				BOOL has_only_digits = (param.find_first_not_of("0123456789") == std::string::npos);
+				int number = atoi(param.c_str());
+				if (has_only_digits) number = atoi(param.c_str());
+				if ((has_only_digits) && (number > 0)) {
+					param_used = TRUE;
+					opts.autostakkert_PID = number;
+					message_lines[index_message++] = "Using : PID " + param + " as parent Autostakkert ID";
+					message_lines[index_message] = "\0";
 				}
+				else {
+					message_lines[index_message++] = "WARNING : number " + param + " not a valid process ID";
+					message_lines[index_message] = "\0";
+				}
+			}
 			// Processes command line options
 			if (!param_used) {
 				//if (starts_with(param, "/restartbyrestartmanager")) return FALSE;
@@ -479,19 +490,25 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	// ******************************************************************
 	// *********************** QUEUE MANAGEMENT *************************
 	// ******************************************************************
-	if (opts.debug) {
-		message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
-		message_lines[index_message] = "\0";
-	}
+																		if (opts.debug) {
+																			message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
+																			message_lines[index_message] = "\0";
+																		}
 
-	CreateQueueFileName();
-	if ((opts.autostakkert) && (opts.parent_instance)) app_title.append("       (from AutoStakkert!)");
-	if (opts.debug) {
-		std::string msg(opts.DeTeCtQueueFilename);
-		message_lines[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
-		message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
-		message_lines[index_message] = "\0";
+
+//if ((opts.autostakkert_PID > 0)	&& (ParentChildrenProcessesNumber(opts.autostakkert_PID > 1))) Sleep(15000);
+
+CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFilename
+	if ((opts.autostakkert) && (opts.parent_instance)) {
+		app_title.append("       (from AutoStakkert!)");
+																		if (opts.debug) MessageBox(NULL, _T("Parent instance AutoStakkert PID ") + CString(std::to_string(opts.autostakkert_PID).c_str()), _T("Info 2"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 	}
+																		if (opts.debug) {
+																			std::string msg(opts.DeTeCtQueueFilename);
+																			message_lines[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
+																			message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
+																			message_lines[index_message] = "\0";
+																		}
 
 	// if no additional instance possible, adds object to queue
 			// Checks if DeTeCt is already running
@@ -499,20 +516,26 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	if (opts.autostakkert_PID > 0)	DeTeCt_processes_nb = ParentChildrenProcessesNumber(opts.autostakkert_PID);
 	else if (opts.detect_PID > 0)	DeTeCt_processes_nb = ParentChildrenProcessesNumber(opts.detect_PID) + 1;		//count parent 
 	//else DeTeCt_processes_nb = DetectInstancesNumber();
+																		DBOUT("Maximum DeTeCt processes = " << opts.maxinstances << "\n");
+																		DBOUT("Number of DeTeCt processes = " << DeTeCt_processes_nb << "\n");
 
-	DBOUT("Maximum DeTeCt processes = " << opts.maxinstances << "\n");
-	DBOUT("Number of DeTeCt processes = " << DeTeCt_processes_nb << "\n");
-	if ((DeTeCt_processes_nb > opts.maxinstances) || ((opts.autostakkert) && (!opts.parent_instance))) {
+	// *********************** PROCESS FILENAME*************************
+
+	if ((DeTeCt_processes_nb > opts.maxinstances) || ((opts.autostakkert) && (!opts.parent_instance))) { //No new DeTeCt instance or children autostakkert
 		//if ((DeTeCt_processes_nb > opts.maxinstances) && (!opts.interactive)) {
 		//log processes to be done and exits
+
 		if (strlen(opts.filename) > 0) {
-if (opts.debug) {
-	message_lines[index_message++] = "!Debug info: Queuing filename " + std::string (opts.filename);
-	message_lines[index_message] = "\0";
-}
+																		if (opts.debug) {
+																			message_lines[index_message++] = "!Debug info: Queuing filename " + std::string (opts.filename);
+																			message_lines[index_message] = "\0";
+																			if ((opts.autostakkert) && (!opts.parent_instance)) MessageBox(NULL, _T("Children instance AutoStakkert queuing ") + (CString)(std::string(opts.filename).c_str()), _T("Info 3"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+																		}
 			CString objectname(opts.filename);
 			CString tmp;
+																		if (opts.debug) MessageBox(NULL, _T("1 "), _T("Info 3"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 			if (opts.reprocessing || (!IsFileAlreadyQueued(objectname, char2CString(opts.DeTeCtQueueFilename, &tmp)))) {
+																		if (opts.debug) MessageBox(NULL, _T("2 "), _T("Info 3"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 				std::wstringstream ss;
 				std::string file;
 				std::string filename_acquisition;
@@ -526,51 +549,52 @@ if (opts.debug) {
 					// ********* Ignores if required dark, pipp, winjupos derotated files
 					(!Is_Capture_Special_Type(file, &ss)) &&
 					// ********* Ignores PIPP with no integrity
-					(!Is_PIPP(file) || ((Is_PIPP(file) && Is_PIPP_OK(file, &pipp_info, &ss))))) {
-					std::string folder_path;
-					if (!opts.autostakkert) folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
-					else {
-						//log directory when autostakkert mode or multi instance mode
-						folder_path = CString2string(DeTeCt_exe_folder());
-					}
-					//std::string folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\")); 
-					CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
-					std::string log_file(DeTeCtLogFilename);
-					if (Is_CaptureFile_To_Be_Processed(filename_acquisition, log_file, &ss)) {
-						PushFileToQueue(objectname, char2CString(opts.DeTeCtQueueFilename, &tmp));
-					}
+					(!Is_PIPP(file) || ((Is_PIPP(file) && Is_PIPP_OK(file, &pipp_info, &ss)))))  {
+																		if (opts.debug) MessageBox(NULL, _T("3 "), _T("Info 3"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+						std::string folder_path;
+// Defines folder path and logfilename
+						if (opts.autostakkert)	folder_path = CString2string(DeTeCt_exe_folder());		//log directory when autostakkert mode is DeTeCt exe location
+						else					folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));											
+						CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
+						std::string log_file(DeTeCtLogFilename);
+// Pushed file to queue if to be processed
+																		if (opts.debug) MessageBox(NULL, _T("4 "), _T("Info 3"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+						if (Is_CaptureFile_To_Be_Processed(filename_acquisition, log_file, &ss)) {
+																		if (opts.debug) MessageBox(NULL, _T("Queuing ") + objectname, _T("Info 3b"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+							PushFileToQueue(objectname, char2CString(opts.DeTeCtQueueFilename, &tmp));
+						}
 				}
 			}
-			else DBOUT("file already queued\n");
+			else														DBOUT("file already queued or reprocessing it\n");
 		}
-		else if (strlen(opts.dirname) > 0) {
-if (opts.debug) {
-	message_lines[index_message++] = "!Debug info: Queuing directory " + std::string(opts.dirname);
-	message_lines[index_message] = "\0";
-}
+		else if (strlen(opts.dirname) > 0) { // Dead code
+																		if (opts.debug) {
+																			message_lines[index_message++] = "!Debug info: Queuing directory " + std::string(opts.dirname);
+																			message_lines[index_message] = "\0";
+																		}
 			CString objectname(opts.dirname);
 			CString tmp;
 			//if (opts.reprocessing || (!IsFileAlreadyQueued(objectname, char2CString(opts.DeTeCtQueueFilename, &tmp)))) PushFileToQueue(objectname, char2CString(opts.DeTeCtQueueFilename, &tmp));
 			//else DBOUT("directory already queued\n");
 		}
-		return FALSE;
+		return FALSE;	// EXIT ! Nothing done or file queued.
 	}
 
-	// if new instance and no objects given, looks for work in queue in auto mode
-	//if ((!opts.interactive) && (!opts.filename) && (!opts.dirname)) {
+// if new instance and no objects given, looks for work in queue in auto mode
+//if ((!opts.interactive) && (!opts.filename) && (!opts.dirname)) {
 	if ((strlen(opts.filename) == 0) && (strlen(opts.dirname) == 0) && (strlen(opts.DeTeCtQueueFilename) > 1)) {
 		CString objectname;
 		CString tmp;
-if (opts.debug) {
-	message_lines[index_message++] = "Getting file from queue";
-	message_lines[index_message] = "\0";
-}
+																		if (opts.debug) {
+																			message_lines[index_message++] = "Getting file from queue";
+																			message_lines[index_message] = "\0";
+																		}
 		if (GetFileFromQueue(&objectname, (CString)opts.DeTeCtQueueFilename)) {
-if (opts.debug) {
-	CT2A char_objectname(objectname);
-	message_lines[index_message++] = "Fetched file from queue" + std::string(char_objectname);
-	message_lines[index_message] = "\0";
-}
+																		if (opts.debug) {
+																			CT2A char_objectname(objectname);
+																			message_lines[index_message++] = "Fetched file from queue" + std::string(char_objectname);
+																			message_lines[index_message] = "\0";
+																		}
 			std::ifstream file(objectname);
 			CT2A tmpo(objectname);
 			if (file) {
@@ -596,24 +620,24 @@ if (opts.debug) {
 		}
 		else if (opts.autostakkert_PID > 0) return FALSE; // No file for autostakkert child
 		else { // No file for child
-			if (opts.debug) {
-				message_lines[index_message++] = "!Degug info : Can't fetch file ...";
-				message_lines[index_message] = "\0";
-				//if (!opts.parent_instance) return FALSE;
-			}
+																		if (opts.debug) {
+																			message_lines[index_message++] = "!Degug info : Can't fetch file ...";
+																			message_lines[index_message] = "\0";
+																			//if (!opts.parent_instance) return FALSE;
+																		}
 			if (!opts.parent_instance) return FALSE;
 		}
 	}
-	if (strlen(opts.filename) > 0) DBOUT("file = " << opts.filename << "\n");
-	if (strlen(opts.dirname) > 0) DBOUT("folder = " << opts.dirname << "\n");
+																		if (strlen(opts.filename) > 0) DBOUT("file = " << opts.filename << "\n");
+																		if (strlen(opts.dirname) > 0) DBOUT("folder = " << opts.dirname << "\n");
 
 	//clock_t start = clock(); clock_t end = clock();
-	if (opts.debug) {
-		std::string msg(opts.DeTeCtQueueFilename);
-		message_lines[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
-		message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
-		message_lines[index_message] = "\0";
-	}
+																		if (opts.debug) {
+																			std::string msg(opts.DeTeCtQueueFilename);
+																			message_lines[index_message++] = msg + "!Debug info: AS PID=" + std::to_string(opts.autostakkert) + " " + std::to_string(opts.autostakkert_PID);
+																			message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
+																			message_lines[index_message] = "\0";
+																		}
 
 // **********************************************************
 // *********************** TEST *************************
@@ -687,29 +711,41 @@ if (opts.debug) {
 	return TRUE;
 }
 
-void CreateQueueFileName() {	
+
+
+
+
+// ******************************************************************
+// *********************** EXTERNAL FUNCTIONS************************
+// ******************************************************************
+
+void CreateQueueFileName() { //	defines opts.DeTeCtQueueFilename
 	// Filter instances even if non auto mode (v3.2.2)
 	DWORD	parent_id;
 
-	// Create filename for processes queue DeTeCtQueueFilename
+// Create filename for processes queue DeTeCtQueueFilename
 	CString log_cstring;
-	if (opts.autostakkert_PID > 0) {				// Autostakkert mode
+
+// Autostakkert processing
+	if (opts.autostakkert_PID > 0) {													// Autostakkert mode
 		CString pid_cstring;
 		pid_cstring.Format(L"%d", opts.autostakkert_PID);
 		CString2char(DeTeCt_additional_filename_exe_fullpath(CString(_T(DTC_QUEUE_PREFIX)) + _T("_as") + pid_cstring + _T(DTC_QUEUE_EXT)), opts.DeTeCtQueueFilename);
-		if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
+if (opts.debug) MessageBox(NULL, _T("AutoStakkert file queue ") + (CString)(std::string(opts.DeTeCtQueueFilename).c_str()), _T("Info 4"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+
+		if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {		// Autostakkert mode (parent instance) : queue not created yet
 			opts.parent_instance = TRUE;
 		}
-		else {
-			opts.parent_instance = FALSE;
-			opts.autoexit = TRUE;		//automatic exit in child mode
-			opts.shutdown = FALSE;	//never shutdown in child mode, should be done only in parent mode!
+		else {																			// Autostakkert mode (children instance)
+			opts.parent_instance	= FALSE;
+			opts.autoexit			= TRUE;		//automatic exit in child mode
+			opts.shutdown			= FALSE;	//never shutdown in child mode, should be done only in parent mode!
 		}
-		opts.interactive = FALSE;	// By default (mandatory), auto mode on when launched from AutoStakkert
-		//opts.reprocessing = FALSE;	// By default (but not mandatory), noreprocessing on when launched from AutoStakkert //implemented in function using reprocessing
+		opts.interactive			= FALSE;	// By default (mandatory), auto mode on when launched from AutoStakkert
+		opts.reprocessing			= FALSE;	// By default (but not mandatory), noreprocessing on when launched from AutoStakkert //implemented in function using reprocessing
 	}
-	else if ((IsParentDeTeCt(&parent_id)) || (opts.detect_PID > 0)) {	// DeTeCt mode (child instance)
-		//CString2char(DeTeCt_additional_filename_exe_fullpath(CString(_T(DTC_QUEUE_PREFIX)) + _T(DTC_QUEUE_EXT)), opts.DeTeCtQueueFilename);
+// DeTeCt standalone processing
+	else if ((IsParentDeTeCt(&parent_id)) || (opts.detect_PID > 0)) {					// DeTeCt standalone mode (child instance)
 		CString parent_id_cstring;
 		if (IsParentDeTeCt(&parent_id)) {
 			parent_id_cstring.Format(L"%d", parent_id);
@@ -725,13 +761,13 @@ void CreateQueueFileName() {
 		opts.autoexit = TRUE;		//automatic exit in child mode
 		opts.shutdown = FALSE;	//never shutdown in child mode, should be done only in parent mode!
 	}
-	else if (opts.maxinstances > 1) {				// multi-instances mode, parent instance
+	else if (opts.maxinstances > 1) {										// DeTeCt standalone mode - multi-instances mode, parent instance
 		CString pid_cstring;
 		pid_cstring.Format(L"%d", GetCurrentProcessId());
 		CString2char(DeTeCt_additional_filename_exe_fullpath(CString(_T(DTC_QUEUE_PREFIX)) + _T("_dtc") + pid_cstring + _T(DTC_QUEUE_EXT)), opts.DeTeCtQueueFilename);
 		opts.parent_instance = TRUE;
 	}
-	else {											// normal mode, no queue
+	else {																	// // DeTeCt standalone mode (parent instance)
 		strcpy(opts.DeTeCtQueueFilename, "");
 		opts.parent_instance = TRUE;
 	}

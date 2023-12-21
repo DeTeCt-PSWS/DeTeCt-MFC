@@ -57,6 +57,9 @@ void			DisplayProcessingTime(clock_t *pcomputing_threshold_time, clock_t *plast_
 CString			TotalType();
 Instance_type	InstanceType(CString *pinstance_text);
 int				rename_replace(const char* src, const char* dest, const char* foldername, const char* function);
+void			UpdateProgressBar(const int acquisitions_processed, const int acquisition_index_children, const char *DeTeCtQueueFilename);
+
+
 
 /** @brief	Options for the algorithm */
 
@@ -2374,10 +2377,10 @@ if (opts.debug) LogString(_T("!Debug info: Setting processed file from queue"), 
 			std::string waiting_message = "";
 			if (NbItemFromQueue(_T("file"), (CString)opts.DeTeCtQueueFilename, NULL, TRUE) == 0) {
 				if ((opts.parent_instance) && (opts.autostakkert) && (IsParentAutostakkertRunning(opts.autostakkert_PID))) {
-					waiting_message = "Checking for pending or new files to be processed, \nclose Autostakkert when done with your processing!\n";
+					waiting_message = " checking for files to process, CLOSE AUTOSTAKKERT WHEN DONE then DETECT WILL CLOSE AUTOMATICALLY!\n";
+					UpdateProgressBar(acquisitions_processed, acquisition_index_children, opts.DeTeCtQueueFilename);
 					if (logmessage3.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage3.c_str(); // ???
-				}
-				if ((opts.parent_instance) && (ChildrenProcessesNumber() > 0))
+				} else if ((opts.parent_instance) && (ChildrenProcessesNumber() > 0))
 					waiting_message =	waiting_message + "checking for other DeTeCt process(es) running to finish ...\n";
 			} else waiting_message =	waiting_message + "checking new files to be processed ...\n";
 			if (waiting_message.size() > 1) {
@@ -2431,9 +2434,10 @@ if (opts.debug) LogString(_T("!Debug info: Check queue: parent=") + (CString)std
 							progress_all_status = MAX_RANGE_PROGRESS * ((float) (acquisitions_processed + acquisition_index_children) / (float) acquisitions_to_be_processed);
 							CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(progress_all_status));
 							CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
-
-							std::string waiting_message = "Checking for pending or new files to be processed, \nclose Autostakkert when done with your processing!\n";
+															
+							std::string waiting_message = "DO NOT CLOSE this window - checking for files to process,\n\n CLOSE AUTOSTAKKERT WHEN DONE";
 							LogString((CString)"PLEASE WAIT, " + (CString)waiting_message.c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+							UpdateProgressBar(acquisitions_processed, acquisition_index_children, opts.DeTeCtQueueFilename);
 						}
 					}
 				}
@@ -2619,16 +2623,9 @@ if (opts.debug) LogString(
 	if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 
 	// Last update of file counts with actual figures
-	//int acquisitions_finally_processed = MAX(NbItemFromQueue(_T("file_ok        "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE), acquisitions_to_be_processed) ;
-	int acquisitions_finally_processed = NbItemFromQueue(_T("file_ok        "), (CString)opts.DeTeCtQueueFilename, NULL, TRUE); //BUGFIX if files ignored during processing
-	totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_finally_processed) + L")";
-	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
-	CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS* (float)(acquisitions_processed + acquisition_index_children) / (acquisitions_finally_processed)));
-	CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
-
+	UpdateProgressBar(acquisitions_processed, acquisition_index_children, opts.DeTeCtQueueFilename);
 	
 	//if (opts.parent_instance) LogString(_T("3: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
 	if (opts.parent_instance) {
 		nb_instances = 0;
 		DisplayInstanceType(&nb_instances); // Display number of instances only if files processed (Forks does the display) and if not child instance
@@ -2648,12 +2645,13 @@ if (opts.debug) LogString(
 		//if (opts.show_mean_image)	cv::destroyWindow("Mean image");
 	}
 	// ******************* end of processing configuration
-	if ((opts.parent_instance) && (opts.autostakkert) && (!IsParentAutostakkertRunning(opts.autostakkert_PID))) {
+	//move to the end
+	/*	if ((opts.parent_instance) && (opts.autostakkert) && (!IsParentAutostakkertRunning(opts.autostakkert_PID))) {
 		opts.autostakkert = FALSE;
 		opts.autostakkert_PID = 0;
 		dlg.execAS.SetCheck(false);
 		LogString(L"Automatic execution from parent AutoStakkert terminated", output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-	}
+	}*/
 
 	// * delete process queue if parent instance *
 	if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) {
@@ -2932,6 +2930,15 @@ if (opts.debug) LogString(
 			log_messages.push_back("You can SAFELY CLOSE this window.");
 			log_messages.push_back("================================================================================");
 		}
+		if ((opts.parent_instance) && (opts.autostakkert)) { // restore imposed options by autostakkert mode
+			//log_messages.push_back(std::to_string(opts.interactive_bak).c_str());
+			//log_messages.push_back(std::to_string(opts.maxinstances_bak).c_str());
+			//log_messages.push_back(std::to_string(opts.reprocessing_bak).c_str());
+			opts.interactive = opts.interactive_bak;
+			opts.reprocessing = opts.reprocessing_bak;
+			opts.maxinstances = opts.maxinstances_bak;
+		}
+		WriteIni();
 
 		for (std::string msg : log_messages) {
 			std::wstring wmsg = std::wstring(msg.begin(), msg.end());
@@ -2952,6 +2959,8 @@ if (opts.debug) LogString(
 			//		output_log2 << getDateTime().str().c_str() << "\n";
 			//		output_log2 << getDateTime().str().c_str() << message.c_str() << "\n";
 			output_log2 << "======================================================================================================\n\n";
+			
+
 			output_log2.flush();
 			output_log2.close();
 			if (rename(OutOrgFilename2, OutNewFilename2)!= 0) {
@@ -2980,11 +2989,20 @@ if (opts.debug) LogString(
 		}
 	//}
 
-		if (((opts.autostakkert_PID > 0) && (!opts.parent_instance)) ||  ((!opts.interactive) && (!opts.parent_instance) && (!opts.autostakkert))) // Automatically exit for child instances in autostakkert mode or automatic mode
-		dlg.OnFileExit();
-
-	if ((!opts.interactive) && (!opts.parent_instance))	dlg.OnFileExit();  // Automatically exit of parent non autostakkert instance in automatic mode
+	if (((opts.autostakkert_PID > 0) && (!opts.parent_instance)) ||  ((!opts.interactive) && (!opts.parent_instance) && (!opts.autostakkert))) dlg.OnFileExit();	// Automatically exit for child instances in autostakkert mode or automatic mode
+	if ((!opts.interactive) && (!opts.parent_instance))	dlg.OnFileExit();																							// Automatically exit of parent non autostakkert instance in automatic mode
 	
+	//New moved from above - needed?
+	if ((opts.parent_instance) && (opts.autostakkert) && (!IsParentAutostakkertRunning(opts.autostakkert_PID))) {
+		opts.autostakkert = FALSE;
+		opts.autostakkert_PID = 0;
+		dlg.execAS.SetCheck(false);
+		dlg.OnCheckUpdate();
+		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
+		CDeTeCtMFCDlg::getLog()->RedrawWindow();
+		//LogString(L"Automatic execution from parent AutoStakkert terminated", output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+	}
+
 	// Reactivate file/folder management
 	CWnd *openfolderbtn = dlg.GetDlgItem(IDOK3);
 	if (openfolderbtn) {
@@ -3660,8 +3678,6 @@ Instance_type DisplayInstanceType(int *nbinstances) {
 void WriteIni() {
 	CString str;
 	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
-	//char DeTeCtIniFilename_char[MAX_STRING];
-	//remove(CString2char(DeTeCtIniFilename, DeTeCtIniFilename_char));
 
 	::WritePrivateProfileString(L"general", L"version", CA2T(VERSION_NB), DeTeCtIniFilename);
 	str.Format(L"%.2f", opts.incrLumImpact);
@@ -3830,4 +3846,13 @@ int rename_replace(const char *src, const char *dest, const char *foldername, co
 		}
 	}
 	return return_value;
+}
+
+void UpdateProgressBar(const int processed, const int children, const char *QueueFilename) {
+	int acquisitions_finally_processed = NbItemFromQueue(_T("file_ok        "), (CString) QueueFilename, NULL, TRUE);	//BUGFIX if files ignored during processing
+	if (acquisitions_finally_processed == 0) acquisitions_finally_processed = processed + children;						//if single instance no QueueFilename anymore
+	std::wstring totalProgress = L"Total\n(" + std::to_wstring(processed + children) + L"/" + std::to_wstring(acquisitions_finally_processed) + L")";
+	CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress.c_str());
+	CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(MAX_RANGE_PROGRESS * (float)(processed + children) / (acquisitions_finally_processed)));
+	CDeTeCtMFCDlg::getProgress_all()->UpdateWindow();
 }

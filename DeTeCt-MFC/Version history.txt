@@ -52,7 +52,6 @@ E	Show computing progression in size not in number
 E	Show time remaining expectation
 E	FITS DATE/TIME format of SWIR PdM camera (2023-10-14 ; 16:20:38) + BITPIX -32
 E	Check usage of Date(UT), Noise, deviation, etc. from FC log
-E	Ignore last frame for ASI AIR (usage of Get similarity?) (Sahil)
 A	overexposed frames : ignore too much overexposed frames (eg 50%% of pixels ?)
 A	overexposed images : test black max-mean white mean for error
 D	Double calculation of ROI (initially + for each frame on a 3x bigger ROI than defined)
@@ -62,30 +61,25 @@ E	Calculate max pixel on scale 1/3 for blue cross
 Bugs
 ----
 Bad count 268/306 for 10 instances on dataset
+Bad count 268/0 for 1 instances on dataset
 DeTeCt launch after single instance ? test on dataset
 Slowness in files acquisition addition
-
 FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
-Files:			avi support to be fixed (opencv3+? see https://www.geeksforgeeks.org/opencv-c-windows-setup-using-visual-studio-2019/)
 
 Functionalities
 ---------------
 Instances:		available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
 Instances:		available logical processors to adapt # of instances (1 core/instance)
-(Instances:		optimize multi instance mode by reordering processing list by acquisition size - not to be done if # of files <= absolute max instances)
 Instances:		Children list to optimize exit
 				Children count to stop processes scan
 				TBD: optimize children count process
 				TBD: InstanceType to modify with GetIntParam?
 
 Algorithm:		attempt to match impact candidates with brightest point in max-mean
-				*detect and ignore artifacts images (sliding brightness average?)
 				*TBD: Prioritize as3 over file even if as3 is read after
 				check distance criteria (not working ?)
-				ignore bad centered images (ROI in negative area)
-				check GetSimilarity function use
+				ignore bad centered images (part of ROI outside of fullframe)
 
-ROI:			discard bad frames but continue till number of correct frames used
 ROI:			Scan of 90° from cog to edge (for Saturn)
 				Increase size of ROI (Martin)
 				TBD: Use as3 ROI
@@ -121,12 +115,23 @@ Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (A
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
-v3.7.2 :
+v3.7.3 (integration with Autostakkert 4)
+Autostakkert:	Integration with Autostakkert 4
+Autostakkert:	Force autoprocessing, no reprocessing and single instance in Autostakkert mode
+Autostakkert:	Backup and restore interactive, reprocessing and maxinstances values from/for normal standalone mode
+Autostakkert:	Check updates when exiting (because deactivated when starting)
+GUI:			Deactivate at startup intermediate save of frames for identifying candidate event
+GUI:			Harmonize advanced/development settings menu/window naming
+Bugfix:			Test of ffmpeg dll on full pathname instead of short filename
+Bugfix:			Correct final progressbar in single instance mode
 
-Alignement:		Detection of bad frames (using similarity to first frame change over frames)
+v3.7.2 (Rejection of bad frames, planet in zip filename, logs)
+
+Alignement:		Rejection of bad frames (using similarity change over frames)
 GUI:			Ignore incorrect frames default on
+GUI:			Description in user settings about flat preparation image and send email not working with webmails
 Log:			Planet name in zip filename
-
+Log:			Log of all rejected frames in output file, display of quantity and type of rejected frames
 
 v3.7.1 (Improvement of ROI and alignment)
 ROI:			ROI min size changed to 68x68 pixels

@@ -649,6 +649,21 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		update = TRUE;
 	}
 
+	version_update.Major = 3;
+	version_update.Minor = 7;
+	version_update.Revision = 3;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		WriteIni();
+		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+
 	//if (update) (*log_cstring_lines).push_back((CString)"Info: .ini parameters and/or files updated");
 	return update;
 }

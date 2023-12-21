@@ -307,9 +307,11 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.filter.param[1] =	3;
 	opts.filter.param[2] =	0;
 	opts.filter.param[3] =	0;
-	opts.ADUdtconly =		FALSE;
+	opts.ADUdtconly =		FALSE; // deactivated at startup
 	opts.detail =		::GetPrivateProfileInt(L"impact",		L"detail",				FALSE, DeTeCtIniFilename);
-	opts.allframes =	::GetPrivateProfileInt(L"impact",		L"inter",				FALSE, DeTeCtIniFilename);
+	
+	//opts.allframes =	::GetPrivateProfileInt(L"impact",		L"inter",				FALSE, DeTeCtIniFilename);
+	opts.allframes =	FALSE; // deactivated at startup
 
 	opts.minframes =	::GetPrivateProfileInt(L"other",		L"frmin",				15, DeTeCtIniFilename);
 	opts.ignore =		::GetPrivateProfileInt(L"other",		L"ignore",				TRUE, DeTeCtIniFilename);
@@ -319,10 +321,10 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.wROI = 0;
 	opts.hROI = 0;
 
-	opts.debug = FALSE;
+	opts.debug =		FALSE;  // deactivated at startup
 	//opts.debug =		::GetPrivateProfileInt(L"processing",	L"debug",				FALSE, DeTeCtIniFilename);
 	debug_mode = opts.debug;
-	opts.dateonly = FALSE;
+	opts.dateonly =		FALSE;// deactivated at startup
 	//opts.dateonly =		::GetPrivateProfileInt(L"processing",	L"dateonly",			FALSE, DeTeCtIniFilename);
 	opts.zip =			::GetPrivateProfileInt(L"processing",	L"zip",					TRUE, DeTeCtIniFilename);
 	opts.email =		::GetPrivateProfileInt(L"processing",	L"email",				TRUE, DeTeCtIniFilename);
@@ -446,9 +448,9 @@ END_MESSAGE_MAP()
 
 BOOL CDeTeCtMFCDlg::OnInitDialog()
 {
-	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE);
+	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE); // Autostakkert debug
 	CDialog::OnInitDialog();
-	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE);
+	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE); // Autostakkert debug
 
 	AS.SetCheck(false);
 	dark.SetCheck(false);
@@ -546,7 +548,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	//end
 
 	CenterWindow();
-	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE);
+	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE);  // Autostakkert debug
 
 	/*
 	HWND hWnd = AfxGetMainWnd()->GetSafeHwnd();
@@ -653,11 +655,13 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 		}
 	}
 
-	std::ifstream filetest(FFMPEGDLL);
-	if (!filetest) {
-		MessageBox(_T("File ") + CString(FFMPEGDLL) + _T(" not found,\n") + CString(PROGNAME) + _T(" will not be able to open avi, mov, mpg, etc... files\n\nThere will be errors if finding such files to analyse.\n\nTo fix this, go to menu Help->Rerun configuration updates to download missing dll(s)"), _T("Warning: file ") + CString(FFMPEGDLL) + _T(" not found"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
-	}
-	filetest.close();
+	CString ffmpegdll_fullname = DeTeCt_exe_folder() + L"\\" + (CString)FFMPEGDLL;
+
+	//std::ifstream filetest_shortname(FFMPEGDLL);
+	std::ifstream filetest_longname(ffmpegdll_fullname);
+	if (/*(!filetest_shortname) &&*/ (!filetest_longname)) MessageBox(_T("File ") + ffmpegdll_fullname + _T(" not found,\n") + CString(PROGNAME) + _T(" will not be able to open avi, mov, mpg, etc... files\n\nThere will be errors if finding such files to analyse.\n\nTo fix this, go to menu Help->Rerun configuration updates to download missing dll(s)"), _T("Warning: file ") + CString(FFMPEGDLL) + _T(" not found"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+	//filetest_shortname.close();
+	filetest_longname.close();
 
 	return TRUE;  // return TRUE  unless you set the focus to a control
 }
@@ -1054,15 +1058,22 @@ void CDeTeCtMFCDlg::OnFileOpenfile()
 		//********* Error if no file selected
 
 		ss << "No file selected";
-		if ((opts.autostakkert) && (!opts.parent_instance)) exit_detect = TRUE; //Exit autostakkert child if no file to process
-		//			if (!opts.interactive) CDeTeCtMFCDlg::OnFileExit();
+		if ((opts.autostakkert) && (!opts.parent_instance)) {
+			exit_detect = TRUE; //Exit autostakkert child if no file to process
+			//			if (!opts.interactive) CDeTeCtMFCDlg::OnFileExit();
+if (opts.debug) MessageBox(_T("Exit Child instance from AutoStakkert PID ")	+ CString(std::to_string(opts.autostakkert_PID).c_str()), _T("Info 5"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+		}
+
 	}
 	else {
 		std::ifstream filetest(file);
 		if (!filetest) {
 			// ********* Error if file is missing
 			ss << "Error, ignoring " << file.c_str() << ", cannot open file (" << strerror(errno) << ")\n";
-			if ((opts.autostakkert) && (!opts.parent_instance)) exit_detect = TRUE; //Exit autostakkert child if no file to process
+			if ((opts.autostakkert) && (!opts.parent_instance)) {
+				exit_detect = TRUE; //Exit autostakkert child if no file to process
+if (opts.debug) MessageBox(_T("Exit Child instance from AutoStakkert PID ") + CString(std::to_string(opts.autostakkert_PID).c_str()), _T("Info 5b"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+			}
 		}
 		else {
 			// Clears window
@@ -1122,9 +1133,15 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info : Logfile=" +  (CStri
 						resultsbtn->EnableWindow(FALSE);
 					}
 				}
-				else if ((opts.autostakkert) && (!opts.parent_instance)) exit_detect = TRUE; //Exit autostakkert child if no file to process
+				else if ((opts.autostakkert) && (!opts.parent_instance)) {
+					exit_detect = TRUE; //Exit autostakkert child if no file to process
+if (opts.debug) MessageBox(_T("Exit Child instance from AutoStakkert PID ") + CString(std::to_string(opts.autostakkert_PID).c_str()), _T("Info 6"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+				}
 			}
-			else if ((opts.autostakkert) && (!opts.parent_instance)) exit_detect = TRUE; //Exit autostakkert child if no file to process
+			else if ((opts.autostakkert) && (!opts.parent_instance)) {
+				exit_detect = TRUE; //Exit autostakkert child if no file to process
+if (opts.debug) MessageBox(_T("Exit Child instance from AutoStakkert PID ") + CString(std::to_string(opts.autostakkert_PID).c_str()), _T("Info 6b"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+			}
 		}
 		filetest.close();
 	}
@@ -1624,7 +1641,6 @@ void CDeTeCtMFCDlg::OnFileResetFileList() {
 	acquisition_files.acquisition_file_list	= {};
 	acquisition_files.nb_prealigned_frames	= {};
 	acquisition_files.acquisition_size				= {};
-	opts.interactive_bak =			opts.interactive;
 	//opts.autostakkert =				FALSE;
 	//opts.autostakkert_PID =			0;
 	//opts.detect_PID =				0;
@@ -1760,14 +1776,19 @@ void CDeTeCtMFCDlg::OnFileCleanImpactFiles() {
 
 void CDeTeCtMFCDlg::OnFileExit()
 {
-	//cv::destroyWindow("Detection image");
+	if (opts.debug) MessageBox(_T("Exiting DeTeCt"), _T("Exit"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
+
 	cv::destroyAllWindows();
 	
 	if (opts.parent_instance) {
 		CString message;
 		char tmp[MAX_STRING] = { 0 };
-		// interactive status was forced FALSE in autostakkert parent mode, saves the initial value if not manually modified afterwards
-		if ((opts.autostakkert) && (!opts.interactive)) opts.interactive = opts.interactive_bak;		
+		// interactive/reprocessing/maxinstances status was forced FALSE in autostakkert parent mode, saves the initial value if not manually modified afterwards
+		if ((opts.parent_instance) && (opts.autostakkert)) { // restore imposed options by autostakkert mode
+			opts.interactive	= opts.interactive_bak;
+			opts.reprocessing	= opts.reprocessing_bak;
+			opts.maxinstances	= opts.maxinstances_bak;
+		}
 		WriteIni();																				// writes parameters only if not child mode
 		message = L"";
 		CWnd *okbtn = GetDlgItem(IDOK);
@@ -2920,11 +2941,12 @@ void CDeTeCtMFCDlg::OnDeltaposSpinInstances(NMHDR *pNMHDR, LRESULT *pResult)
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
 	int processor_count = std::thread::hardware_concurrency();
+	if (opts.force_single_instance) processor_count = 1;
 	opts.maxinstances += pNMUpDown->iDelta;
 	ValueMaxInstances.SetPos(opts.maxinstances);
 	if (opts.maxinstances > processor_count)	opts.maxinstances = processor_count;
 	else if (opts.maxinstances < 1)				opts.maxinstances = 1;
-	else										if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) SetIntParamToQueue(opts.maxinstances, _T("max_instances"), (CString)opts.DeTeCtQueueFilename);
+	else										if ((filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) && (!opts.force_single_instance)) SetIntParamToQueue(opts.maxinstances, _T("max_instances"), (CString)opts.DeTeCtQueueFilename);
 	//DisplayInstanceType(); //too long (~1s) due to count of child process number
 	CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(processor_count).c_str());
 	*pResult = 0;
