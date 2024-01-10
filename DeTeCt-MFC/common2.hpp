@@ -5,6 +5,7 @@
 #include "dtc.h"
 #include <vector>
 //#include <string> // not needed
+#include "opencv2/core/ocl.hpp"
 
 #define FILEACCESS_WAIT_MS 50
 
@@ -28,6 +29,7 @@ std::string					wstring2string(const std::wstring& wstr);
 bool						starts_with(const std::string& s1, const std::string& s2);
 bool						replace(std::string& str, const std::string& from, const std::string& to);
 void						lowercase_string(std::string* source);
+void						trim_string(std::string& line);
 bool						duplicate_txtfile(const CString InputFileName, const CString OutputFileName);
 CString						GetLine(HANDLE QueueFileHandle);
 std::string					StringPlural(const int number);

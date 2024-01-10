@@ -80,7 +80,7 @@ Algorithm:		attempt to match impact candidates with brightest point in max-mean
 				check distance criteria (not working ?)
 				ignore bad centered images (part of ROI outside of fullframe)
 
-ROI:			Scan of 90° from cog to edge (for Saturn)
+ROI:			Scan of 90  from cog to edge (for Saturn)
 				Increase size of ROI (Martin)
 				TBD: Use as3 ROI
 
@@ -115,6 +115,18 @@ Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (A
 ===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
+v3.8.1
+Dev:			Detection of developper to use specific configurations (eg no zip file)
+
+v3.8.0 (bugfix integration with AutoStakkert!4, introduction of OpenCL)
+Autostakkert:	Info in log if launched from AS!
+OpenCL:			Check if available
+OpenCL:			First easy migrations from Mat to UMat
+GUI:			select folder button more understandable
+GUI:			instances "running" display
+Bugfix:			Space in full filename handling in AutoStakkert! session file
+Bugfix:			Bugfix security factor spin button
+
 v3.7.3 (integration with Autostakkert 4)
 Autostakkert:	Integration with Autostakkert 4
 Autostakkert:	Force autoprocessing, no reprocessing and single instance in Autostakkert mode
@@ -363,7 +375,7 @@ Command line:-nozip option
 Bugfix:		zip file empty in automatic mode (L.Keith)
 Bugfix:		zip file empty when relative path use as parameter for directory or file
 Bugfix:		*.exe file tested when detect exe launched without the upper cases
-Bugfix:		accents (ie û) in directory name prevents image / directory creation
+Bugfix:		accents (ie  ) in directory name prevents image / directory creation
 --------------------------------------------------------------------------------------
 v3.2 (/v3.1.12):
 Algorithm:		Check #of frames calculated from fps for impacts (duration 0.6s)

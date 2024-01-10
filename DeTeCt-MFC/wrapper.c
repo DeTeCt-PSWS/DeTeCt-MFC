@@ -180,8 +180,8 @@ double dtcGetCaptureProperty(DtcCapture *capture, int property_id)
 		
 		val = capture->u.videocapture->get(property_id);
 		if ((property_id == cv::CAP_PROP_FRAME_COUNT) && (val == 0)) {
-			int		total_frames = 0;
-			cv::Mat	matrix_frame;					// matrix used to contain frame data
+			int			total_frames = 0;
+			cv::UMat	matrix_frame;					// matrix used to contain frame data //was cv::Mat
 
 			while (capture->u.videocapture->read(matrix_frame)) total_frames++;
 			capture->u.videocapture->set(cv::CAP_PROP_POS_FRAMES, 0);

@@ -549,7 +549,7 @@ int detect(std::vector<std::string> current_file_list, std::string scan_folder_p
 	maxinstances_previous = opts.maxinstances;
 
 		//log directory when not in autostakkert mode and  not in multi instance mode
-	if (!opts.autostakkert) log_directory = scan_folder_path;
+	if ((!opts.autostakkert) || (!AS_IMPACT_DETECTION_DIR_DETECT)) log_directory = scan_folder_path;
 	else {
 		//log directory when autostakkert mode or multi instance mode
 		log_directory = CString2string(DeTeCt_exe_folder());
@@ -871,52 +871,51 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 			LIST impact = { 0, 0, NULL, NULL };
 
 			cv::Mat pFrame; // Input frame
-			cv::Mat pGryMat; // Grey frame
+			cv::Mat pGryMat; // Grey frame-
 			cv::Mat pRefMat; // Reference frame
-			cv::Mat pDifMat; // Difference frame
-			cv::Mat pMskMat; // Mask frame
-			cv::Mat pHisMat; // Histogram frame
-			cv::Mat pThrMat; // Threshold frame
-			cv::Mat pSmoMat; // Smooth frame
-			cv::Mat pTrkMat; // Tracking frame
+			cv::Mat pDifMat; // Difference frame-
+			cv::Mat pMskMat; // Mask frame-
+			//cv::UMat pHisMat; // Histogram frame
+			cv::Mat pThrMat; // Threshold frame								//Umat vs data
+			cv::Mat pSmoMat; // Smooth frame								//Umat vs data
+			cv::Mat pTrkMat; // Tracking frame-
 			cv::Mat pOVdMat; // Output video frame
-			cv::Mat pADUavgMat; // ADU average frame
-			cv::Mat pADUavgMat2; // ADU average frame
-			cv::Mat pADUmaxMat; // ADU max frame
-			cv::Mat pADUdtcMat; // ADU detect frame
-			cv::Mat pSmoADUdtcMat; // ADU detect frame (smoothed)
-			cv::Mat pADUavgDiffMat; // ADU average difference frame
-			cv::Mat pADUavgDiffMat2; // ADU average difference frame
-			cv::Mat pADUavgMatFrame; // ADU average frame2
-			cv::Mat pADUdarkMat; // ADU dark frame
+			cv::UMat pADUavgMat; // ADU average frame
+			cv::UMat pADUmaxMat; // ADU max frame						//was cv::Mat
+			cv::UMat pADUdtcMat; // ADU detect frame					//was cv::Mat
+			cv::UMat pSmoADUdtcMat; // ADU detect frame (smoothed)		//was cv::Mat
+			cv::Mat pADUavgDiffMat; // ADU average difference frame			//was cv::Mat- to be checked w/ next
+			cv::Mat pADUavgMatFrame; // ADU average frame					//was cv::Mat- to be checked with previous
+			cv::Mat pADUdarkMat; // ADU dark frame							//Umat vs imread
 			cv::Mat pFirstFrameROIMat; // Region of interest, obtained from the first frame
 			cv::Rect pFirstFrameROI; // Aforementioned region of interest as a delimited rectangle
 			cv::Mat pROIMat; // Region of interest, obtained for the rest of the frames
 			cv::Rect pROI; // Aforementioned region of interest as a delimited rectangle
 			cv::Rect pFrameROI; // ROI of current frame
-			cv::Mat pAvgMat;
-			cv::Mat pFlatADUmaxMat;	// For flat generation
+			//cv::Mat pAvgMat;
+			cv::UMat pFlatADUmaxMat;	// For flat generation			//was cv::Mat
 			cv::Mat pGryFullMat;	// Grey fullframe
 
-			cv::Mat tempROIMat, tempGryMat; // For matrices in which the ROI covers non-existing data
+			cv::Mat tempROIMat; // For matrices in which the ROI covers non-existing data
+			cv::Mat tempGryMat; // For matrices in which the ROI covers non-existing data
 
-			cv::Mat previousGrayMat;
+			//cv::Mat previousGrayMat;
 			std::queue<cv::Mat> refFrameQueue; // Queue to make a moving reference frame
 						/* Images to be shown and/or saved */
-			cv::Mat pGryImg;
-			cv::Mat pRefImg;
-			cv::Mat pDifImg;
-			cv::Mat pMskImg;
-			cv::Mat pThrImg;
-			cv::Mat pSmoImg;
+			cv::UMat pGryImg;					//was cv::Mat
+			cv::UMat pRefImg;					//was cv::Mat
+			cv::UMat pDifImg;					//was cv::Mat
+			cv::UMat pMskImg;					//was cv::Mat
+			cv::UMat pThrImg;					//was cv::Mat
+			cv::UMat pSmoImg;					//was cv::Mat
 			cv::Mat pHisImg;
-			cv::Mat pTrkImg;
-			cv::Mat pOVdImg;
+			cv::UMat pTrkImg;					//was cv::Mat
+			cv::UMat pOVdImg;					//was cv::Mat
 			cv::Mat pADUdtcImg;
-			cv::Mat pADUdtcImg2;
-			cv::Mat pADUavgImg;
-			cv::Mat pADUdarkImg;
-			cv::Mat pFlatADUmaxImg;
+			cv::UMat pADUdtcImg2;				//was cv::Mat
+			cv::UMat pADUavgImg;				//was cv::Mat
+			cv::UMat pADUdarkImg;				//was cv::Mat
+			cv::UMat pFlatADUmaxImg;			//was cv::Mat
 
 			int x_shift = 10;
 			int y_shift = 10;
@@ -1197,8 +1196,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 									pGryDarkMat = cv::Mat(pGryMat.size(), pGryMat.type());
 									cv::subtract(pGryMat, pADUdarkMat, pGryDarkMat);
 									cv::threshold(pGryDarkMat, pGryMat, 0, 0, CV_THRESH_TOZERO);
-									pGryDarkMat.release();
-									pGryDarkMat = NULL;
+									pGryDarkMat.~Mat();
 									CDeTeCtMFCDlg::getdark()->SetCheck(true);
 								}
 							}
@@ -1248,33 +1246,25 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 								pDifMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
 								pRefMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
 
-								pADUavgMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
-								pADUavgDiffMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
-								pADUmaxMat = cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
+								pADUavgMat =		cv::UMat::zeros(pFirstFrameROIMat.size(), CV_32F);
+								pADUavgDiffMat =	cv::Mat::zeros(pFirstFrameROIMat.size(), CV_32F);
+								pADUmaxMat =		cv::UMat::zeros(pFirstFrameROIMat.size(), CV_32F);
 
-								if (opts.flat_preparation) pFlatADUmaxMat = cv::Mat::zeros(pGryFullMat.size(), CV_32F);
+								if (opts.flat_preparation) pFlatADUmaxMat = cv::UMat::zeros(pGryFullMat.size(), CV_32F);
 								if ((strlen(opts.ofilename) > 0) && (opts.allframes)) {
-									pADUdtcMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-									pADUavgMatFrame = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+									pADUdtcMat =		cv::UMat(pFirstFrameROIMat.size(), CV_32F);
+									pADUavgMatFrame =	cv::Mat(pFirstFrameROIMat.size(), CV_32F);
 								}
-								if (opts.thrWithMask || opts.viewMsk || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_MSK))) {
-									pMskMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-								}
-								if (opts.viewThr) {
-									pThrMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-								}
-								if (opts.filter.type >= 0 || opts.viewSmo) {
-									pSmoMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
-								}
-								if (opts.viewTrk || ((opts.ovtype == OTYPE_TRK) && (strlen(opts.ovfname) > 0))) {
-									pTrkMat = cv::Mat(pFrame.size(), CV_32F);
-								}
-								pAvgMat = cv::Mat(pFirstFrameROIMat.size(), CV_64F);
+								if (opts.thrWithMask || opts.viewMsk || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_MSK))) pMskMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+								if (opts.viewThr)																					pThrMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+								if (opts.filter.type >= 0 || opts.viewSmo) 															pSmoMat = cv::Mat(pFirstFrameROIMat.size(), CV_32F);
+								if (opts.viewTrk || ((opts.ovtype == OTYPE_TRK) && (strlen(opts.ovfname) > 0)))						pTrkMat = cv::Mat(pFrame.size(), CV_32F);
+								//pAvgMat = cv::Mat(pFirstFrameROIMat.size(), CV_64F);
 
 								firstFrameMean = cv::mean(pFirstFrameROIMat)[0];
 								pFirstFrameROIMat.convertTo(pRefMat, CV_32F);
 								cv::Rect bigROI = pFirstFrameROI + cv::Size(x_shift, y_shift);
-								pROIMat = cv::Mat::zeros(bigROI.size(), pFirstFrameROIMat.type());
+								pROIMat =	cv::Mat::zeros(bigROI.size(), pFirstFrameROIMat.type());
 								tempGryMat = cv::Mat::zeros(pFirstFrameROI.size(), pFirstFrameROIMat.type());
 							}
 // ******************************************************************
@@ -1425,20 +1415,18 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 
 										cv::Mat ifMask = ifDif - pDifMat > 5;
 										cv::Mat pDifMat2 = pDifMat.clone();
+										ifMask.~Mat();
+										ifDif.~Mat();
+										pDifMat2.~Mat();
 
-										ifMask.release();
-										ifDif.release();
-										pDifMat2.release();
-
-										if (pDifMat.data) {
+										if (!pDifMat.empty()) {
 											if (opts.viewDif) {
 												cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
 												pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
 												pDifImg.convertTo(pDifImg, CV_8U);
 												cv::imshow("Initial differential photometry", pDifImg);
 												cv::waitKey(1);
-												pDifImg.release();
-												pDifImg = NULL;
+												pDifImg.~UMat();
 											}
 											if (nframe == opts.nsaveframe && opts.ofilename && opts.ostype == OTYPE_DIF) {
 												cv::imwrite(opts.ofilename, pDifMat, img_save_params);
@@ -1463,7 +1451,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 										}
 
 										pDifMat.copyTo(pSmoMat);
-										if (opts.viewSmo && pSmoMat.data) {
+										if (opts.viewSmo && !pSmoMat.empty()) {
 											//pSmoMat.convertTo(pSmoImg, CV_8U);
 											cv::minMaxLoc(pSmoMat, &minLum, &maxLum, &minPoint, &maxPoint);
 											pSmoMat.convertTo(pSmoImg, -1, 255.0 / maxLum, 0);
@@ -1472,11 +1460,11 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 											cv::waitKey(1);
 										}
 
-										if (pMskMat.data) {
+										if (!pMskMat.empty()) {
 											cv::threshold(pDifMat, pMskMat, 0.0, 255.0, CV_THRESH_BINARY_INV);
 										}
 
-										if (opts.viewMsk && pMskMat.data) {
+										if (opts.viewMsk && !pMskMat.empty()) {
 											//pMskMat.convertTo(pMskImg, CV_8U);
 											cv::minMaxLoc(pMskMat, &minLum, &maxLum, &minPoint, &maxPoint);
 											pMskMat.convertTo(pMskImg, -1, 255.0 / maxLum, 0);
@@ -1524,8 +1512,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 											pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
 											pDifImg.convertTo(pDifImg, CV_8U);
 											cv::imwrite(diff_folder_path_filename, pDifImg, img_save_params);
-											pDifImg.release();
-											pDifImg = NULL;
+											pDifImg.~UMat();
 										}
 
 										cv::threshold(pDifMat, pThrMat, opts.threshold, 0.0, CV_THRESH_TOZERO);
@@ -1533,7 +1520,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 
 										cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
 
-										if (opts.viewThr && pThrMat.data) {
+										if (opts.viewThr && !pThrMat.empty()) {
 											//pThrMat.convertTo(pThrImg, CV_8U);
 											cv::minMaxLoc(pThrMat, &minLum, &maxLum, &minPoint, &maxPoint);
 											pThrMat.convertTo(pThrImg, -1, 255.0 / maxLum, 0);
@@ -1542,9 +1529,10 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 											cv::waitKey(1);
 										}
 
-										if (opts.viewRef && pRefMat.data) {
+										if (opts.viewRef && !pRefMat.empty()) {
 											//pRefMat.convertTo(pRefImg, CV_8U);
 											cv::minMaxLoc(pRefMat, &minLum, &maxLum, &minPoint, &maxPoint);
+
 											pRefMat.convertTo(pRefImg, -1, 255.0 / maxLum, 0);
 											pRefImg.convertTo(pRefImg, CV_8U);
 											cv::imshow("Reference frame", pRefImg);
@@ -1562,11 +1550,11 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 												cv::Mat frontMat = refFrameQueue.front();
 												cv::subtract(pRefMat, frontMat / opts.nframesRef, pRefMat,
 													opts.thrWithMask ? pMskMat : cv::noArray());
-												frontMat.release();
+												frontMat.~Mat();
 												refFrameQueue.pop();
 											}
 										}
-										if (pDifMat.data && opts.viewRes) {
+										if (!pDifMat.empty() && opts.viewRes) {
 											cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
 											pDifMat.convertTo(pDifImg, -1, 255.0 / maxLum, 0);
 											pDifImg.convertTo(pDifImg, CV_8U);
@@ -1589,7 +1577,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 										frameErrors.push_back(nframe - frame_errors);
 										frameNumbers.push_back(nframe);
 
-										if (opts.viewROI && pGryMat.data) {
+										if (opts.viewROI && !pGryMat.empty()) {
 											/*										double minLumroi, maxLumroi;
 																				cv::Point minPointroi, maxPointroi;
 																				cv::minMaxLoc(pGryMat, &minLumroi, &maxLumroi, &minPointroi, &maxPointroi);
@@ -1684,7 +1672,7 @@ start_update_time = clock();
 							if (opts.debug) LogString(_T("!Debug info: Ends"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 instances_update_duration += clock() - start_update_time;
 						}
-						pFrame.release();
+						pFrame.~Mat();
 					}
 
 // *****************************************************************
@@ -1723,19 +1711,13 @@ instances_update_duration += clock() - start_update_time;
 					/*ADUdtc algorithm******************************************/
 
 					if ((strlen(opts.ofilename) > 0) && opts.allframes) {
-						pADUdtcMat.release();
-						pADUdtcMat = NULL;
-						pADUavgMatFrame.release();
-						pADUavgMatFrame = NULL;
-						pADUavgDiffMat.release();
-						pADUavgDiffMat = NULL;
+						pADUdtcMat.~UMat();
+						pADUavgMatFrame.~Mat();
+						pADUavgDiffMat.~Mat();
 					}
-					if ((strlen(opts.ovfname) > 0) && opts.ovtype) {
-						if (pWriter) {
-							pWriter->release();
-							pWriter = nullptr;
-						}
-					}
+					if ((strlen(opts.ovfname) > 0) && opts.ovtype && (pWriter)) pWriter->~VideoWriter();
+							//{pWriter->release();
+							//pWriter = nullptr;
 
 					/********** Process all matrix **********/
 					pADUavgDiffMat.convertTo(pADUavgDiffMat, CV_32F);
@@ -1745,7 +1727,7 @@ instances_update_duration += clock() - start_update_time;
 					pADUavgMat.convertTo(pADUavgMat, -1, 1.0 / (nframe - frame_errors), 0);
 					//pGryMat.convertTo(pGryMat, CV_32FC1);
 					/* Compute Max-mean image */
-					pADUdtcMat = cv::Mat(pGryImg_height, pGryImg_width, CV_32F);
+					pADUdtcMat = cv::UMat(pGryImg_height, pGryImg_width, CV_32F);
 					cv::subtract(pADUmaxMat, pADUavgMat, pADUdtcMat);
 					//dtcApplyMaskToFrame(pADUdtcMat);
 
@@ -1777,7 +1759,7 @@ instances_update_duration += clock() - start_update_time;
 					/********** Max-mean image **********/
 					cv::medianBlur(pADUdtcMat, pSmoADUdtcMat, 3); // blur image
 					cv::minMaxLoc(pSmoADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
-					pSmoADUdtcMat.release();
+					pSmoADUdtcMat.~UMat();
 					(ITEM*)(maxDtcImg) = create_item(create_point(0, 0, maxPoint.x, maxPoint.y));
 					cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
 					/* Max-mean normalized image */
@@ -1801,8 +1783,7 @@ instances_update_duration += clock() - start_update_time;
 					pADUdtcMat.copyTo(pADUdtcMatSmooth);
 					cv::blur(pADUdtcMatSmooth, pADUdtcMatSmooth, cv::Size(5, 5));
 					cv::minMaxLoc(pADUdtcMatSmooth, &minLum, &maxLum, &minPoint, &maxPoint);
-					pADUdtcMatSmooth.release();
-					pADUdtcMatSmooth = NULL;
+					pADUdtcMatSmooth.~Mat();
 					pADUavgMat.convertTo(pADUavgMat, CV_8U);
 					pADUmaxMat.convertTo(pADUmaxMat, CV_8U);
 					pADUdtcMat.convertTo(pADUdtcImg2, CV_8UC3);
@@ -1841,12 +1822,7 @@ instances_update_duration += clock() - start_update_time;
 				if (frame_duplicates > 0) LogString((CString)(std::to_string(frame_duplicates)).c_str() + L" duplicate frames", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
 				if (nframe > 0) LogString(+L"Differential photometry done, running impact detection...", output_log_file.c_str(), &log_counter, GUI_display, &wait_count_total);
 
-				if (strlen(opts.darkfilename) > 0) {
-					if (darkfile_ok == 1) {
-						pADUdarkMat.release();
-						pADUdarkMat = NULL;
-					}
-				}
+				if ((strlen(opts.darkfilename) > 0) && (darkfile_ok == 1)) pADUdarkMat.~Mat();
 
 				double radius = std::min(std::min(20.0, pGryMat.rows / 10.0), pGryMat.cols / 10.0);
 				radius = radius > 5 ? radius : 5; //std::max gives error
@@ -2190,23 +2166,14 @@ logmessage = logmessage + "distance = " + std::to_string(distance) + "\nconfiden
 						cv::waitKey(1);
 					}
 				}
-				pGryMat.release();
-				pGryMat = NULL;
-
-				pADUdarkMat.release();
-				pADUdarkMat = NULL;
-				pADUavgMat.release();
-				pADUavgMat = NULL;
-				pADUmaxMat.release();
-				pADUmaxMat = NULL;
-				pFlatADUmaxMat.release();
-				pFlatADUmaxMat = NULL;
-				pADUdtcMat.release();
-				pADUdtcMat = NULL;
-				pADUdtcImg.release();
-				pADUdtcImg = NULL;
-				pADUdtcImg2.release();
-				pADUdtcImg2 = NULL;
+				pGryMat.~Mat();
+				pADUdarkMat.~Mat();
+				pADUavgMat.~UMat();
+				pADUmaxMat.~UMat();
+				pFlatADUmaxMat.~UMat();
+				pADUdtcMat.~UMat();
+				pADUdtcImg.~Mat();
+				pADUdtcImg2.~UMat();
 
 				char buffer5[MAX_STRING] = { 0 };
 				sprintf_s(buffer5, MAX_STRING, "detect5:				opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);
@@ -2216,7 +2183,10 @@ logmessage = logmessage + "distance = " + std::to_string(distance) + "\nconfiden
 					dtcCorrectDatation((DtcCapture*)pCapture, &start_time, &end_time, &duration, &fps_real, &timetype, comment);
 				std::string location = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\") + 1);
 
-				if (extension.compare(AUTOSTAKKERT_EXT) == 0) strcat(comment, ", from as3");
+				if (extension.compare(AUTOSTAKKERT_EXT) == 0) {
+					if (opts.autostakkert) strcat(comment, ", from AS!");
+					else strcat(comment, ", from .as3");
+				}
 
 				LogInfo info(opts.filename, start_time, end_time, duration, fps_real, timetype, comment, nb_impact, confidence, distance, mean_stat, mean2_stat, max_mean_stat, max_mean2_stat, diff_stat, diff2_stat, rating_classification, croi.width, croi.height);
 				dtcWriteLog2(log_consolidated_directory, info, (pCapture->CaptureInfo), &logline_tmp, &wait_count_total);
@@ -2235,52 +2205,33 @@ logmessage = logmessage + "distance = " + std::to_string(distance) + "\nconfiden
 				//cv::destroyAllWindows();
 
 				if (opts.thrWithMask || opts.viewMsk || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_MSK))) {
-					pMskMat.release();
-					pMskMat = NULL;
-					pMskImg.release();
-					pMskImg = NULL;
+					pMskMat.~Mat();
+					pMskImg.~UMat();
 				}
 				if (opts.viewThr) {
-					pThrMat.release();
-					pThrMat = NULL;
-					pThrImg.release();
-					pThrImg = NULL;
+					pThrMat.~Mat();
+					pThrImg.~UMat();
 				}
 				if (opts.filter.type >= 0 || opts.viewSmo) {
-					pSmoMat.release();
-					pSmoMat = NULL;
-					pSmoImg.release();
-					pSmoImg = NULL;
+					pSmoMat.~Mat();
+					pSmoImg.~UMat();
 				}
 				if (opts.viewTrk || ((opts.ovtype == OTYPE_TRK) && (strlen(opts.ovfname) > 0))) {
-					pTrkMat.release();
-					pTrkMat = NULL;
-					pTrkImg.release();
-					pTrkImg = NULL;
+					pTrkMat.~Mat();
+					pTrkImg.~UMat();
 				}
 				if (opts.viewDif || opts.viewRes || opts.viewHis || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_DIF ||
 					opts.ovtype == OTYPE_HIS))) {
-					pDifMat.release();
-					pDifMat = NULL;
-					pDifImg.release();
-					pDifImg = NULL;
+					pDifMat.~Mat();
+					pDifImg.~UMat();
 				}
-				pRefMat.release();
-				pRefMat = NULL;
-				pRefImg.release();
-				pRefImg = NULL;
-				if (opts.viewHis || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_HIS))) {
-					pHisImg.release();
-					pHisImg = NULL;
-				}
-				pFirstFrameROIMat.release();
-				pFirstFrameROIMat = NULL;
-				pROIMat.release();
-				pROIMat = NULL;
-				tempROIMat.release();
-				tempROIMat = NULL;
-				tempGryMat.release();
-				tempGryMat = NULL;
+				pRefMat.~Mat();
+				pRefImg.~UMat();
+				if (opts.viewHis || ((strlen(opts.ovfname) > 0) && (opts.ovtype == OTYPE_HIS))) pHisImg.~Mat();
+				pFirstFrameROIMat.~Mat();
+				pROIMat.~Mat();
+				tempROIMat.~Mat();
+				tempGryMat.~Mat();
 				dtcReleaseCapture(pCapture);
 				pCapture = NULL;
 
@@ -2376,13 +2327,13 @@ if (opts.debug) LogString(_T("!Debug info: Setting processed file from queue"), 
 		if (local_acquisition_files_list.file_list.size() == 0) {
 			std::string waiting_message = "";
 			if (NbItemFromQueue(_T("file"), (CString)opts.DeTeCtQueueFilename, NULL, TRUE) == 0) {
-				if ((opts.parent_instance) && (opts.autostakkert) && (IsParentAutostakkertRunning(opts.autostakkert_PID))) {
+				if ((opts.parent_instance) && (opts.autostakkert) && (IsParentAutostakkertRunning(opts.autostakkert_PID))) { // if no more files to compute while autostakkert still running
 					waiting_message = " checking for files to process, CLOSE AUTOSTAKKERT WHEN DONE then DETECT WILL CLOSE AUTOMATICALLY!\n";
 					UpdateProgressBar(acquisitions_processed, acquisition_index_children, opts.DeTeCtQueueFilename);
 					if (logmessage3.size() > 0) message_cstring = message_cstring + (CString)"\n" + (CString)logmessage3.c_str(); // ???
-				} else if ((opts.parent_instance) && (ChildrenProcessesNumber() > 0))
+				} else if ((opts.parent_instance) && (ChildrenProcessesNumber() > 0)) // normal mode with instances still running
 					waiting_message =	waiting_message + "checking for other DeTeCt process(es) running to finish ...\n";
-			} else waiting_message =	waiting_message + "checking new files to be processed ...\n";
+			} else waiting_message =	waiting_message + "checking new files to be processed ...\n"; // still files to compute
 			if (waiting_message.size() > 1) {
 				LogString((CString)"PLEASE WAIT, " + (CString)waiting_message.c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 				CDeTeCtMFCDlg::getfileName()->SetWindowText((CString)waiting_message.c_str());
@@ -2429,7 +2380,7 @@ if (opts.debug) LogString(_T("!Debug info: Check queue: parent=") + (CString)std
 							nb_instances = 0;
 							DisplayInstanceType(&nb_instances);
 						}
-						if ((opts.parent_instance) && (opts.autostakkert) && (IsParentAutostakkertRunning(opts.autostakkert_PID))) {
+						if ((opts.parent_instance) && (opts.autostakkert) && (IsParentAutostakkertRunning(opts.autostakkert_PID))) {		// if no more files to compute while autostakkert still running, message and progress bar update
 							acquisitions_to_be_processed += nb_processed_files;
 							progress_all_status = MAX_RANGE_PROGRESS * ((float) (acquisitions_processed + acquisition_index_children) / (float) acquisitions_to_be_processed);
 							CDeTeCtMFCDlg::getProgress_all()->SetPos((short)(progress_all_status));
@@ -3654,7 +3605,11 @@ Instance_type DisplayInstanceType(int *nbinstances) {
 				nbinstances_cstr.Format(L"%d", (*nbinstances));
 				max_nbinstances_cstr.Format(L"%d", opts.maxinstances);
 				if (opts.debug) instance_cstring = instance_type_cstring + _T(" (") + nbinstances_cstr + _T("/") + max_nbinstances_cstr + _T(")");
-				else instance_cstring = nbinstances_cstr + _T("/") + max_nbinstances_cstr + _T(" instances");
+				else {
+					instance_cstring = nbinstances_cstr + _T("/") + max_nbinstances_cstr + _T(" instance");
+					if ((*nbinstances) > 1) instance_cstring += _T("s");
+					instance_cstring += _T(" running");
+				}
 				/*if (opts.debug) instance_cstring = instance_type_cstring + _T(" (") + nbinstances_cstr + _T("/") + max_nbinstances_cstr + _T(")");
 				else {
 					instance_cstring = nbinstances_cstr + _T(" instance");

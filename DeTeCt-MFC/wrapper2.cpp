@@ -89,7 +89,7 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 				(size_t)capture->u.sercapture->mat_type, ser_frame_data);
 		}
 		/* The matrix might be empty (after the last frame) */
-		if (matrix_frame.data) {
+		if (!matrix_frame.empty()) {
 			/*
 			 * Normalise 16U matrices
 			 * CV_8UC1 = 0 (0 * 8) and CV_8C3 = 16 (2 * 8)
@@ -109,7 +109,7 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 //		matrix_frame = cv::cvarrToMat(fileQueryFrame(capture->u.filecapture, ignore, perror));
 		matrix_frame = fileQueryFrameMat(capture->u.filecapture, ignore, perror); // test OpenCV 4.7.0
 		/* The matrix might be empty (after the last frame) */
-		if (matrix_frame.data) {
+		if (!matrix_frame.empty()) {
 			/*
 			* Normalise 16U matrices
 			* CV_8UC1 = 0 (0 * 8) and CV_8C3 = 16 (2 * 8)

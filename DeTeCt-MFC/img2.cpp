@@ -325,16 +325,11 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 	tbuf = NULL;
 	free(mbuf);
 	mbuf = NULL;
-	frame.release();
-	frame = NULL;
-	left.release();
-	left = NULL;
-	right.release();
-	right = NULL;
-	top.release();
-	top = NULL;
-	bottom.release();
-	bottom = NULL;
+	frame.~Mat();
+	left.~Mat();
+	right.~Mat();
+	top.~Mat();
+	bottom.~Mat();
 	return cv::Rect(cm.x - hwd / 2, cm.y - hht / 2, hwd, hht);
 }
 
@@ -378,10 +373,8 @@ cv::Mat dtcApplyMask(cv::Mat img) {
 	//cv::imshow("Frame mask", mask);
 	//cv::waitKey(1);
 	image.copyTo(img, mask);
-	mask.release();
-	mask = NULL;
-	background.release();
-	background = NULL;
+	mask.~Mat();
+	background.~Mat();
 	return img;
 }
 
@@ -402,12 +395,9 @@ cv::Rect dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Point roi_tl_coords, cv
 	cv::minMaxLoc(corrMat, NULL, NULL, NULL, &maxLoc, cv::Mat());
 	roi_tl_coords += maxLoc;
 
-	img.release();
-	img = NULL;
-	region.release();
-	region = NULL;
-	corrMat.release();
-	corrMat = NULL;
+	img.~Mat();
+	region.~Mat();
+	corrMat.~Mat();
 
 	return cv::Rect(roi_tl_coords, roi_size);
 
@@ -522,8 +512,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 	tbuf = NULL;
 	free(mbuf);
 	mbuf = NULL;
-	mask.release();
-	mask = NULL;
+	mask.~Mat();
 	return cv::Rect(cm.x - hwd / 2, cm.y - hht / 2, hwd, hht);
 }
 
@@ -706,8 +695,7 @@ cv::Mat dtcGetGrayMat(cv::Mat *frame, DtcCapture *capture)
 		frame_to_gray.copyTo(gray);		 //return original if no correct channel
 //		return cv::Mat();
 	}
-	frame_to_gray.release();
-	frame_to_gray = NULL;
+	frame_to_gray.~Mat();
 	return gray;
 }
 
@@ -764,7 +752,7 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 	cv::waitKey(0);
 	cv::destroyWindow("Debug1");
 }*/
-	if ((!frame.data) ||(frame.dims == 0)) return roi;
+	if ((frame.empty()) ||(frame.dims == 0)) return roi;
 		if (error == 0) {
 			cv::Point cm;
 			gray = dtcGetGrayMat(&frame, pcapture);
@@ -775,10 +763,8 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 			//if (cm.x <= 0 || cm.y <= 0) return cv::Rect(0, 0, 0, 0);
 			win = dtcGetGrayImageROIcCM(gray, cm, (float)opts.medSize, opts.facSize, opts.secSize); // gets ROI
 			roi = dtcMaxRect(win, roi);
-			gray.release();
-			gray = NULL;
-			frame.release();
-			frame = NULL;
+			gray.~Mat();
+			frame.~Mat();
 			if (opts.debug) { 
 				DBOUT("!Debug info: dtcGetFileROIcCM: frame " << nframe << "\n")
 			}
@@ -872,8 +858,7 @@ cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
 				cv::Point(cvRound((i + 1)*scale - 1), cvRound(vsize*scale)), CV_RGB(0, 0, 0), CV_FILLED, 8, 0);
 		}
 	}
-	pHis.release();
-	pHis = NULL;
+	pHis.~Mat();
 	return pHisImg;
 }
 
@@ -927,8 +912,7 @@ int dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold
 			} else counter_below_threshold = 0;
 		}
 	//}
-	pHis.release();
-	pHis = NULL;
+	pHis.~Mat();
 	if (background > 0)	return background + 1;
 	else return 0;
 }

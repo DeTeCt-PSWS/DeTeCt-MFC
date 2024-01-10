@@ -72,32 +72,33 @@ void read_autostakkert_session_config_line(std::string line, std::string *filena
 	std::vector<std::string> lines;
 	float x, y;
 
-	while (line.find(' ') == 0) line.erase(line.find(' '), 1);
+	trim_string(line);
 	if (starts_with(line, "file")) {
 		line = line.substr(strlen("file"), line.length());
-		while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+//		while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+		trim_string(line);
 		*filename = line;
 	} else if (starts_with(line, "_frames_count")) {
 		line = line.substr(strlen("_frames_count"), line.length());
-		while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+		trim_string(line);
 		std::istringstream ss(line);
 		ss >> x;
 		(*cm_frame_count) = (int)x;
 	} else if (starts_with(line, "_limit_min")) {
 		line = line.substr(strlen("_limit_min"), line.length());
-		while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+		trim_string(line);
 		std::istringstream ss(line);
 		ss >> x;
 		(*cm_list_start) = (int) x;
 	} else if (starts_with(line, "_limit_max")) {
 		line = line.substr(strlen("_limit_max"), line.length());
-		while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+		trim_string(line);
 		std::istringstream ss(line);
 		ss >> x;
 		(*cm_list_end) = (int)x;
 	}	else if (starts_with(line, "_limit_active")) {
 		line = line.substr(strlen("_limit_active"), line.length());
-		while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+		trim_string(line);
 		if (line == "False") {
 			(*cm_list_start) = 0;
 			(*cm_list_end) = 999999;
@@ -251,5 +252,3 @@ BOOL IsParentAutostakkertRunning(const DWORD ASpid)
 {
 	return IsProcessRunning(ASpid);
 }
-
-

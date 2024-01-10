@@ -26,6 +26,11 @@ using namespace std;
 std::string full_version;
 std::string app_title;
 std::string message[2048];
+BOOL dev_mode = FALSE;
+char dev_computer_name[MAX_STRING] = "Jupiter";
+char dev_user_name[MAX_STRING] = "Marc";
+char computer_name[MAX_STRING] = "";
+char user_name[MAX_STRING] = "";
 
 // CDeTeCtMFCApp
 
@@ -553,8 +558,8 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 																		if (opts.debug) MessageBox(NULL, _T("3 "), _T("Info 3"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
 						std::string folder_path;
 // Defines folder path and logfilename
-						if (opts.autostakkert)	folder_path = CString2string(DeTeCt_exe_folder());		//log directory when autostakkert mode is DeTeCt exe location
-						else					folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));											
+						if ((opts.autostakkert) && (AS_IMPACT_DETECTION_DIR_DETECT))	folder_path = CString2string(DeTeCt_exe_folder());		//log directory when autostakkert mode is DeTeCt exe location if activvated
+						else															folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));											
 						CT2A DeTeCtLogFilename(DeTeCt_additional_filename_from_folder((CString)folder_path.c_str(), DTC_LOG_SUFFIX));
 						std::string log_file(DeTeCtLogFilename);
 // Pushed file to queue if to be processed
@@ -638,6 +643,71 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 																			message_lines[index_message++] = "!Debug info: Exit=" + std::to_string(opts.autoexit);
 																			message_lines[index_message] = "\0";
 																		}
+
+
+/* openCL configuration */
+	BOOL IsOpenCL_ok = TRUE;
+	cv::ocl::Context context = cv::ocl::Context::getDefault();
+	if (!context.ptr()) {
+		message_lines[index_message++] = "OpenCL not available";
+		message_lines[index_message] = "\0";
+		IsOpenCL_ok = FALSE;
+	}
+	else { //OpenCL available
+		cv::ocl::Device device = cv::ocl::Device::getDefault();
+		if (!device.compilerAvailable()) {
+			message_lines[index_message++] = "OpenCL not available (no compiler)";
+			message_lines[index_message] = "\0";
+			IsOpenCL_ok = FALSE;
+		}
+		else {
+			std::vector<cv::ocl::PlatformInfo> platforms;
+			cv::ocl::getPlatfomsInfo(platforms);
+			if (platforms.size() > 0) {
+				message_lines[index_message] = "OpenCL available: ";
+				for (size_t i = 0; i < platforms.size(); i++)
+				{
+					//Access to Platform
+					const cv::ocl::PlatformInfo* platform = &platforms[i];
+
+					//Platform Name
+					//std::cout << "Platform Name: " << platform->name().c_str() << "\n" << endl;
+					message_lines[index_message] += platform->name().c_str();
+					//Access Device within Platform
+					cv::ocl::Device current_device;
+					for (int j = 0; j < platform->deviceNumber(); j++)
+					{
+						//Access Device
+						platform->getDevice(current_device, j);
+						int deviceType = current_device.type();
+						message_lines[index_message] += ", device " + current_device.name();
+						switch (deviceType)
+						{
+						case 2:
+							message_lines[index_message] += " (" + to_string(context.ndevices()) + " CPU)\n";
+							//cout << "CPU device\n";
+							if (context.create(deviceType))
+								//opencl_mat(loc);//With OpenCL Mat
+								break;
+						case 4:
+							message_lines[index_message] += " (" + to_string(context.ndevices()) + " GPU)\n";
+							//cout << "GPU device\n";
+							if (context.create(deviceType))
+								//opencl_mat(loc);//With OpenCL UMat
+								break;
+						}
+						index_message++;
+						message_lines[index_message] = "\0";
+						cin.ignore(1);
+					}
+				}
+			}
+		}
+	}
+	if (IsOpenCL_ok) cv::ocl::setUseOpenCL(true);
+	message_lines[index_message] = "\0";
+/* end  of openCL configuration*/
+
 
 // **********************************************************
 // *********************** TEST *************************

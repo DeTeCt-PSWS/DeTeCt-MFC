@@ -1093,7 +1093,7 @@ if (opts.debug) MessageBox(_T("Exit Child instance from AutoStakkert PID ") + CS
 				// ********* Ignores PIPP with no integrity
 				(!Is_PIPP(file) || ((Is_PIPP(file) && Is_PIPP_OK(file, &pipp_info, &ss))))) {
 				std::string folder_path;
-				if (!opts.autostakkert) folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
+				if ((!opts.autostakkert) || (!AS_IMPACT_DETECTION_DIR_DETECT)) folder_path = filename_acquisition.substr(0, filename_acquisition.find_last_of("\\"));
 				else {
 					//log directory when autostakkert mode or multi instance mode
 					folder_path = CString2string(DeTeCt_exe_folder());
@@ -1245,7 +1245,7 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 					// ********* Ignores PIPP with no integrity
 					(!Is_PIPP(filename) || ((Is_PIPP(filename) && Is_PIPP_OK(filename, &pipp_info, &ss3))))) {
 						std::string folder_path_consolidated;
-						if (!opts.autostakkert) folder_path_consolidated = std::string (folder_path.begin(), folder_path.end());
+						if ((!opts.autostakkert) || (!AS_IMPACT_DETECTION_DIR_DETECT)) folder_path_consolidated = std::string (folder_path.begin(), folder_path.end());
 						else {
 							//log directory when autostakkert mode or multi instance mode
 							folder_path_consolidated = CString2string(DeTeCt_exe_folder());
@@ -2379,7 +2379,7 @@ void PrefDialog::OnDeltaposSpin12(NMHDR* pNMHDR, LRESULT* pResult)
 void PrefDialog::OnDeltaposSpin13(NMHDR* pNMHDR, LRESULT* pResult)
 {
 	float fMin = 0.0f;
-	float fMax = 1.0f;
+	float fMax = 2.0f;
 	float fStep = 0.05f;
 	
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);

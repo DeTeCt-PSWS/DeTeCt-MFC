@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.7.3"
+#define VERSION_NB		"3.8.0"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -61,10 +61,11 @@
 #define PIPP_STRING				"_pipp"
 #define WJ_DEROT_STRING			"-DeRot."
 
-#define IGNORE_WJ_DEROTATION	FALSE
-#define IGNORE_PIPP				FALSE
-#define IGNORE_DARK				TRUE
+#define IGNORE_WJ_DEROTATION			FALSE
+#define IGNORE_PIPP						FALSE
+#define IGNORE_DARK						TRUE
 
+#define AS_IMPACT_DETECTION_DIR_DETECT	FALSE
 #ifdef __cplusplus
 //extern "C" {
 #endif

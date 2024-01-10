@@ -69,6 +69,13 @@ void lowercase_string(std::string *source) {
 		});
 }
 
+void trim_string(std::string& line) {
+	//while (line.find(' ') != std::string::npos) line.erase(line.find(' '), 1);
+	//while (line.find(' ') == 0) line.erase(line.find(' '), 1);
+	line.erase(0, line.find_first_not_of(' '));
+	line.erase(line.find_last_not_of(' ') + 1);
+}
+
 std::vector<std::string> read_txt(std::string path) {
 	std::ifstream file(path);
 	std::string line;

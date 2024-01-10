@@ -652,7 +652,7 @@ cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // te
 		//			fprintf(stdout, "fileQueryFrame: reading frame %d\n", fc->frame);
 		if ((return_Mat = cv::imread(filename, CV_LOAD_IMAGE_ANYDEPTH)).empty()) {
 			if (!ignore) {
-				old_image.release();
+				old_image.~Mat();
 				if (fclose(fc->fh) != 0) {
 					char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot close capture file %s)", filename);
@@ -678,9 +678,7 @@ cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // te
 		}
 		else {
 			//if (!old_image.empty()) {
-			if (!old_image.empty() || old_image.data) {
-				old_image.release();
-			}
+			if (!old_image.empty() || old_image.data) old_image.~Mat();
 		}
 		break;
 	}
