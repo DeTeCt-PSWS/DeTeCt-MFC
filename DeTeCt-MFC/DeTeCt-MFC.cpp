@@ -672,7 +672,7 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 
 					//Platform Name
 					//std::cout << "Platform Name: " << platform->name().c_str() << "\n" << endl;
-					message_lines[index_message] += platform->name().c_str();
+					message_lines[index_message] += platform->name();
 					//Access Device within Platform
 					cv::ocl::Device current_device;
 					for (int j = 0; j < platform->deviceNumber(); j++)
