@@ -403,10 +403,10 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 	output_file << std::setfill(' ') << std::setw(8) << std::setprecision(3) << std::fixed << video_info.fps << " fr/s; ";
 	//output_file << video_info.filename << std::setfill(' ') << std::setw(255) << std::left << " " << "; ";
 	output_file << str_trail_fill(video_info.filename, " ", 255, str_tmp) << "; ";
-	strcpy(str_tmp2, full_version.c_str());
-	strcat(str_tmp2, " (");
-	strcat(str_tmp2, video_info.comment);
-	strcat(str_tmp2, ")");
+	strcpy_s(str_tmp2, sizeof(str_tmp2), full_version.c_str());
+	strcat_s(str_tmp2, sizeof(str_tmp2), " (");
+	strcat_s(str_tmp2, sizeof(str_tmp2), video_info.comment);
+	strcat_s(str_tmp2, sizeof(str_tmp2), ")");
 	//output_file << full_version.c_str() << " (" << video_info.comment << ")" <<std::setfill(' ') << std::setw(64) << "; ";
 	output_file << str_trail_fill(str_tmp2, " ", 96, str_tmp) << "; ";
 	//output_file << std::setfill(' ') << std::setw(18) << os_version.c_str() << "; ";

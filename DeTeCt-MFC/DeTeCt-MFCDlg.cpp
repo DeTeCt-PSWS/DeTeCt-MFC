@@ -34,6 +34,10 @@ with
 
 #include <numeric>      // std::iota
 
+#include <pdh.h>
+#include <Psapi.h>
+#pragma comment(lib,"pdh.lib")
+
 //#define FFMPEGDLL "opencv_ffmpeg2413_64.dll"
 #define FFMPEGDLL "opencv_videoio_ffmpeg460_64.dll"
 
@@ -244,6 +248,14 @@ void CAboutDlg::OnBnClickedMfclink2()
 CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_DETECTMFC_DIALOG, pParent)
 {
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// DO NOT FORGET: All default values must be setup in parallel in::
+	//	- default reset functions							PrefDialog::OnBnClickedButton1
+	//														PrefDialogUser::OnBnClickedButton1()
+	//	- ini read function									CDeTeCtMFCDlg::CDeTeCtMFCDlg
+	//  - and in Autoupdate if needed						AutoUpdate::Update_ini_parameters_resources_files
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
 	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
 	_TCHAR optionStr[MAX_STRING] = { 0 };
 	init_string(opts.filename); // exception read access
@@ -251,92 +263,97 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	init_string(opts.ovfname); // exception read access
 
 	::GetPrivateProfileString(L"general", L"version", L"0.0.0.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
-	strcpy(opts.version, CT2A(optionStr));
+	strcpy_s(opts.version, sizeof(opts.version), CT2A(optionStr));
 
 	opts.nsaveframe = 0;
 	opts.ostype = OTYPE_NO;
 	opts.ovtype = OTYPE_NO;
-											::GetPrivateProfileString(L"impact",L"min_strength",			L"0.3", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"brightness_increase_min_factor",					L"0.15", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.timeImpact =						std::stod(optionStr);
-	opts.incrLumImpact =					std::stod(optionStr);
-	opts.incrFrameImpact=					::GetPrivateProfileInt(L"impact",	L"frames",					5, DeTeCtIniFilename);
-											::GetPrivateProfileString(L"impact",L"impact_duration_min",		L"0.4", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.impact_brightness_increase_min_factor =					std::stod(optionStr);
+	opts.incrFrameImpact=					::GetPrivateProfileInt(L"impact",	L"frames",											5, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_duration_min",								L"0.4", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_duration_min =				std::stod(optionStr);
-	opts.radius =							::GetPrivateProfileInt(L"impact",	L"radius",					10, DeTeCtIniFilename);
+	opts.impact_radius_min =				::GetPrivateProfileInt(L"impact",	L"impact_radius_min",								5, DeTeCtIniFilename);
+	opts.impact_radius_ratio =				::GetPrivateProfileInt(L"impact", L"impact_radius_ratio",								50, DeTeCtIniFilename);
+	opts.impact_radius_max =				::GetPrivateProfileInt(L"impact",	L"impact_radius_max",								12, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact", L"impact_radius_shared_candidates_factor_min",		L"0.30", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.impact_radius_shared_candidates_factor_min = std::stod(optionStr);
 	opts.nframesROI =						15;
-	opts.nframesRef =						::GetPrivateProfileInt(L"other",	L"refmin",					50, DeTeCtIniFilename);
-	opts.bayer =							::GetPrivateProfileInt(L"other",	L"debayer",					0, DeTeCtIniFilename);
-	opts.medSize =							::GetPrivateProfileInt(L"roi",		L"medbuf",					5, DeTeCtIniFilename);
-	opts.ROI_min_px_val =					::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",			10, DeTeCtIniFilename);
-	opts.ROI_min_size =						::GetPrivateProfileInt(L"roi",		L"ROI_min_size",			68, DeTeCtIniFilename);
-											::GetPrivateProfileString(L"background", L"bg_detection_peak_factor", L"0.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.nframesRef =						::GetPrivateProfileInt(L"other",	L"refmin",											50, DeTeCtIniFilename);
+	opts.bayer =							::GetPrivateProfileInt(L"other",	L"debayer",											0, DeTeCtIniFilename);
+	opts.medSize =							::GetPrivateProfileInt(L"roi",		L"medbuf",											5, DeTeCtIniFilename);
+	opts.ROI_min_px_val =					::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",									10, DeTeCtIniFilename);
+	opts.ROI_min_size =						::GetPrivateProfileInt(L"roi",		L"ROI_min_size",									68, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"background", L"bg_detection_peak_factor",					L"0.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.bg_detection_peak_factor =			std::stod(optionStr);
-	opts.bg_detection_consecutive_values =	::GetPrivateProfileInt(L"background", L"bg_detection_consecutive_values",	5,	DeTeCtIniFilename);
-	opts.transparency_min_pc =				::GetPrivateProfileInt(L"rejection", L"transparency_min_pc",				20,	DeTeCtIniFilename);
-	opts.similarity_decrease_max_pc =		::GetPrivateProfileInt(L"rejection", L"similarity_decrease_max_pc",			12,	DeTeCtIniFilename);
+	opts.bg_detection_consecutive_values =	::GetPrivateProfileInt(L"background", L"bg_detection_consecutive_values",				5,	DeTeCtIniFilename);
+	opts.transparency_min_pc =				::GetPrivateProfileInt(L"rejection", L"transparency_min_pc",							20,	DeTeCtIniFilename);
+	opts.similarity_decrease_max_pc =		::GetPrivateProfileInt(L"rejection", L"similarity_decrease_max_pc",						12,	DeTeCtIniFilename);
 
 	opts.wait = 1;
-						::GetPrivateProfileString(L"roi",	L"sizfac",					L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"roi",	L"sizfac",											L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.facSize = std::stod(optionStr);
-						::GetPrivateProfileString(L"roi",	L"secfac",					L"1.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"roi",	L"secfac",											L"1.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.secSize = std::stod(optionStr);
-	opts.threshold =	::GetPrivateProfileInt(L"impact",	L"thresh",					0, DeTeCtIniFilename);
-	opts.learningRate = 0.0;
-	opts.thrWithMask =	::GetPrivateProfileInt(L"impact",	L"mask",					0, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"impact",L"impact_distance_max",	L"0.03", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.threshold =						::GetPrivateProfileInt(L"impact",	L"thresh",											0, DeTeCtIniFilename);
+	opts.learningRate =																												0.0;
+	opts.thrWithMask =						::GetPrivateProfileInt(L"impact",	L"mask",											0, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_distance_max",								L"0.03", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_distance_max = std::stod(optionStr);
-						::GetPrivateProfileString(L"impact",L"impact_max_avg_min",		L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_max_avg_min",								L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_max_avg_min = std::stod(optionStr);
-						::GetPrivateProfileString(L"impact",L"impact_confidence_min",	L"2.10", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_confidence_min",							L"2.10", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_confidence_min = std::stod(optionStr);
 	opts.histScale = 1;
-	opts.show_detect_image =	::GetPrivateProfileInt(L"view",		L"detect",					TRUE, DeTeCtIniFilename);
-	opts.show_mean_image =		::GetPrivateProfileInt(L"view",		L"mean",					FALSE, DeTeCtIniFilename);
-	opts.viewROI =				::GetPrivateProfileInt(L"view",		L"roi",						FALSE, DeTeCtIniFilename);
-	opts.viewTrk =				::GetPrivateProfileInt(L"view",		L"trk",						FALSE, DeTeCtIniFilename);
-	opts.viewDif =				::GetPrivateProfileInt(L"view",		L"dif",						FALSE, DeTeCtIniFilename);
-	opts.viewRef =				::GetPrivateProfileInt(L"view",		L"ref",						FALSE, DeTeCtIniFilename);
-	opts.viewThr =				::GetPrivateProfileInt(L"view",		L"thr",						FALSE, DeTeCtIniFilename);
-	opts.viewSmo =				::GetPrivateProfileInt(L"view",		L"smo",						FALSE, DeTeCtIniFilename);
-	opts.viewRes =				::GetPrivateProfileInt(L"view",		L"res",						FALSE, DeTeCtIniFilename);
-	opts.viewHis =				::GetPrivateProfileInt(L"view",		L"his",						FALSE, DeTeCtIniFilename);
-	opts.viewMsk =				::GetPrivateProfileInt(L"view",		L"msk",						FALSE, DeTeCtIniFilename);
-	opts.verbose = 0;
-	opts.filter.type = ::GetPrivateProfileInt(L"other",		L"filter",					1, DeTeCtIniFilename);
-	opts.filter.param[0] =	3;
-	opts.filter.param[1] =	3;
-	opts.filter.param[2] =	0;
-	opts.filter.param[3] =	0;
-	opts.ADUdtconly =		FALSE; // deactivated at startup
-	opts.detail =		::GetPrivateProfileInt(L"impact",		L"detail",				FALSE, DeTeCtIniFilename);
+	opts.show_detect_image =				::GetPrivateProfileInt(L"view",		L"detect",											TRUE, DeTeCtIniFilename);
+	opts.show_mean_image =					::GetPrivateProfileInt(L"view",		L"mean",											FALSE, DeTeCtIniFilename);
+	opts.viewROI =							::GetPrivateProfileInt(L"view",		L"roi",												FALSE, DeTeCtIniFilename);
+	opts.viewTrk =							::GetPrivateProfileInt(L"view",		L"trk",												FALSE, DeTeCtIniFilename);
+	opts.viewDif =							::GetPrivateProfileInt(L"view",		L"dif",												FALSE, DeTeCtIniFilename);
+	opts.viewRef =							::GetPrivateProfileInt(L"view",		L"ref",												FALSE, DeTeCtIniFilename);
+	opts.viewThr =							::GetPrivateProfileInt(L"view",		L"thr",												FALSE, DeTeCtIniFilename);
+	opts.viewSmo =							::GetPrivateProfileInt(L"view",		L"smo",												FALSE, DeTeCtIniFilename);
+	opts.viewRes =							::GetPrivateProfileInt(L"view",		L"res",												FALSE, DeTeCtIniFilename);
+	opts.viewHis =							::GetPrivateProfileInt(L"view",		L"his",												FALSE, DeTeCtIniFilename);
+	opts.viewMsk =							::GetPrivateProfileInt(L"view",		L"msk",												FALSE, DeTeCtIniFilename);
+	opts.verbose =																													0;
+	opts.filter.type =						::GetPrivateProfileInt(L"other",		L"filter",										1, DeTeCtIniFilename);
+	opts.filter.param[0] =																											3;
+	opts.filter.param[1] =																											3;
+	opts.filter.param[2] =																											0;
+	opts.filter.param[3] =																											0;
+	opts.ADUdtconly =																												FALSE; // deactivated at startup
+	opts.detail =							::GetPrivateProfileInt(L"impact",		L"detail",										FALSE, DeTeCtIniFilename);
 	
-	//opts.allframes =	::GetPrivateProfileInt(L"impact",		L"inter",				FALSE, DeTeCtIniFilename);
+	//opts.allframes =	::GetPrivateProfileInt(L"impact",		L"inter",						FALSE, DeTeCtIniFilename);
 	opts.allframes =	FALSE; // deactivated at startup
 
-	opts.minframes =	::GetPrivateProfileInt(L"other",		L"frmin",				15, DeTeCtIniFilename);
-	opts.ignore =		::GetPrivateProfileInt(L"other",		L"ignore",				TRUE, DeTeCtIniFilename);
-						::GetPrivateProfileString(L"other",		L"darkfile",			L"", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
-	strcpy(opts.darkfilename, CT2A(optionStr));
-	opts.videotest = 0;
-	opts.wROI = 0;
-	opts.hROI = 0;
+	opts.minframes =						::GetPrivateProfileInt(L"other",		L"frmin",										15, DeTeCtIniFilename);
+	opts.ignore =							::GetPrivateProfileInt(L"other",		L"ignore",										TRUE, DeTeCtIniFilename);
+											::GetPrivateProfileString(L"other",		L"darkfile",									L"", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	strcpy_s(opts.darkfilename, sizeof(opts.darkfilename), CT2A(optionStr));
+	opts.videotest =																												0;
+	opts.wROI =																														0;
+	opts.hROI =																														0;
 
-	opts.debug =		FALSE;  // deactivated at startup
-	//opts.debug =		::GetPrivateProfileInt(L"processing",	L"debug",				FALSE, DeTeCtIniFilename);
+	opts.debug =																													FALSE;  // deactivated at startup
+	//opts.debug =		::GetPrivateProfileInt(L"processing",	L"debug",					FALSE, DeTeCtIniFilename);
 	debug_mode = opts.debug;
-	opts.dateonly =		FALSE;// deactivated at startup
+	opts.dateonly =																													FALSE;// deactivated at startup
 	//opts.dateonly =		::GetPrivateProfileInt(L"processing",	L"dateonly",			FALSE, DeTeCtIniFilename);
-	opts.zip =			::GetPrivateProfileInt(L"processing",	L"zip",					TRUE, DeTeCtIniFilename);
-	opts.email =		::GetPrivateProfileInt(L"processing",	L"email",				TRUE, DeTeCtIniFilename);
+	opts.zip =								::GetPrivateProfileInt(L"processing",	L"zip",											TRUE, DeTeCtIniFilename);
+	opts.email =							::GetPrivateProfileInt(L"processing",	L"email",										TRUE, DeTeCtIniFilename);
 	// From main window checkboxes
-	opts.interactive =	!::GetPrivateProfileInt(L"processing",	L"autoprocessing",		FALSE, DeTeCtIniFilename);
-	opts.autoexit =			::GetPrivateProfileInt(L"processing",	L"autoexit",			FALSE, DeTeCtIniFilename);
-	opts.shutdown =		::GetPrivateProfileInt(L"processing",	L"autoshutdown",		FALSE, DeTeCtIniFilename);
-	opts.maxinstances =	::GetPrivateProfileInt(L"processing",	L"maxinstances",		1, DeTeCtIniFilename);
+	opts.interactive =						!::GetPrivateProfileInt(L"processing",	L"autoprocessing",								FALSE, DeTeCtIniFilename);
+	opts.autoexit =							::GetPrivateProfileInt(L"processing",	L"autoexit",									FALSE, DeTeCtIniFilename);
+	opts.shutdown =							::GetPrivateProfileInt(L"processing",	L"autoshutdown",								FALSE, DeTeCtIniFilename);
+	opts.maxinstances =						::GetPrivateProfileInt(L"processing",	L"maxinstances",								1, DeTeCtIniFilename);
 	int processor_count = std::thread::hardware_concurrency();
 	if (opts.maxinstances > processor_count) opts.maxinstances = processor_count;
 	else if (opts.maxinstances < 1) opts.maxinstances = 1;
-	opts.reprocessing = ::GetPrivateProfileInt(L"processing",	L"reprocessing",		TRUE, DeTeCtIniFilename);
+	opts.reprocessing =						::GetPrivateProfileInt(L"processing",	L"reprocessing",								TRUE, DeTeCtIniFilename);
+	opts.resources_usage =					::GetPrivateProfileInt(L"processing",	L"resources",									1, DeTeCtIniFilename);
 
 	//AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	//AFX_MANAGE_STATE(AFX_MODULE_STATE* pModuleState);
@@ -394,6 +411,7 @@ void CDeTeCtMFCDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_STATIC_INSTANCE, Instance);
 	DDX_Control(pDX, IDC_STATIC_MAXINST, MaxInstances);
 	DDX_Control(pDX, IDC_SPIN_INSTANCES, ValueMaxInstances);
+	DDX_Control(pDX, IDC_COMBO1, ResourcesUsageSelect);
 }	
 
 /*
@@ -431,6 +449,8 @@ BEGIN_MESSAGE_MAP(CDeTeCtMFCDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_EXIT, &CDeTeCtMFCDlg::OnBnClickedCheckExit)
 	ON_BN_CLICKED(IDC_CHECK_SHUTDOWN, &CDeTeCtMFCDlg::OnBnClickedCheckShutdown)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN_INSTANCES, &CDeTeCtMFCDlg::OnDeltaposSpinInstances)
+	ON_CBN_SELCHANGE(IDC_COMBO1, &CDeTeCtMFCDlg::OnCbnSelchangeCombo1)	//Ressource usage
+
 END_MESSAGE_MAP()
 
 // CDeTeCtMFCDlg message handlers
@@ -470,7 +490,13 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	Exit.SetCheck(opts.autoexit);
 	Shutdown.SetCheck(opts.shutdown);
 
-
+	ResourcesUsageSelect.AddString(L"Minimum");
+	ResourcesUsageSelect.AddString(L"Low");
+	ResourcesUsageSelect.AddString(L"Medium");
+	ResourcesUsageSelect.AddString(L"High");
+	ResourcesUsageSelect.AddString(L"Maximum");
+	ResourcesUsageSelect.SetCurSel(opts.resources_usage);
+	
 	//WndResizer project resize (https://www.codeproject.com/articles/125068/mfc-c-helper-class-for-window-resizing)
 	BOOL bOk;
 	int x_size, y_size;
@@ -611,20 +637,53 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 		DisplayInstanceType(&nb_instances);
 	}
 
-	std::wstringstream ss2;
-	StreamDeTeCtOSversions(&ss2);
+	GetCPULoad(); // Need for a first call to get correct value at 2nd call
+	std::wstringstream ss_tmp;
+	StreamDeTeCtOSversions(&ss_tmp);
 	const auto processor_count_str = std::to_string(std::thread::hardware_concurrency());
-	ss2 << " " << processor_count_str.c_str() << " processors";
-	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
-	if (opts.dateonly) impactDetectionLog.AddString((CString) "WARNING, datation info only monde on, no detection analysis will be performed");
+	ss_tmp << " " << processor_count_str.c_str() << " processors";
+	impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss_tmp.str().c_str());
+
+	if (opts.dateonly) impactDetectionLog.AddString((CString)"WARNING, datation info only monde on, no detection analysis will be performed");
 	if (opts.debug) impactDetectionLog.AddString((CString)"WARNING, debug mode on (lots of verbose and children instances visible, set Debug=0 in DeTeCt.ini to deactivate)");
-	if (!opts.interactive) impactDetectionLog.AddString((CString) "Automatic mode on");
-	if (!opts.reprocessing) impactDetectionLog.AddString((CString) "No reprocessing mode on");
-	if (opts.flat_preparation) impactDetectionLog.AddString((CString) "Creation of image for flat generation");
-	if (opts.maxinstances > 1) { // Displays maxinstances if multi instances
-		maxinstances_cstring.Format(L"%d", opts.maxinstances);
-		impactDetectionLog.AddString(L"Will use maximum " + maxinstances_cstring + " " + PROGNAME + " instances");
-	}
+	if (!opts.interactive) impactDetectionLog.AddString((CString)"Automatic mode on");
+	if (!opts.reprocessing) impactDetectionLog.AddString((CString)"No reprocessing mode on");
+	if (opts.flat_preparation) impactDetectionLog.AddString((CString)"Creation of image for flat generation");
+
+	MEMORYSTATUS memStatus;
+	GlobalMemoryStatus(&memStatus);
+	ss_tmp.str(std::wstring());
+	ss_tmp << "Total memory = " << memStatus.dwTotalPhys / (1024 * 1024) << " MB (" << 100 - memStatus.dwMemoryLoad << "% available)";
+	impactDetectionLog.AddString(ss_tmp.str().c_str());
+	//ss_tmp << "Available memory = " << memStatus.dwAvailPhys / (1024 * 1024) << " MB (" << 100 - memStatus.dwMemoryLoad << "%)";
+	
+	//PERFORMANCE_INFORMATION PerformanceInformation;
+	//GetPerformanceInfo(&PerformanceInformation, sizeof(PerformanceInformation));
+	//ss_tmp << " - = " << (PerformanceInformation.CommitTotal - PerformanceInformation.CommitLimit);
+	//if (GetPerformanceInfo(&PerformanceInformation, sizeof(PerformanceInformation))) ss_tmp << "Processor usage : " << PerformanceInformation.SystemCpuUsage << "%" << std::endl;
+
+	//static PDH_HQUERY cpuQuery;
+	//static PDH_HCOUNTER cpuTotal;
+	//PdhOpenQuery(NULL, NULL, &cpuQuery);
+	//PdhAddEnglishCounter(cpuQuery, L"\\Processor(_Total)\\% Processor Time", NULL, &cpuTotal); // You can also use L"\\Processor(*)\\% Processor Time" and get individual CPU values with PdhGetFormattedCounterArray()
+	//PdhCollectQueryData(cpuQuery);
+	//PDH_FMT_COUNTERVALUE counterVal;
+	//PdhCollectQueryData(cpuQuery);
+	//PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
+	ss_tmp.str(std::wstring());
+	//ss_tmp << "CPU used = " << counterVal.doubleValue;
+	int CPULoad = (int) (GetCPULoad() * 100);
+	ss_tmp << "CPU used = " << CPULoad << "% (";
+	//ss_tmp << " - " << std::thread::hardware_concurrency() * (100 - MIN_AVAILABLE_CPU_PC - CPULoad) / 100 << " or " << std::thread::hardware_concurrency() * (100 - (100 / std::thread::hardware_concurrency()) - CPULoad) / 100;
+	//impactDetectionLog.AddString(ss_tmp.str().c_str());
+	//ss_tmp.str(std::wstring());
+	maxinstances_cstring.Format(L"%d", opts.maxinstances);
+	ss_tmp << "possible instances = " << NbPossibleChildInstances_fromMemoryandCPUUsage() + 1 << ", max set = " << opts.maxinstances << ")";//<< " (memory " << NbPossibleChildInstances_fromMemoryUsage() << ", CPU " << NbPossibleChildInstances_fromCPUUsage() << ")";
+	impactDetectionLog.AddString(ss_tmp.str().c_str());
+
+	//if (opts.maxinstances > 1) { // Displays maxinstances if multi instances
+	//	impactDetectionLog.AddString(L"Maximum " + maxinstances_cstring + " " + PROGNAME + " instances");
+	//}
 
 	int index_message = 0;
 	while ((message_lines[index_message].size() > 1) && (index_message < 100)) {
@@ -955,10 +1014,10 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 	char	mailto_command[MAX_STRING]	= { 0 };
 	wchar_t	wmailto_command[MAX_STRING] = { 0 };
 	if (opts.email) {
-		strcpy(mailto_command, "mailto:delcroix.marc@free.fr?subject=Impact detection ");
+		strcpy_s(mailto_command, sizeof(mailto_command), "mailto:delcroix.marc@free.fr?subject=Impact detection ");
 		strcat_s(mailto_command, sizeof(mailto_command), log_detection_dirname);
 		strcat_s(mailto_command, sizeof(mailto_command), email_subject_probabilities);
-		strcat(mailto_command, "&body=(*please attach ");
+		strcat_s(mailto_command, sizeof(mailto_command), "&body=(*please attach ");
 	}
 
 	// Zip post-processing
@@ -970,27 +1029,27 @@ void CDeTeCtMFCDlg::OnBnClickedCheckResultsButton()
 
 		if (opts.email) {
 			// email continued with zip file
-			strcat(mailto_command, "impact_detection zip file ");
+			strcat_s(mailto_command, sizeof(mailto_command), "impact_detection zip file ");
 			strcat_s(mailto_command, sizeof(mailto_command), zipfile);
 		}
 	}
 	else {
 		if (opts.email) {
 			// email continued with detection log and images
-			strcat(mailto_command, "detection images and detect log file from ");
-			strcat(mailto_command, impact_detection_dirname);
+			strcat_s(mailto_command, sizeof(mailto_command), "detection images and detect log file from ");
+			strcat_s(mailto_command, sizeof(mailto_command), impact_detection_dirname);
 		}
 	}
 	//E-Mail post-processing
 	if (opts.email) {
 		// email end
-		strcat(mailto_command, " *)%0A%0AHi Marc,%0A%0AHere are the results and the images of my analysis with ");
-		strcat(mailto_command, PROGNAME);
-		strcat(mailto_command, " v");
-		strcat(mailto_command, VERSION_NB);
-		strcat(mailto_command, ", I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ADetails:%0A");
-		strcat(mailto_command, email_body_probabilities);
-		strcat(mailto_command, "%0A%0ACheers,%0A");
+		strcat_s(mailto_command, sizeof(mailto_command), " *)%0A%0AHi Marc,%0A%0AHere are the results and the images of my analysis with ");
+		strcat_s(mailto_command, sizeof(mailto_command), PROGNAME);
+		strcat_s(mailto_command, sizeof(mailto_command), " v");
+		strcat_s(mailto_command, sizeof(mailto_command), VERSION_NB);
+		strcat_s(mailto_command, sizeof(mailto_command), ", I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ADetails:%0A");
+		strcat_s(mailto_command, sizeof(mailto_command), email_body_probabilities);
+		strcat_s(mailto_command, sizeof(mailto_command), "%0A%0ACheers,%0A");
 		mbstowcs(wmailto_command, mailto_command, strlen(mailto_command) + 1);
 		ShellExecute(NULL, L"open", wmailto_command, NULL, NULL, SW_SHOWNORMAL);
 	}
@@ -1218,7 +1277,7 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 		OnFileResetFileList();
 	// Set-up global variable
 		scan_folder_path = path;
-		strcpy(opts.LogConsolidatedDirname, path.c_str());
+		strcpy_s(opts.LogConsolidatedDirname, sizeof(opts.LogConsolidatedDirname), path.c_str());
 		ss2 << "Scanning " << folder_path << " for files to be analysed, please wait...";
 		impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss2.str().c_str());
 		CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
@@ -1526,7 +1585,6 @@ void CDeTeCtMFCDlg::OnHelpRerunConfigurationUpdates()
 		});
 }
 
-
 /**************************************************************************************************
  * @fn	void CDeTeCtMFCDlg::OnHelpHistory()
  *
@@ -1540,6 +1598,7 @@ void CDeTeCtMFCDlg::OnHelpHistory()
 {
 	ShellExecute(NULL, L"open", L"https://github.com/DeTeCt-PSWS/DeTeCt-MFC/releases", NULL, NULL, SW_SHOWNORMAL);
 }
+
 /**************************************************************************************************
  * @fn	void CDeTeCtMFCDlg::OnHelpDocumentation()
  *
@@ -1634,7 +1693,7 @@ void CDeTeCtMFCDlg::OnFileResetFileList() {
 	// Init
 	if (opts.parent_instance) {
 		remove(opts.DeTeCtQueueFilename);
-		strcpy(opts.DeTeCtQueueFilename, "");
+		strcpy_s(opts.DeTeCtQueueFilename, sizeof(opts.DeTeCtQueueFilename), "");
 	}
 	
 	acquisition_files.file_list				= {};
@@ -1649,7 +1708,7 @@ void CDeTeCtMFCDlg::OnFileResetFileList() {
 	//opts.dirname =					NULL;
 	init_string(opts.filename);
 	init_string(opts.dirname);
-	strcpy(opts.LogConsolidatedDirname, "");
+	strcpy_s(opts.LogConsolidatedDirname, sizeof(opts.LogConsolidatedDirname), "");
 	
 	CreateQueueFileName();
 	
@@ -1795,7 +1854,7 @@ void CDeTeCtMFCDlg::OnFileExit()
 		CWnd *resultsbtn = GetDlgItem(IDC_BUTTON_CHECKRESULTS);
 		if ((okbtn && !okbtn->IsWindowEnabled())) {
 			if (resultsbtn && !resultsbtn->IsWindowEnabled()) {
-				if ((opts.autostakkert_PID > 0) && (IsParentAutostakkertRunning(opts.autostakkert_PID))) message = message + (CString)"Autostakkert still running, please close it first.\n";
+				if ((opts.autostakkert_PID > 0) && (IsProcessRunning(opts.autostakkert_PID))) message = message + (CString)"Autostakkert still running, please close it first.\n";
 				if ((acquisition_files.acquisition_file_list.size() > 0) || filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) message = message + (CString)"Impact detection still running.\n";
 				//else message = message + (CString)"Folder/files not selected yet.\n"; 
 			}
@@ -1807,7 +1866,7 @@ void CDeTeCtMFCDlg::OnFileExit()
 		}
 		KillsChildrenProcesses();
 		remove(opts.DeTeCtQueueFilename);
-		strcpy(opts.DeTeCtQueueFilename, "");
+		strcpy_s(opts.DeTeCtQueueFilename, sizeof(opts.DeTeCtQueueFilename), "");
 		CDialog::OnOK();
 	}
 	else {		// exit without confirmation for child instances
@@ -1816,6 +1875,13 @@ void CDeTeCtMFCDlg::OnFileExit()
 	}
 }
 
+void CDeTeCtMFCDlg::OnCbnSelchangeCombo1()
+{
+	opts.resources_usage = ResourcesUsageSelect.GetCurSel();
+	Set_ressource_usage(opts.resources_usage);
+	ValueMaxInstances.SetPos(opts.maxinstances);
+	CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(std::thread::hardware_concurrency()).c_str());
+}
 
 
 //******************************************************************************************************************************************************************************************************************************************************************************************
@@ -1835,6 +1901,7 @@ BEGIN_MESSAGE_MAP(PrefDialog, CDialog)
 	ON_BN_CLICKED(IDC_BUTTON1,			&PrefDialog::OnBnClickedButton1)	//Reset to default
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN1,	&PrefDialog::OnDeltaposSpin1)		//Mean value (min impact strength)
 	//ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN2,	&PrefDialog::OnDeltaposSpin2)	//Impact mean time
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN8,	&PrefDialog::OnDeltaposSpin8)		//Share of brightest points located within radius distance of brightest candidate
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN14,	&PrefDialog::OnDeltaposSpin14)		//Histscale
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN12,	&PrefDialog::OnDeltaposSpin12)		//ROI size factor
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN13,	&PrefDialog::OnDeltaposSpin13)		//ROI sec factor
@@ -1903,24 +1970,39 @@ BOOL PrefDialog::OnInitDialog()
 	showResult.SetCheck(opts.viewRes);
 	
 	//Impact
-	meanValueSpin.SetBuddy(&meanValue);
-	meanValueSpin.SetRange(0, 1);
+	impactMinBrightnessIncreaseSpin.SetBuddy(&impactMinBrightnessIncrease);
+	impactMinBrightnessIncreaseSpin.SetRange(0, 1);
 	minTimeSpin.SetBuddy(&impactMinTime);
 	minTimeSpin.SetRange(1, 1000);
-	radiusSpin.SetBuddy(&impactRadius);//double?
-	radiusSpin.SetRange(5, 20);
+	impactRadiusMinSpin.SetBuddy(&impactRadiusMin);//double?
+	impactRadiusMinSpin.SetRange(5, 20);
+	impactRadiusRatioSpin.SetBuddy(&impactRadiusRatio);//double?
+	impactRadiusRatioSpin.SetRange(1, 100);
+	impactRadiusMaxSpin.SetBuddy(&impactRadiusMax);//double?
+	impactRadiusMaxSpin.SetRange(5, 999);
+	impactRadiusSharedFactorSpin.SetBuddy(&impactRadiusSharedFactor);//double?
+	impactRadiusSharedFactorSpin.SetRange(0, 1);
 	brightThreshSpin.SetBuddy(&impactBrightThresh); //double?
 	brightThreshSpin.SetRange(0, 255);
 	
-	ss << std::fixed << std::setprecision(2) << opts.incrLumImpact;
-	meanValue.SetWindowText(ss.str().c_str());
+	ss << std::fixed << std::setprecision(2) << opts.impact_brightness_increase_min_factor;
+	impactMinBrightnessIncrease.SetWindowText(ss.str().c_str());
 	impactFrameNum.SetWindowText(std::to_wstring(opts.nframesRef).c_str());
 	ss.str(std::wstring());
 	ss << opts.incrFrameImpact;
 	impactMinTime.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << opts.radius;//double?
-	impactRadius.SetWindowText(ss.str().c_str());
+	ss << std::fixed << std::setprecision(0) << opts.impact_radius_min;//double?
+	impactRadiusMin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << opts.impact_radius_ratio;//double?
+	impactRadiusRatio.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << opts.impact_radius_max;//double?
+	impactRadiusMax.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.impact_radius_shared_candidates_factor_min;//double?
+	impactRadiusSharedFactor.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(0) << opts.threshold;
 	impactBrightThresh.SetWindowText(ss.str().c_str());
@@ -2025,13 +2107,19 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK9, showResult);
 	
 	//Impact
-	DDX_Control(pDX, IDC_EDIT1, meanValue);
-	DDX_Control(pDX, IDC_SPIN1, meanValueSpin);
+	DDX_Control(pDX, IDC_EDIT1, impactMinBrightnessIncrease);
+	DDX_Control(pDX, IDC_SPIN1, impactMinBrightnessIncreaseSpin);
 	DDX_Control(pDX, IDC_EDIT16, impactFrameNum);
 	DDX_Control(pDX, IDC_EDIT2, impactMinTime); //not shown
 	DDX_Control(pDX, IDC_SPIN2, minTimeSpin); //not shown
-	DDX_Control(pDX, IDC_EDIT6, impactRadius);
-	DDX_Control(pDX, IDC_SPIN6, radiusSpin);
+	DDX_Control(pDX, IDC_EDIT6, impactRadiusMin);
+	DDX_Control(pDX, IDC_SPIN6, impactRadiusMinSpin);
+	DDX_Control(pDX, IDC_EDIT7, impactRadiusRatio);
+	DDX_Control(pDX, IDC_SPIN20, impactRadiusRatioSpin);
+	DDX_Control(pDX, IDC_EDIT8, impactRadiusMax);
+	DDX_Control(pDX, IDC_SPIN7, impactRadiusMaxSpin);
+	DDX_Control(pDX, IDC_EDIT9, impactRadiusSharedFactor);
+	DDX_Control(pDX, IDC_SPIN8, impactRadiusSharedFactorSpin);
 	DDX_Control(pDX, IDC_EDIT3, impactBrightThresh);
 	DDX_Control(pDX, IDC_SPIN3, brightThreshSpin);
 	DDX_Control(pDX, IDC_CHECK16, applyMask);
@@ -2086,33 +2174,45 @@ void PrefDialog::OnBnClickedOk()
 	CString DeTeCtIniFilename = DeTeCt_additional_filename_exe_fullpath(DTC_INI_SUFFIX);
 	
 	//Processing visualisation
-	opts.viewROI = showROI.GetCheck();
-	opts.viewTrk = showTrack.GetCheck();
-	opts.viewDif = showDif.GetCheck();
 	opts.viewRef = showRef.GetCheck();
-	opts.viewMsk = showMask.GetCheck();
-	opts.viewThr = showThresh.GetCheck();
-	opts.viewSmo = showSmooth.GetCheck();
+	opts.viewTrk = showTrack.GetCheck();
+	opts.viewROI = showROI.GetCheck();
 	opts.viewHis = showHist.GetCheck();
+
+	opts.viewDif = showDif.GetCheck();
+	opts.viewThr = showThresh.GetCheck();
+	opts.viewMsk = showMask.GetCheck();
+	opts.viewSmo = showSmooth.GetCheck();
 	opts.viewRes = showResult.GetCheck();
-	
-	//Impact
-	meanValue.GetWindowTextW(str);
-	opts.incrLumImpact = std::stof(str.GetString());
+
+	opts.allframes = saveIntFramesADUdtc.GetCheck();
+
+	//Dev options
+	opts.debug = Debug.GetCheck();
+	opts.zip = !NoZip.GetCheck();
+	opts.clean_dir = CleanDir.GetCheck();
+
+	//Impact detection WARNING STOD or STOF or STOI
+	impactMinBrightnessIncrease.GetWindowTextW(str);
+	opts.impact_brightness_increase_min_factor = std::stof(str.GetString());
+
 	impactMinTime.GetWindowTextW(str);
+	//impactFrameNum.GetWindowTextW(str);
 	opts.incrFrameImpact = std::stoi(str.GetString());
 	str.Format(L"%.2f", opts.impact_duration_min);
 	//opts.impact_duration_min = std::stof(str.GetString());
-	impactRadius.GetWindowTextW(str);
-	opts.radius = std::stod(str.GetString());
+	
+	impactRadiusMin.GetWindowTextW(str);
+	opts.impact_radius_min = std::stod(str.GetString());
+	impactRadiusRatio.GetWindowTextW(str);
+	opts.impact_radius_ratio = std::stod(str.GetString());
+	impactRadiusMax.GetWindowTextW(str);
+	opts.impact_radius_max = std::stod(str.GetString());
+	impactRadiusSharedFactor.GetWindowTextW(str);
+	opts.impact_radius_shared_candidates_factor_min = std::stod(str.GetString());
 	impactBrightThresh.GetWindowTextW(str);
 	opts.threshold = std::stod(str.GetString());
 	opts.thrWithMask = applyMask.GetCheck();
-
-	opts.allframes =	saveIntFramesADUdtc.GetCheck();
-	opts.zip =			!NoZip.GetCheck();
-	opts.debug =		Debug.GetCheck();
-	opts.clean_dir = CleanDir.GetCheck();
 
 	//ROI
 	roiSizeFactor.GetWindowTextW(str);
@@ -2137,6 +2237,8 @@ void PrefDialog::OnBnClickedOk()
 	opts.histScale = std::stod(str.GetString());
 
 	//int bayerCodes[] = { 0, cv::COLOR_BayerBG2RGB, cv::COLOR_BayerGB2RGB, cv::COLOR_BayerRG2RGB, cv::COLOR_BayerGR2RGB };
+	
+	OnCbnSelchangeCombo2(); //Debayer code set
 	opts.ignore = ignoreIncorrectFrames.GetCheck();
 	opts.filter.type = filterSelect.GetCurSel();
 
@@ -2172,48 +2274,58 @@ void PrefDialog::OnBnClickedCheck15()
 
 void PrefDialog::OnBnClickedButton1()
 {
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// DO NOT FORGET: All default values must be setup in parallel in::
+	//	- default reset functions							PrefDialog::OnBnClickedButton1
+	//														PrefDialogUser::OnBnClickedButton1()
+	//	- ini read function									CDeTeCtMFCDlg::CDeTeCtMFCDlg
+	//  - and in Autoupdate if needed						AutoUpdate::Update_ini_parameters_resources_files
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
 	//Processing visualisation
-	showROI.SetCheck(false);
-	showTrack.SetCheck(false);
-	showDif.SetCheck(false);
 	showRef.SetCheck(false);
+	showTrack.SetCheck(false);
+	showROI.SetCheck(false);
+	showHist.SetCheck(false);
 	showMask.SetCheck(false);
+	
+	showDif.SetCheck(false);
 	showThresh.SetCheck(false);
 	showSmooth.SetCheck(false);
 	showResult.SetCheck(false);
-	showHist.SetCheck(false);
-
-	//Impact
-	std::wstringstream ss;
-	ss << std::fixed << std::setprecision(2) << 0.3;
-	meanValue.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	impactFrameNum.SetWindowText(std::to_wstring(50).c_str());
-	ss << std::fixed << std::setprecision(2) << 5;	// not shown
-	impactMinTime.SetWindowText(ss.str().c_str());	// not shown
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << 10.0;
-	impactRadius.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << 0.0;
-	impactBrightThresh.SetWindowText(ss.str().c_str());
-	applyMask.SetCheck(false);
 
 	saveIntFramesADUdtc.SetCheck(false);
-	NoZip.SetCheck(false);
+
+	//Development options
 	Debug.SetCheck(false);
+	NoZip.SetCheck(false);
 	CleanDir.SetCheck(false);
 
-		//ROI
+	//Impact
+	std::wstringstream ss;										// only for floating values!
+	ss << std::fixed << std::setprecision(2) << 0.15;
+	impactMinBrightnessIncrease.SetWindowText(ss.str().c_str());
+	impactMinTime.SetWindowText(std::to_wstring(5).c_str());	// not shown
+	//impactFrameNum.SetWindowText(std::to_wstring(50).c_str());	// not shown
+	impactRadiusMin.SetWindowText(std::to_wstring(5).c_str());
+	impactRadiusRatio.SetWindowText(std::to_wstring(50).c_str());
+	impactRadiusMax.SetWindowText(std::to_wstring(12).c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.3;
+	impactRadiusSharedFactor.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << 0.0;
+	impactBrightThresh.SetWindowText(std::to_wstring(0).c_str());
+	applyMask.SetCheck(false);
+	
+	//ROI
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << 0.9;
 	roiSizeFactor.SetWindowText(ss.str().c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << 1.05;
 	roiSecFactor.SetWindowText(ss.str().c_str());
-	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(0) << 5.0;
-	roiMedianBufSize.SetWindowText(ss.str().c_str());
+	roiMedianBufSize.SetWindowText(std::to_wstring(5).c_str());
 	
 	//Background detection
 	ss.str(std::wstring());
@@ -2222,25 +2334,32 @@ void PrefDialog::OnBnClickedButton1()
 	bgValuesNum.SetWindowText(std::to_wstring(5).c_str());
 
 	//Other processing configuration
+	impactFrameNum.SetWindowText(std::to_wstring(50).c_str());
 	minimumFrames.SetWindowText(std::to_wstring(15).c_str());
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << 0.8;
 	histScale.SetWindowText(ss.str().c_str());
 	
+	debayeringCode.SetCurSel(0);
 	ignoreIncorrectFrames.SetCheck(true);
 	useFilter.SetCheck(true);
-	filterSelect.EnableWindow(useFilter.GetCheck());
+	filterSelect.SetCurSel(1);
+	//filterSelect.EnableWindow(useFilter.GetCheck()); removed as None filter is possible
 
 	opts.impact_duration_min =		0.4;
 	opts.ROI_min_px_val =			10;
-	opts.ROI_min_size =				70;
+	opts.ROI_min_size = 68;					// to ignore too small ROIs where impact could be missed
 	opts.impact_distance_max =		0.03;
 	opts.impact_max_avg_min =		177.0;
 	opts.impact_confidence_min =	3.0;
-	opts.maxinstances =				1;
-	strcpy(opts.darkfilename, "darkfile.tif");
+	opts.transparency_min_pc =		20;			// tolerance in transparency for a frame compared to 1st frame
+	opts.similarity_decrease_max_pc = 12;	// max decrease between two frames similarity
+	//opts.impact_brightness_increase_min_factor =		0.15; // Minimum of brightness increase from mean value factor
+	opts.resources_usage = 1;
+	strcpy_s(opts.darkfilename, sizeof(opts.darkfilename), "darkfile.tif");
 
 	// Apply changes
+	Sleep(1000); // to give opportunity to see changes
 	PrefDialog::OnBnClickedOk();
 }
 
@@ -2261,19 +2380,19 @@ void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	float fMin = 0.0f;
 	float fMax = 1.0f;
-	float fStep = 0.1f;
+	float fStep = 0.01f;
 	
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 
 	CString str;
-	meanValue.GetWindowTextW(str);
+	impactMinBrightnessIncrease.GetWindowTextW(str);
 	float val = std::stof(str.GetString());
 	val += pNMUpDown->iDelta * fStep;
 	if (val < fMin)	val = fMin;
 	if (val > fMax)	val = fMax;
 	std::wstringstream ss;
 	ss << std::fixed << std::setprecision(2) << val;
-	meanValue.SetWindowTextW(ss.str().c_str());
+	impactMinBrightnessIncrease.SetWindowTextW(ss.str().c_str());
 	*pResult = 0;
 }
 
@@ -2301,6 +2420,37 @@ void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
 	impactMinTime.SetWindowTextW(ss.str().c_str());
 	*pResult = 0;
 }*/
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin1(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin 1 action.
+ *
+ * @author	Jon
+ * @date	2017-05-12
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the nmhdr.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin8(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.0f;
+	float fMax = 1.0f;
+	float fStep = 0.01f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	impactRadiusSharedFactor.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	impactRadiusSharedFactor.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
 
 /**************************************************************************************************
  * @fn	void PrefDialog::OnDeltaposSpin14(NMHDR *pNMHDR, LRESULT *pResult)
@@ -2603,7 +2753,15 @@ void PrefDialogUser::OnBnClickedOk()
 
 void PrefDialogUser::OnBnClickedButton1()
 {
-	strcpy(opts.darkfilename, "darkfile.tif");
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// DO NOT FORGET: All default values must be setup in parallel in::
+	//	- default reset functions							PrefDialog::OnBnClickedButton1
+	//														PrefDialogUser::OnBnClickedButton1()
+	//	- ini read function									CDeTeCtMFCDlg::CDeTeCtMFCDlg
+	//  - and in Autoupdate if needed						AutoUpdate::Update_ini_parameters_resources_files
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	
+	strcpy_s(opts.darkfilename, sizeof(opts.darkfilename), "darkfile.tif");
 
 	//Explorer.SetCheck(true);
 
@@ -2734,9 +2892,9 @@ void SendEmailDlg::OnBnClickedButton1()
 	char	mailto_command[MAX_STRING]	= { 0 };
 	wchar_t	wmailto_command[MAX_STRING] = { 0 };
 	if (opts.email) {
-		strcpy(mailto_command, "mailto:delcroix.marc@free.fr?subject=Impact detection ");
+		strcpy_s(mailto_command, sizeof(mailto_command), "mailto:delcroix.marc@free.fr?subject=Impact detection ");
 		strcat_s(mailto_command, sizeof(mailto_command), log_detection_dirname);
-		strcat(mailto_command, "&body=(*please attach ");
+		strcat_s(mailto_command, sizeof(mailto_command), "&body=(*please attach ");
 	}
 
 	// Zip post-processing
@@ -2747,21 +2905,21 @@ void SendEmailDlg::OnBnClickedButton1()
 
 		if (opts.email) {
 			// email continued with zip file
-			strcat(mailto_command, "impact_detection zip file ");
+			strcat_s(mailto_command, sizeof(mailto_command), "impact_detection zip file ");
 			strcat_s(mailto_command, sizeof(mailto_command), zipfile);
 		}
 	}
 	else {
 		if (opts.email) {
 			// email continued with detection log and images
-			strcat(mailto_command, "detection images and detect log file from ");
+			strcat_s(mailto_command, sizeof(mailto_command), "detection images and detect log file from ");
 			strcat_s(mailto_command, sizeof(mailto_command), impact_detection_dirname);
 		}
 	}
 	//E-Mail post-processing
 	if (opts.email) {
 		// email end
-		strcat(mailto_command, " *)%0A%0AHi Marc,%0A%0AHere are the results and the images of my analysis, I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ACheers,%0A");
+		strcat_s(mailto_command, sizeof(mailto_command), " *)%0A%0AHi Marc,%0A%0AHere are the results and the images of my analysis, I checked the images and found: %0A*please check: (X)*%0A ( ) nothing suspect%0A ( ) something suspect like an impact%0A%0ACheers,%0A");
 		mbstowcs(wmailto_command, mailto_command, strlen(mailto_command) + 1);
 		ShellExecute(NULL, L"open", wmailto_command, NULL, NULL, SW_SHOWNORMAL);
 	}
@@ -2797,6 +2955,7 @@ END_MESSAGE_MAP()
  *
  * @param [in,out]	pParent	If non-null, the parent.
  **************************************************************************************************/
+
 ProgressDialog::ProgressDialog(CWnd* pParent /*=NULL*/)
 	: CDialog(IDD_PROGRESSDIALOG, pParent)
 {
@@ -2839,8 +2998,6 @@ void ProgressDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PROGRESS2, dtcProgress_all);
 	DDX_Control(pDX, IDC_STATICI, progressInfo);
 }
-
-
 
 /**********************************************************************************************/
  /*	Action of button to check detection image folder and send zip file                        */

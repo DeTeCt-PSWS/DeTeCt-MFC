@@ -26,8 +26,6 @@ void read_winjupos_file(const std::string winjupos_derotation_filename, std::str
 int		AutostakkertInstancesNumber();
 BOOL	IsParentAutostakkert(DWORD *pASpid);
 BOOL	IsParentDeTeCt(DWORD *pASpid);
-BOOL	IsParentAutostakkertRunning(const DWORD ASpid);
-
 
 // ************** General functions *************
 

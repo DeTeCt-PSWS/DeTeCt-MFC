@@ -183,12 +183,12 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				fc->NumberPos=InRstr(filename_root,"1")+1+(int)strlen(fc->filename_folder);
 			}
 		}
-		strncpy(fc->filename_rac, fname, fc->NumberPos);
-		strcat(fc->filename_rac, "\0");
+		strncpy_s(fc->filename_rac, sizeof(fc->filename_rac), fname, fc->NumberPos);
+		strcat_s(fc->filename_rac, sizeof(fc->filename_rac), "\0");
 		if (strlen(fc->filename_rac)>strlen(fc->filename_folder)) {
 			right(fc->filename_rac,strlen(fc->filename_rac)-strlen(fc->filename_folder)-1,fc->filename_head);
 		} else {
-			strcat(fc->filename_head, "\0");
+			strcat_s(fc->filename_head, sizeof(fc->filename_head), "\0");
 		}
 		if (strcmp(fc->filename_folder,".")!=0) {
 			fc->NumberPos=fc->NumberPos-(int) strlen(fc->filename_folder)-1;
@@ -221,12 +221,12 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 		init_string(fc->filename_rac);
 		init_string(fc->filename_head);
 		init_string(fc->filename_trail);
-		strncpy(fc->filename_rac, fname, fc->NumberPos+1);
-		strcat(fc->filename_rac, "\0");
+		strncpy_s(fc->filename_rac, sizeof(fc->filename_rac), fname, fc->NumberPos+1);
+		strcat_s(fc->filename_rac, sizeof(fc->filename_rac), "\0");
 		if (strlen(fc->filename_rac)>strlen(fc->filename_folder)) {
 			right(fc->filename_rac,strlen(fc->filename_rac)-strlen(fc->filename_folder)-1,fc->filename_head);
 		} else {
-			strcat(fc->filename_head, "\0");
+			strcat_s(fc->filename_head, sizeof(fc->filename_head), "\0");
 		}
 		mid(filename_root,strlen(fc->filename_head)+fc->LeadingZeros+1,strlen(filename_root)-1-strlen(fc->filename_ext)-fc->LeadingZeros-1-strlen(fc->filename_head),fc->filename_trail);
 		if (strcmp(fc->filename_folder,".")!=0) {
@@ -392,6 +392,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 						//exit(EXIT_FAILURE);
 					}
 					free(header);
+					header = NULL;
 					if (!ignore) {
 						 char msgtext[MAX_STRING] = { 0 };										
 						snprintf(msgtext, MAX_STRING, "cannot read fits header for file %s frame %d (Header size different from %zd)\n", filename, fc->frame, fc->header_size);
@@ -414,6 +415,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 							//exit(EXIT_FAILURE);
 						}
 						free(header);
+						header = NULL;
 						if (!ignore) {
 							 char msgtext[MAX_STRING] = { 0 };										
 							snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
@@ -512,6 +514,7 @@ void fileReleaseCapture(FileCapture *fc)
 		switch (fc->FileType) {
 		case CAPTURE_FITS:
 			free(fc->image->imageData);
+			fc->image->imageData = NULL;
 			cvReleaseImageHeader(&fc->image);
 			break;
 		case CAPTURE_FILES:
@@ -519,6 +522,7 @@ void fileReleaseCapture(FileCapture *fc)
 			break;
 		}
 		free(fc);
+		fc = NULL;
 	}
 }
 void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
@@ -526,13 +530,13 @@ void fileGenerate_filename(char *dest, FileCapture *fc, int nb)
 	char nbstring[MAX_STRING] = { 0 };
 	int max;
 	
-	dest=strcpy(dest,fc->filename_rac);
+	strcpy_s(dest, MAX_STRING, fc->filename_rac);
 	max = fc->LeadingZeros;
 	for (int i=1; i<=max; i++) {
-		dest=strcat(dest,"0");
+		strcat_s(dest, MAX_STRING, "0");
 	}
 	sprintf(nbstring, "%d%s.%s", nb,fc->filename_trail,fc->filename_ext);
-	strcat(dest, nbstring);
+	strcat_s(dest, MAX_STRING, nbstring);
 }
 
 void fileGet_filename(char *dest, FileCapture *fc, int nb)
@@ -547,7 +551,7 @@ void fileGet_filename(char *dest, FileCapture *fc, int nb)
 	found=0;
 	fileGenerate_number(tmp_string, fc, nb);
 	sprintf(filename_target, "%s%s%s.%s", fc->filename_head,tmp_string,fc->filename_trail,fc->filename_ext);
-	strcat(filename_target,"\0");
+	strcat_s(filename_target, sizeof(filename_target), "\0");
 //						if (debug_mode) { fprintf(stdout, "%s: Checking filename=%s\n", __func__, filename_target); }
 	dir=opendir(fc->filename_folder);
 	if ((dir)!=NULL) {
@@ -563,7 +567,7 @@ void fileGet_filename(char *dest, FileCapture *fc, int nb)
 //			if (strncmp(dent->d_name, filename_target, strlen(filename_target)) == 0) {
 //				|| ((strlen(dent->d_name) == strlen(filename_target))))
 				found=1;
-				strcpy(tmp_string,dent->d_name);
+				strcpy_s(tmp_string, sizeof(tmp_string), dent->d_name);
 			}
 		}
 	//	close((int) dir);
@@ -581,11 +585,11 @@ void fileGet_filename(char *dest, FileCapture *fc, int nb)
 		Warning(WARNING_MESSAGE_BOX, "cannot open directory", __func__, msgtext);
 	}
 	if (found!=1) {
-		strcpy(dest,"");
+		strcpy_s(dest, MAX_STRING, "");
 	} else {
-		strcpy(dest,fc->filename_folder);
-		strcat(dest,"\\");
-		strcat(dest,tmp_string);
+		strcpy_s(dest, MAX_STRING, fc->filename_folder);
+		strcat_s(dest, MAX_STRING, "\\");
+		strcat_s(dest, MAX_STRING, tmp_string);
 	}
 }
 
@@ -595,16 +599,16 @@ void fileGenerate_number(char *dest, FileCapture *fc, int nb)
 	char nbstring[MAX_STRING]	= { 0 };
 	char tmpstring[MAX_STRING]	= { 0 };
 	
-	strcpy(tmpstring,"");
+	strcpy_s(tmpstring, sizeof(tmpstring), "");
 	max = fc->LeadingZeros;
 	for (int i=1; i<=max; i++) {
-		strcat(tmpstring,"0");
+		strcat_s(tmpstring, sizeof(tmpstring),"0");
 	}
 	sprintf(nbstring, "%d", nb);
-	strcat(tmpstring, nbstring);
+	strcat_s(tmpstring, sizeof(tmpstring), nbstring);
 	if (fc->LeadingZeros>0) {
 		right(tmpstring,fc->LeadingZeros+1,dest);
 	} else {
-		strcpy(dest,tmpstring);
+		strcpy_s(dest, MAX_STRING, tmpstring);
 	}
 }

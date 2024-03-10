@@ -116,7 +116,7 @@ fitsrhead (const char *filename, int *lhead, int *nbhead)
     header = NULL;
 	nbr = 0;
 	nbprim=0;
-	strcpy(extnam, "");
+	strcpy_s(extnam, sizeof(extnam), "");
 
     /* Check for FITS WCS specification and ignore for file opening */
     mwcs = (char*) strchr (filename, '%');
@@ -301,7 +301,7 @@ fitsrhead (const char *filename, int *lhead, int *nbhead)
 			} else {
 				for (i = 0; i < lprim; i++)
 					pheader[i] = header[i];
-				strncpy(pheader, header, lprim);
+				strncpy_s(pheader, MAX_STRING, header, lprim);
 			}
 		}
 		}

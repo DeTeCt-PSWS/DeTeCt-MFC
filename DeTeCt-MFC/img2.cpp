@@ -759,8 +759,8 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 			gray = dtcApplyMask(gray.clone());
 //AS3
 			cm = dtcGetGrayMatCM(gray); // gets Center of Mass
-			if (cm.x < 0 || cm.y < 0) throw std::logic_error("ROI cannot be obtained, negative or zero centre of brightness");
-			//if (cm.x <= 0 || cm.y <= 0) return cv::Rect(0, 0, 0, 0);
+			//if (cm.x < 0 || cm.y < 0) throw std::logic_error("ROI cannot be obtained, negative or zero centre of brightness");
+			if (cm.x <= 0 || cm.y <= 0) return cv::Rect(0, 0, 0, 0);
 			win = dtcGetGrayImageROIcCM(gray, cm, (float)opts.medSize, opts.facSize, opts.secSize); // gets ROI
 			roi = dtcMaxRect(win, roi);
 			gray.~Mat();

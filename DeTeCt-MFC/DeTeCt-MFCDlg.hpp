@@ -91,6 +91,8 @@ public:
 	static CStatic Instance;
 	static CStatic MaxInstances;
 	CSpinButtonCtrl ValueMaxInstances;
+	CComboBox		ResourcesUsageSelect;
+
 	afx_msg void OnBnClickedOk();
 	afx_msg BOOL OnCheckUpdate();
 	afx_msg void OnFileOpenFolder();
@@ -216,6 +218,8 @@ public:
 	afx_msg void OnBnClickedCheckExit();
 	afx_msg void OnBnClickedCheckShutdown();
 	afx_msg void OnDeltaposSpinInstances(NMHDR *pNMHDR, LRESULT *pResult);
+	afx_msg void OnCbnSelchangeCombo1();
+
 };
 #pragma once
 
@@ -270,14 +274,22 @@ public:
 
 	/* Note: OnDeltaposSpin function only needed for non integer values */
 	//Impact
-	CEdit meanValue;
-	CSpinButtonCtrl meanValueSpin;
-	afx_msg void OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult); //Meanvalue
+	CEdit impactMinBrightnessIncrease; // was meanValue
+	CSpinButtonCtrl impactMinBrightnessIncreaseSpin; // was meanValue
+	afx_msg void OnDeltaposSpin1(NMHDR* pNMHDR, LRESULT* pResult); //impactMinBrightnessIncrease
 	CEdit impactMinTime;
 	CSpinButtonCtrl minTimeSpin;
 	//afx_msg void OnDeltaposSpin2(NMHDR* pNMHDR, LRESULT* pResult); //Impactm min time
-	CEdit impactRadius;
-	CSpinButtonCtrl radiusSpin;
+	CEdit impactRadiusMin;
+	CSpinButtonCtrl impactRadiusMinSpin;
+	CEdit impactRadiusRatio;
+	CSpinButtonCtrl impactRadiusRatioSpin;
+	CEdit impactRadiusMax;
+	CSpinButtonCtrl impactRadiusMaxSpin;
+
+	CEdit impactRadiusSharedFactor;
+	CSpinButtonCtrl impactRadiusSharedFactorSpin;
+	afx_msg void OnDeltaposSpin8(NMHDR* pNMHDR, LRESULT* pResult); // Share of brightest points located within radius distance of brightest candidate
 	CEdit impactBrightThresh;
 	CSpinButtonCtrl brightThreshSpin;
 	CButton applyMask;

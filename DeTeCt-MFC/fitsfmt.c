@@ -74,6 +74,7 @@ void fitsGet_info(FileCapture *fc, const char *fname, double *date)
 
 	(*date)=fitsJD_date(buffer);
 	free(buffer);
+	buffer = NULL;
 }
 
 double fitsJD_date(char *buffer)
@@ -95,7 +96,7 @@ double fitsJD_date(char *buffer)
 									if (debug_mode) { fprintf(stdout, "fitsJD_date: First DATE-OBS %f\n", date); }
 		jd = gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0) + (gregorian_calendar_to_jd((int)fabs(date) + 1, 1, 1, 0, 0, 0.0) - gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0))*(date - (int)fabs(date));
 	} else if (ksearch (buffer,"TIMESTMP")) {      /* 08/08/2012 04:49:17.751 */
-		strcpy(value,hgetc (buffer,"TIMESTMP"));
+		strcpy_s(value, sizeof(value), hgetc (buffer,"TIMESTMP"));
 		replace_str(value, "'", "");
 		jd=gregorian_calendar_to_jd(atoi(mid(value,6,4,tmpline)),atoi(mid(value,3,3,tmpline)),atoi(mid(value,0,2,tmpline)),atoi(mid(value,11,2,tmpline)),atoi(mid(value,14,2,tmpline)),strtod(mid(value,17,6,tmpline),NULL));
 									if (debug_mode) { fprintf(stdout, "fitsJD_date: First TIMESTMP %s\n", value); }

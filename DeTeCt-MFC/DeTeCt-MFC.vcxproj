@@ -46,6 +46,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <UseOfMfc>Dynamic</UseOfMfc>
+    <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -82,6 +83,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <TargetName>DeTeCt</TargetName>
+    <IncludePath>G:\opencv460\build\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>G:\opencv460\build\x64\vc15\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -139,26 +142,27 @@
       </PrecompiledHeader>
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>AFX_DESIGN_TIME;_WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>AFX_DESIGN_TIME;_CRT_SECURE_NO_WARNINGS;_WINDOWS;_DEBUG;_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>G:\opencv460\build\include;C:\ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <CompileAs>Default</CompileAs>
+      <AdditionalIncludeDirectories>G:\opencv460\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <FunctionLevelLinking>true</FunctionLevelLinking>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
-      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
       <EnableParallelCodeGeneration>true</EnableParallelCodeGeneration>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <ExceptionHandling>Async</ExceptionHandling>
+      <CompileAs />
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <AdditionalLibraryDirectories>G:\opencv460\build\x64\vc15\lib;%(AdditionalLibraryDirectories);G:\ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opencv_world460.lib;opencv_world460d.lib;uafxcw.lib;libcmt.lib;vfw32.lib;shell32.lib;kernel32.lib</AdditionalDependencies>
+      <AdditionalDependencies>opencv_world460d.lib;uafxcw.lib;libcmt.lib;vfw32.lib;shell32.lib;kernel32.lib</AdditionalDependencies>
       <OptimizeReferences>false</OptimizeReferences>
       <EnableCOMDATFolding>false</EnableCOMDATFolding>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries>uafxcw.lib;libcmt.lib</IgnoreSpecificDefaultLibraries>
+      <DelayLoadDLLs>%(DelayLoadDLLs)</DelayLoadDLLs>
+      <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
     </Link>
     <Midl>
       <MkTypLibCompatible>false</MkTypLibCompatible>
@@ -173,6 +177,9 @@
     <ProjectReference>
       <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
     </ProjectReference>
+    <Manifest>
+      <AdditionalManifestFiles>res/manifest.xml %(AdditionalManifestFiles)</AdditionalManifestFiles>
+    </Manifest>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -406,7 +413,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="DeTeCt-MFC.rc" />
+    <ResourceCompile Include="DeTeCt-MFC.rc">
+      <FileType>XSD</FileType>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\x64\Release\DeTeCt.ini" />

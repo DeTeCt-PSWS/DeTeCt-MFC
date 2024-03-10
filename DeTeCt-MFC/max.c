@@ -14,6 +14,16 @@
 #include <windows.h>
 #include <strsafe.h>
 
+// **************** Internal functions **************************
+void 		delete_head_item(LIST* list);
+
+// **************** unused functions ****************************
+/*
+double 		get_item_array_mean_value(ITEM** l, int n);
+void 		print_list_item(LIST* l, int max);
+void 		print_item_array(ITEM** ord, size_t n, size_t max);
+*/
+
 LIST *init_list(LIST *list, int maxsize)
 {
 	list->size = 0;
@@ -59,32 +69,6 @@ ITEM *create_item(POINT_FRAME *p)
 	return i;
 }
 
-void delete_head_item(LIST *list)
-{
-	ITEM *item;
-	
-	if (!list) return;
-	
-	if (!(item = list->head)) return;
-
-	if (list->head == list->tail)
-	{
-		list->tail = NULL;
-	}
-	
-	list->head = item->next;
-	
-	if (item->next)
-	{
-		item->next->prev = NULL;
-	}
-	
-	free(item->point);
-	free(item); 
-	
-	list->size--;
-}
-
 void add_tail_item(LIST *list, ITEM *item)
 {
 	int c;
@@ -119,38 +103,26 @@ void delete_list(LIST *list)
 	}
 }
 
-/*
-void print_list(LIST *list)
-{
-	ITEM *item;
-	
-	item = list->head;
-	
-	printf("----------------------------------------------------------------------\n");
-	while (item)// && item != list->tail)
-	{
-		printf("Size: %d\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", list->size, item->point->frame, item->point->val, item->point->x, item->point->y);
-		item = item->next;
-	}
-	printf("Head: %p\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", list->head, list->head->point->frame, list->head->point->val, list->head->point->x, list->head->point->y);
-	printf("Tail: %p\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", list->tail, list->tail->point->frame, list->tail->point->val, list->tail->point->x, list->tail->point->y);
-	printf("----------------------------------------------------------------------\n");
-}
-
-void print_array(ITEM **array, int size)
+double get_item_point_val_list_mean_value(LIST* l)
 {
 	int c;
-	
-	printf("----------------------------------------------------------------------\n");
-	for (c = 0; c < size; c++) {
-		printf("Size: %d\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", size, array[c]->point->frame, array[c]->point->val, array[c]->point->x, array[c]->point->y);
+	double val;
+	ITEM* item;
+
+	for (val = 0.0, c = 0, item = l->head;		item;	item = item->next, c++)
+	{
+		val += item->point->val;
 	}
-	printf("----------------------------------------------------------------------\n");
+
+	return c > 0 ? val / c : 0;
 }
-*/
 
+void init_dtc_struct(DTCIMPACT* dtc)
+{
+	dtc->MaxFrame = dtc->nMaxFrame = dtc->nMinFrame = 0;
+}
 
-int itemcmp(const void *a, const void *b)
+int item_point_val_cmp(const void *a, const void *b) // 1 if vala < valb, 0 if =, -1 if >
 {
 	if ((*((ITEM **) a))->point->val < (*((ITEM **) b))->point->val) return 1;
 	else if ((*((ITEM **) a))->point->val > (*((ITEM **) b))->point->val) return -1;
@@ -180,8 +152,8 @@ int itemcmp(const void *a, const void *b)
 	}
 	for (tmpSrc = list->head, tmp = ord, c = 0; tmpSrc && c < list->size; tmpSrc = tmpSrc->next, tmp++, c++)
 			*tmp = tmpSrc;
-	qsort(ord, list->size, sizeof (ITEM *), itemcmp);
-	meanValue = get_item_list_mean_value(list);
+	qsort(ord, list->size, sizeof (ITEM *), item_point_val_cmp);
+	meanValue = get_item_point_val_list_mean_value(list);
 	TCHAR buffer[1000];
 	// /*StringCchPrintf(buffer, sizeof(buffer) / sizeof(TCHAR), TEXT("%s %f\n"), TEXT("Max-Mean value:"), ord[0]->point->val - meanValue);
 	// OutputDebugString(buffer);
@@ -251,52 +223,71 @@ int itemcmp(const void *a, const void *b)
 		}
 	}
 	free(ord);
+	ord = NULL;
 
 	return nb_impact;
 }
 */
 
-double get_item_array_mean_value(ITEM **l, int n)
-{
-	int i;
-	double val;
-	
-	val=0;
-	for (i = 0; i < n; i++, l++)
-	{
-		val += (*l)->point->val;
-	}
-	return val/n;
-}
 
-double get_item_list_mean_value(LIST *l)
+//*****************************************************************************************
+//********************************* Internal functions ************************************
+//*****************************************************************************************
+
+void delete_head_item(LIST* list) // new head item = next in the list
 {
-	int c;
-	double val;
-	ITEM *item;
-	
-	for (val = 0.0, c = 0, item = l->head; item; item = item->next, c++)
+	ITEM* item;
+
+	if (!list) return;
+
+	if (!(item = list->head)) return;
+
+	if (list->head == list->tail)
 	{
-		val += item->point->val;
+		list->tail = NULL;
 	}
 
-	return c > 0 ? val/c : 0;
+	list->head = item->next; // new head item = next in the list
+
+	if (item->next)
+	{
+		item->next->prev = NULL;
+	}
+
+	free(item->point);
+	item->point = NULL;
+	free(item);
+	item = NULL;
+
+	list->size--;
 }
 
-void init_dtc_struct(DTCIMPACT *dtc)
-{
-	dtc->MaxFrame = dtc->nMaxFrame = dtc->nMinFrame = 0;
-}
 
-void print_list_item(LIST *l, int max)
+
+
+
+
+
+
+
+
+
+
+
+//*****************************************************************************************
+//********************************* Unused functions **************************************
+//*****************************************************************************************
+
+/*
+void print_list_item(LIST* l, int max)
 {
-	ITEM *item;
+	ITEM* item;
 	int c;
-	
+
 	item = l->head;
 	c = 0;
-	
-	printf("---\n");	
+
+	printf("---\n");
 	while (item)
 	{
 		printf("%4ld(%9.2f) ", item->point->frame, item->point->val);
@@ -308,15 +299,59 @@ void print_list_item(LIST *l, int max)
 		}
 		else
 			c++;
-			
+
 	}
 	printf("\n");
 }
 
-void print_item_array(ITEM **ord, size_t n, size_t max)
+void print_item_array(ITEM** ord, size_t n, size_t max)
 {
-	 for (size_t c = 0; c < n && c < max; c++)
+	for (size_t c = 0; c < n && c < max; c++)
 		printf("Frame %5ld: val=%8.2f (%4d,%4d)\n",
-		       ord[c]->point->frame, ord[c]->point->val,
-		       ord[c]->point->x, ord[c]->point->y);		       
+			ord[c]->point->frame, ord[c]->point->val,
+			ord[c]->point->x, ord[c]->point->y);
 }
+
+double get_item_array_mean_value(ITEM** l, int n)
+{
+	int i;
+	double val;
+
+	val = 0;
+	for (i = 0; i < n; i++, l++)
+	{
+		val += (*l)->point->val;
+	}
+	return val / n;
+}
+*/
+
+/*
+void print_list(LIST *list)
+{
+	ITEM *item;
+
+	item = list->head;
+
+	printf("----------------------------------------------------------------------\n");
+	while (item)// && item != list->tail)
+	{
+		printf("Size: %d\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", list->size, item->point->frame, item->point->val, item->point->x, item->point->y);
+		item = item->next;
+	}
+	printf("Head: %p\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", list->head, list->head->point->frame, list->head->point->val, list->head->point->x, list->head->point->y);
+	printf("Tail: %p\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", list->tail, list->tail->point->frame, list->tail->point->val, list->tail->point->x, list->tail->point->y);
+	printf("----------------------------------------------------------------------\n");
+}
+
+void print_array(ITEM **array, int size)
+{
+	int c;
+
+	printf("----------------------------------------------------------------------\n");
+	for (c = 0; c < size; c++) {
+		printf("Size: %d\tframe:%3ld\tval= %f\t x=%3d y=%3d\n", size, array[c]->point->frame, array[c]->point->val, array[c]->point->x, array[c]->point->y);
+	}
+	printf("----------------------------------------------------------------------\n");
+}
+*/

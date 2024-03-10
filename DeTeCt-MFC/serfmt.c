@@ -174,7 +174,7 @@ SerCapture *serCaptureFromFile(const char *fname)
 			//0     6
 		double fps = 0.0;
 		char fps_search[SER_TELESCOPE_SIZE];
-		strcpy(fps_search,"fps=");
+		strcpy_s(fps_search, sizeof(fps_search), "fps=");
 		if (InStr(sc->header.Telescope, fps_search) >= 0) {
 			size_t i = strlen(fps_search);
 			do  {
@@ -424,7 +424,7 @@ void serReleaseCapture(SerCapture *sc)
 {
 	if (sc != NULL) {
 		/* fprintf(stdout, "serReleaseCapture: Releasing imageData %d\n", sc->image->imageData);
-		free(sc->image->imageData);*/
+		free(sc->image->imageData);sc->image->imageData=NNULL;*/
 		if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing fh %p\n", sc->fh); }
 		if (!(fclose(sc->fh) == 0)) {
 			char msgtext[MAX_STRING] = { 0 };
@@ -433,7 +433,7 @@ void serReleaseCapture(SerCapture *sc)
 			//exit(EXIT_FAILURE);
 		}
 		/*											if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing image %d size data %d\n", (int) (sc->image), sizeof(*sc->image->imageData)); }
-		free(sc->image->imageData);*/
+		free(sc->image->imageData);sc->image->imageData=NULL;*/
 		if (debug_mode) { fprintf(stdout, "serReleaseCapture: Releasing image %p size image %zd\n", sc->image, sizeof(*sc->image)); }
 		cvReleaseImage(&sc->image);
 		sc->image = NULL;
@@ -515,6 +515,7 @@ void serPrintStr(char *p, int sz)
 
 		OutputDebugStringA(output);
 		free(output);
+		output = NULL;
 	}
 }
 
@@ -769,6 +770,7 @@ size_t serFrameRead(SerCapture* sc) {
 			read_values = 0;
 		}
 		free(temp_buffer);
+		temp_buffer = NULL;
 		return read_values;
 	} else return 0;
 }
@@ -830,6 +832,7 @@ void serFixPixelDepth(SerCapture *sc, int frame_number) {
 		}
 
 		free(temp_buffer);
+		temp_buffer	= NULL;
 
 		_fseeki64(sc->fh, SER_HEADER_SIZE, SEEK_SET);
 	}

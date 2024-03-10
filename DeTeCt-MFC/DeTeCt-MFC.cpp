@@ -26,7 +26,7 @@ using namespace std;
 std::string full_version;
 std::string app_title;
 std::string message[2048];
-BOOL dev_mode = FALSE;
+bool dev_mode = FALSE; 
 char dev_computer_name[MAX_STRING] = "Jupiter";
 char dev_user_name[MAX_STRING] = "Marc";
 char computer_name[MAX_STRING] = "";
@@ -75,7 +75,6 @@ BOOL CDeTeCtMFCApp::InitInstance()
 
 	CString commandLineArgument = GetCommandLine();
 	CStringArray commandParametres;
-	int i = 0;
 	std::string object;
 	std::string target_file;
 	std::string target_folder;
@@ -110,11 +109,14 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.ovtype = 0;	// Output video type to create
 
 // options?
-	opts.timeImpact = 0;				// seconds
-	opts.incrLumImpact = 0;				// mean value factor
-	opts.incrFrameImpact = 0;				// Minimum number of frames for impact
-	opts.impact_duration_min = 0;				// Min duration for impact
-	opts.radius = 0;				// Impact radio (pixels)
+	opts.timeImpact					= 0;	// seconds
+	opts.impact_brightness_increase_min_factor				= 0;	// Minimum of brightness increase from mean value factor
+	opts.incrFrameImpact			= 0;	// Minimum number of frames for impact
+	opts.impact_duration_min		= 0;	// Min duration for impact
+	opts.impact_radius_min			= 0;	// Impact radius (pixels)
+	opts.impact_radius_max			= 0.0;	// Impact radius max (pixels)
+	opts.impact_radius_ratio		= 0.0;	// Impact radius ROI ratio
+	opts.impact_radius_shared_candidates_factor_min = 0.30;	// Share of brightest points located within radius distance of brightest candidate
 	opts.nframesROI = 0;				// Number of frames for ROI calculation
 	opts.nframesRef = 0;				// Number of frames for ROI calculation
 	opts.wROI = 0; 				// ROI width  (CM centered)
@@ -180,7 +182,8 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.version[MAX_STRING] = { 0 };
 	opts.DeTeCtQueueFilename[MAX_STRING] = { 0 };
 	opts.LogConsolidatedDirname[MAX_STRING] = { 0 };
-	opts.parent_instance = FALSE;
+	opts.parent_instance		= FALSE;
+	opts.resources_usage		= 0;
 
 	DeTeCtFileName(DeTeCtNameChar);
 	std::string DeTeCtName(DeTeCtNameChar); // "DeTeCt.exe"
@@ -225,7 +228,7 @@ if (opts.debug) MessageBox(NULL, _T("Launched from AutoStakkert PID ") + CString
 	// builds full program name with version, compilation date and platform
 	compilation_date.append(__DATE__);
 	month_string = compilation_date.substr(0, 3);
-	for (i = 0; i < 12; i++) {
+	for (int i = 0; i < 12; i++) {
 		if (month_string.compare(months[i]) == 0) {
 			std::string m = std::to_string(i + 1);
 			month.append("0");
@@ -604,7 +607,7 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 			CT2A tmpo(objectname);
 			if (file) {
 				//opts.filename = new char[strlen(tmpo)+1];  // exception read access
-				strcpy(opts.filename, tmpo);
+				strcpy_s(opts.filename, sizeof(opts.filename), tmpo);
 				opts.filename[strlen(tmpo)] = '\0';
 				message_lines[index_message++] = "Using file " + std::string(tmpo);
 				message_lines[index_message] = "\0";
@@ -613,7 +616,7 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 				DIR *folder_object;
 				if (folder_object = opendir(tmpo)) {
 					//opts.dirname = new char[strlen(tmpo) + 1];  // exception read access
-					strcpy(opts.dirname, tmpo);
+					strcpy_s(opts.filename, sizeof(opts.filename), tmpo);
 					opts.dirname[strlen(tmpo)] = '\0';
 					closedir(folder_object);
 					message_lines[index_message++] = "Using directory " + std::string(tmpo);
@@ -838,7 +841,7 @@ if (opts.debug) MessageBox(NULL, _T("AutoStakkert file queue ") + (CString)(std:
 		opts.parent_instance = TRUE;
 	}
 	else {																	// // DeTeCt standalone mode (parent instance)
-		strcpy(opts.DeTeCtQueueFilename, "");
+		strcpy_s(opts.DeTeCtQueueFilename, sizeof(opts.DeTeCtQueueFilename), "");
 		opts.parent_instance = TRUE;
 	}
 }

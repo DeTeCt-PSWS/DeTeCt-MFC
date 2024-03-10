@@ -5,15 +5,15 @@
 /*    WRAPPER: Different acquisitions format routing functions					*/
 /*                                                                              */
 /********************************************************************************/
-#include "common.h"
+//#include "common.h"
 
-#include <stdio.h>
-#include <ctype.h>
+///#include <stdio.h>
+//#include <ctype.h>
 
 #include "wrapper.h"
-#include "serfmt.h"
-#include "dtc.h"
-#include "datation.h"
+//#include "serfmt.h"
+//#include "dtc.h"
+//#include "datation.h"
 
 /**********************************************************************************************/
 /******************************* Internal functions *******************************************/
@@ -118,6 +118,7 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 */
 				//if (!(capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname)))) {
 				//free(capt->u.capture);
+				// capt->u.capture=NULL;
 				//capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname));
 				//cv::VideoCapture NewVideo = cv::VideoCapture(fname);
 				//capt->u.videocapture = VideoCaptureFromFile(fname);

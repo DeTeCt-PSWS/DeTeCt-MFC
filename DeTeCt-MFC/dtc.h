@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.8.0"
+#define VERSION_NB		"3.9.0"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -100,13 +100,16 @@ struct options {
 	int				ovtype;	// Output video type to create
 
 // options?
-	double			timeImpact;				// seconds
-	double			incrLumImpact;				// mean value factor
-	int				incrFrameImpact;				// Minimum number of frames for impact
-	double			impact_duration_min;				// Min duration for impact
-	double			radius;				// Impact radio (pixels)
+	double			timeImpact;					// seconds
+	double			impact_brightness_increase_min_factor;	// Minimum of brightness increase from mean value factor
+	int				incrFrameImpact;			// Minimum number of frames for impact
+	double			impact_duration_min;		// Min duration for impact
+	double			impact_radius_min;			// Impact radius min (pixels)
+	double			impact_radius_ratio;		// Impact radius ROI ratio
+	double			impact_radius_max;			// Impact radius max (pixels)
+	double			impact_radius_shared_candidates_factor_min; // Share of brightest points located within radius distance of brightest candidate
 	unsigned long	nframesROI;				// Number of frames for ROI calculation
-	unsigned long	nframesRef;				// Number of frames for ROI calculation
+	unsigned long	nframesRef;				// Number of frames for reference frame calculation
 	unsigned long	wROI; 				// ROI width  (CM centered)
 	unsigned long	hROI;				// ROI height (CM centered)
 	int				bayer;				//debayering code
@@ -162,7 +165,7 @@ struct options {
 	bool			reprocessing_bak;			// Backup of reprocessing status
 	int				maxinstances_bak;			// Backup of Maximum number of DeTeCt instances status
 	bool			force_single_instance;
-	// Status
+// Status
 	bool			autostakkert;			// Launched from autostakkert
 	DWORD			autostakkert_PID;				// Parent autostakkert PID
 	DWORD		 	detect_PID;				// Parent detect PID
@@ -171,7 +174,11 @@ struct options {
 	char			LogConsolidatedDirname[MAX_STRING];
 	char			WarningsFilename[MAX_STRING];
 	char			ErrorsFilename[MAX_STRING];
+
 	bool			parent_instance;
+	int				resources_usage;				//level of resources usage
+	float			min_free_system_memory_pc;
+	float			min_available_cpu_pc;
 };
 typedef struct options OPTS;
 

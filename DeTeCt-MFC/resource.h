@@ -59,7 +59,9 @@
 #define IDC_SPIN2                       1011
 #define IDC_SPIN3                       1012
 #define IDC_SPIN4                       1013
+#define IDC_EDIT7                       1013
 #define IDC_SPIN5                       1014
+#define IDC_EDIT8                       1014
 #define IDC_RICHEDIT21                  1015
 #define IDC_SPIN6                       1015
 #define IDC_CHECK1                      1016
@@ -71,7 +73,10 @@
 #define IDC_CHECK7                      1022
 #define IDC_CHECK8                      1023
 #define IDC_CHECK9                      1024
+#define IDC_SPIN20                      1025
 #define IDC_SPIN7                       1026
+#define IDC_SPIN21                      1026
+#define IDC_EDIT9                       1027
 #define IDC_SPIN8                       1028
 #define IDC_SPIN9                       1030
 #define IDC_EDIT10                      1031

@@ -1,10 +1,19 @@
 #pragma once
+//		NB_INSTANCES											MIN		LOW		MEDIUM	HIGH	MAX
+///#define MAX_INSTANCES									1		max		max		max		max
+//#define MIN_FREE_SYSTEM_MEM_PC	00.0	// (in %)		0		50.0	40.0	30.0	20.0		
+//#define MIN_AVAILABLE_CPU_PC		00.0	// (in %)		0		70.0	50.0	30.0	15.0
+#define DETECT_CHILD_MEM_MB		415		//MB			1.33 * 310
+#define DETECT_CHILD_PROC_FACTOR_PC	225.0	// (in %)
 
 #include "stdafx.h"
 #include "dtc.h"
 
 enum class _Rating_type { Error, Null, Low, High };
 typedef enum _Rating_type Rating_type;
+
+enum class _Resources_usage { min, low, medium, high, max };
+typedef enum _Resources_usage Resources_usage;
 
 // ************** DeTeCt file and folder functions **********
 char	*DeTeCtFileName(char *DeTeCtFileNameChar);
@@ -41,3 +50,10 @@ int		getProcessName(const DWORD pid, wchar_t *fname, DWORD sz);
 int		KillsChildrenProcesses();
 int		ChildrenProcessesNumber();
 int		ParentChildrenProcessesNumber(const DWORD parent_PID);
+
+// ************** memory and CPU functions **********
+void	Set_ressource_usage(const int resources_usage);
+float	GetCPULoad();
+int		NbPossibleChildInstances_fromMemoryUsage();
+int		NbPossibleChildInstances_fromCPUUsage();
+int		NbPossibleChildInstances_fromMemoryandCPUUsage();

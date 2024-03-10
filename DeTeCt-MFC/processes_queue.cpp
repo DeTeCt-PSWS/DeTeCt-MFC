@@ -821,3 +821,109 @@ int ParentProcessChildren(const DWORD parent_PID, const BOOL kills)
 	}
 	return processed_children;
 }
+
+// ************** memory and CPU functions **********
+
+void	Set_ressource_usage(const int resources_usage) {
+
+	switch (resources_usage) {
+		case 1:
+			opts.maxinstances = std::thread::hardware_concurrency();
+			opts.min_free_system_memory_pc	= 50.0;
+			opts.min_available_cpu_pc		= 70.0;
+			break;
+		case 2:
+			opts.maxinstances = std::thread::hardware_concurrency();
+			opts.min_free_system_memory_pc	= 40.0;
+			opts.min_available_cpu_pc		= 50.0;
+			break;
+		case 3:
+			opts.maxinstances = std::thread::hardware_concurrency();
+			opts.min_free_system_memory_pc	= 30.0;
+			opts.min_available_cpu_pc		= 30.0;
+			break;
+		case 4:
+			opts.maxinstances				= std::thread::hardware_concurrency();
+			opts.min_free_system_memory_pc	= 20.0;
+			opts.min_available_cpu_pc		= 15.0;
+			break;
+		default:
+		case 0:
+			opts.maxinstances				= 1;
+			opts.min_free_system_memory_pc	= 0.0;
+			opts.min_available_cpu_pc		= 0.0;
+			break;
+	}
+}
+
+/*
+Resource Links:
+Calling memory info in c++:                             http://msdn.microsoft.com/en-us/library/aa366589%28VS.85%29.aspx
+I/O file handling in c++:                               http://www.cplusplus.com/doc/tutorial/files/
+Date and Time in c++:                                   http://www.tutorialspoint.com/cplusplus/cpp_date_time.htm
+CPU Load Percent (Credit to Jeremy Friesner):           https://stackoverflow.com/questions/23143693/retrieving-cpu-load-percent-total-in-windows-with-c
+Everything else (too many to list):                     https://stackoverflow.com/
+
+Grabs CPU load percent from the system, and or the Windows Task manager
+Designed to work with specifically Windows 7 and beyond
+*/
+
+//creates a static variable to convert Bytes to Megabytes
+#define MB 1048576
+
+static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
+{
+	static unsigned long long _previousTotalTicks = 0;
+	static unsigned long long _previousIdleTicks = 0;
+
+	unsigned long long totalTicksSinceLastTime = totalTicks - _previousTotalTicks;
+	unsigned long long idleTicksSinceLastTime = idleTicks - _previousIdleTicks;
+
+
+	float ret = 1.0f - ((totalTicksSinceLastTime > 0) ? ((float)idleTicksSinceLastTime) / totalTicksSinceLastTime : 0);
+
+	_previousTotalTicks = totalTicks;
+	_previousIdleTicks = idleTicks;
+	return ret;
+}
+
+static unsigned long long FileTimeToInt64(const FILETIME& ft)
+{
+	return (((unsigned long long)(ft.dwHighDateTime)) << 32) | ((unsigned long long)ft.dwLowDateTime);
+}
+
+// Returns 1.0f for "CPU fully pinned", 0.0f for "CPU idle", or somewhere in between
+// You'll need to call this at regular intervals, since it measures the load between
+// the previous call and the current one.  Returns -1.0 on error.
+float GetCPULoad()
+{
+	Sleep(250); // to get correct value
+	FILETIME idleTime, kernelTime, userTime;
+	return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime) + FileTimeToInt64(userTime)) : -1.0f;
+}
+
+
+int NbPossibleChildInstances_fromMemoryUsage() { //1ms
+	MEMORYSTATUS memStatus;
+	GlobalMemoryStatus(&memStatus);
+	return (int)((float) memStatus.dwTotalPhys / (1024.0 * 1024.0) * (100.0 - opts.min_free_system_memory_pc - (float) memStatus.dwMemoryLoad) / 100.0 / DETECT_CHILD_MEM_MB);
+}
+
+int NbPossibleChildInstances_fromCPUUsage() { //150ms
+	GetCPULoad(); // to be called once for a correct value at second call
+	//Sleep(250);
+	int nb_processors = std::thread::hardware_concurrency();
+	float CPULoad = GetCPULoad();
+	int NbPossibleChildInstances_fromCPUUsage_min_available = (int) (nb_processors * (100.0 - opts.min_available_cpu_pc - (CPULoad * 100.0)) / DETECT_CHILD_PROC_FACTOR_PC);		// 1 instance consumes 2.25 processor max
+	//int NbPossibleChildInstances_fromCPUUsage_1proc_available	= nb_processors * (100 - (100 / nb_processors) - CPULoad) / 160;											// 1 instance consumes 1.60 processor
+
+	//return MIN(NbPossibleChildInstances_fromCPUUsage_min_available, NbPossibleChildInstances_fromCPUUsage_1proc_available);
+	return NbPossibleChildInstances_fromCPUUsage_min_available;
+}
+
+int NbPossibleChildInstances_fromMemoryandCPUUsage() {
+	int memory	= NbPossibleChildInstances_fromMemoryUsage();
+	int cpu		= NbPossibleChildInstances_fromCPUUsage();
+
+	return MIN(memory, cpu);
+}

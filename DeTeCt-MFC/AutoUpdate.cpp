@@ -252,6 +252,7 @@ void AutoUpdate::SetSelfFullPath(CString Path)
 {
 	m_SelfFullPath = Path;
 }
+
 CString AutoUpdate::GetSelfFileName()
 {
 	return m_SelfFileName;
@@ -261,7 +262,6 @@ void AutoUpdate::SetSelfFileName(CString FileName)
 {
 	m_SelfFileName = FileName;
 }
-
 
 BOOL AutoUpdate::ReplaceTempVersion(std::vector<CString>* log_cstring_lines)
 {
@@ -416,7 +416,6 @@ BOOL	AutoUpdate::SG_VersionsCompare(const SG_Version ver1, const SG_Version ver2
 	return FALSE;
 }
 
-
 BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 {
 	if (m_DownloadLink.GetLength() != m_DownloadLink_Prod.GetLength()) MessageBox(NULL, _T("Warning: update download link ") + m_DownloadLink + _T(" is set to test."), _T("DeTeCt update"), MB_OK + MB_ICONWARNING + MB_SETFOREGROUND + MB_TOPMOST);
@@ -433,7 +432,8 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 	if (!SG_GetVersion_from_ConfigFile(&ver_server, log_cstring_lines)) return FALSE;
 
 	if (SG_Version_number(ver_server) < SG_Version_number(ver_current)) {
-		(*log_cstring_lines).push_back((CString)"Info: current version " + version_CString(ver_current) + (CString)" is more recent than update version " + version_CString(ver_server) + (CString)" !");
+		(*log_cstring_lines).push_back((CString)"Info: current version " + version_CString(ver_current) + (CString)" is more recent than update version " + version_CString(ver_server) + (CString)", dev mode active !");
+		dev_mode = TRUE;
 		return TRUE;
 	}
 	else if (SG_Version_number(ver_server) == SG_Version_number(ver_current)) {
@@ -546,14 +546,11 @@ BOOL	AutoUpdate::Pre_update_ini_parameters_resources_files(const SG_Version vers
 BOOL	AutoUpdate::Post_update_ini_parameters_resources_files(const SG_Version version_current, vector<CString>(*log_cstring_lines), const BOOL force_all_updates) {
 	return AutoUpdate::Update_ini_parameters_resources_files(version_current, FALSE, log_cstring_lines, force_all_updates);
 }
+
 BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_current, BOOL pre_update, vector<CString> (*log_cstring_lines), const BOOL force_all_updates) {
 	//SG_Version	version_current = SG_Version_from_ini(SG_Version_string);
 	SG_Version	version_update = { 10, 10, 10, 10 };
 	BOOL		update = FALSE;
-
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	// DON'T FORGET TO UPDATE ALSO WriteIni AND CDeTeCtMFCDlg::CDeTeCtMFCDlg() for DEFAULT VALUES!!!
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	version_update.Major		= 3;
 	version_update.Minor		= 4;
@@ -676,6 +673,38 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
 		update = TRUE;
 	}
+
+	version_update.Major = 3;
+	version_update.Minor = 9;
+	version_update.Revision = 0;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		opts.impact_radius_min							= 5;	// impact radius (px)
+		opts.impact_radius_ratio						= 50.0;	// Impact radius ROI ratio
+		opts.impact_radius_max							= 12.0;	// Impact radius max (pixels)
+		opts.impact_radius_shared_candidates_factor_min	= 0.30;	// Share of brightest points located within radius distance of brightest candidate
+		opts.impact_brightness_increase_min_factor		= 0.15; // Minimum of brightness increase from mean value factor
+		opts.resources_usage							= 1;
+		WriteIni();
+		RemoveFromIni(L"radius=");
+		RemoveFromIni(L"impact_radius_ROI_ratio="); 
+		RemoveFromIni(L"min_strength=");
+		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	// DO NOT FORGET: All default values must be setup in parallel in::
+	//	- default reset functions							PrefDialog::OnBnClickedButton1
+	//														PrefDialogUser::OnBnClickedButton1()
+	//	- ini read function									CDeTeCtMFCDlg::CDeTeCtMFCDlg
+	//  - and in Autoupdate if needed						AutoUpdate::Update_ini_parameters_resources_files
+	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 	//if (update) (*log_cstring_lines).push_back((CString)"Info: .ini parameters and/or files updated");
 	return update;

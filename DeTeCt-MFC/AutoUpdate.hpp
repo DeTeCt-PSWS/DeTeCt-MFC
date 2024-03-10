@@ -19,6 +19,8 @@ MODIFIED by MARC DELCROIX 05/2021
 //#include "dtcgui.hpp"
 #include <vector>
 
+extern bool dev_mode;
+
 typedef struct
 {
 	int Major;

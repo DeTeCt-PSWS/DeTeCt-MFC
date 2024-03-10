@@ -23,7 +23,7 @@
 
 char *CString2char(const CString source, char *destination) {
 	CT2A tmp(source);
-	strcpy(destination, tmp);
+	strcpy_s(destination, MAX_STRING, tmp);
 	destination[strlen(tmp)] = '\0';
 	return destination;
 }
@@ -94,7 +94,7 @@ CString GetLine(HANDLE QueueFileHandle) //ok
 	DWORD	dwsinglecharRead = 0;
 	do {
 		if (ReadFile(QueueFileHandle, singlechar, 1, &dwsinglecharRead, NULL)) {
-			if (singlechar[0] != '\n') strcat(line, singlechar);
+			if (singlechar[0] != '\n') strcat_s(line, sizeof(line), singlechar);
 		}
 		else {
 			CString cstring_line(line);
@@ -256,19 +256,19 @@ bool rmdir_force(const char *directory_name) {
 		if (!(strcmp(entry->d_name, ".") == 0) && !(strcmp(entry->d_name, "..") == 0)) {
 			if (entry->d_type == DT_DIR) {				//directory
 //				status = rmdir_force(entry->d_name);
-				strcpy(dirname, directory_name);
-				strcat(dirname, "\\");
-				strcat(dirname, entry->d_name);
-				strcat(dirname, "\0");
+				strcpy_s(dirname, sizeof(dirname), directory_name);
+				strcat_s(dirname, sizeof(dirname), "\\");
+				strcat_s(dirname, sizeof(dirname), entry->d_name);
+				strcat_s(dirname, sizeof(dirname), "\0");
 				status_int = rmdir_force(dirname);
 				if (!status) return_value = FALSE;
 			}
 			else {										//file
 //				status_int = remove(entry->d_name);
-				strcpy(filename, directory_name);
-				strcat(filename, "\\");
-				strcat(filename, entry->d_name);
-				strcat(filename, "\0");
+				strcpy_s(filename, sizeof(filename), directory_name);
+				strcat_s(filename, sizeof(filename), "\\");
+				strcat_s(filename, sizeof(filename), entry->d_name);
+				strcat_s(filename, sizeof(filename), "\0");
 				status_int = remove(filename);
 				if (status_int <0) return_value = FALSE;
 			}

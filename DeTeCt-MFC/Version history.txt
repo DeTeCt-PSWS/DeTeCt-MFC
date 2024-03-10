@@ -1,123 +1,31 @@
 ===============================================================================================================
-                                       TODO LIST (lowest to highest priority)
-===============================================================================================================
-Suspended:
-----------
-Bugfix:			correct darkfile comment in log (not reproductable)
-
-Small updates:
---------------
-GUI:			auto shutdown even if auto exit not checked
-GUI:			clean folders recursively on demand
-GUI:			Advanced option to mofify factor of frames for impact candidate
-				Advanced option to mofify min duration for impact candidate
-				Advanced option to mofify max distance for high impact probability
-				Advanced option to mofify min average brightness for high impact probability
-				Advanced option to mofify min confidence for high impact probability
-				Advanced option to mofify ROI min pixel brightness
-				Advanced option to mofify ROI min size
-SER format:		logs fps / gain / duration in structure if available
-SER format:		puts datation calculation either fully out or fully in ser header/timestamp reading function
-GUI:			display option for warnings
-Code:			wrapper for Warning() in C++
-Code:			Include filename in SerCapture struct for debug/warnings
-
-Low priority:
--------------
-GUI:			checkboxes for selecting files/folders to be processed (M.Lewis, Isaac Lozano)
-GUI:			Drag & drop functionality
-GUI:			Ability to send results at a later date easily. So an option to open the folder you checked the day before and send the results then
-GUI:			Identify Win11
-Firecapture:	code for live detection
-General:		video card offload library usage (OpenCL) (A.Wesley)
-Dev:			cleans includes in headers vs sources
-Dev:			Dev. subrevision automatic version update for subscribers
-Dev:			Expose only needed functions
-
-Medium priority:
-----------------
-				French GUI version
-				TBD: generate limited zip files
-GUI:			uses symbols instead of grey checkboxes
-Instances:		logs fps and # of frames in file_processed
-Instances:		check exact processes kills + auto kill windows + kill grand-sons process (image windows)
-Algorithm:		minimum size for flash
-Algorithm:		binning depending on size of planet to decrease computing A.(Wesley)
-Algorithm:		use WJ ims file for initial RoI/center of gravity
-WinJupos:		use of planet and equatorial radius information from measurement files (incl. from derotation file)
-
-High priority:
---------------
-E	Show computing progression in size not in number
-E	Show time remaining expectation
-E	FITS DATE/TIME format of SWIR PdM camera (2023-10-14 ; 16:20:38) + BITPIX -32
-E	Check usage of Date(UT), Noise, deviation, etc. from FC log
-A	overexposed frames : ignore too much overexposed frames (eg 50%% of pixels ?)
-A	overexposed images : test black max-mean white mean for error
-D	Double calculation of ROI (initially + for each frame on a 3x bigger ROI than defined)
-A	Check satellite shadow on mean image for 2nd round of yellow cross
-E	Calculate max pixel on scale 1/3 for blue cross
-
-Bugs
-----
-Bad count 268/306 for 10 instances on dataset
-Bad count 268/0 for 1 instances on dataset
-DeTeCt launch after single instance ? test on dataset
-Slowness in files acquisition addition
-FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
-
-Functionalities
----------------
-Instances:		available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
-Instances:		available logical processors to adapt # of instances (1 core/instance)
-Instances:		Children list to optimize exit
-				Children count to stop processes scan
-				TBD: optimize children count process
-				TBD: InstanceType to modify with GetIntParam?
-
-Algorithm:		attempt to match impact candidates with brightest point in max-mean
-				*TBD: Prioritize as3 over file even if as3 is read after
-				check distance criteria (not working ?)
-				ignore bad centered images (part of ROI outside of fullframe)
-
-ROI:			Scan of 90  from cog to edge (for Saturn)
-				Increase size of ROI (Martin)
-				TBD: Use as3 ROI
-
-Detection:		Move use min duration in impact candidate function
-				Test max duration for impact candidate
-				Do not draw Null probability crosses
-Detection:		Check csv for low positives
-Detection:		Ignore "DSO", "Star"
-(Detection:		Look for second+ differential photometry (yellow cross) candidates near max brightness (blue cross))
-Detection:		Change color of crosses in case of low/high/error
-Detection:		Scan directory
-Detection:		log (x,y) for crosses
-Detection:		Max duration for impact
-Detection:		Null qualification for pixel like blue cross center
-Detection:		Do not draw blue cross when null qualification
-Detection:		*ignore off planet impact detection (check level of background?)
-Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
-Detection:		**stretch black level in detection max-mean/mean images
-
-GUI:			Advertise contributions by displaying current impact frequency estimation
-				**Extra tool to analyze images
-GUI:			Pause/Resume button (M.Lewis)
-GUI:			Forecast processing time left (A. Frantzis)
-GUI:			Exit mode for all instances (like Pause/Resume)
-GUI:			Resume option after quitting detect (through  noreprocessing option and flags to identify impact directories aborted/processing ongoing) (Alexandros)
-GUI:			End after next video (M.Lewis)
-
-Autostakkert:	Search as3 file at same location than movie if not found (cf. j20200828 ir685)
-Autostakkert:	Log AS3 (median quality)
-Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
-
-===============================================================================================================
                                                VERSION HISTORY
 ===============================================================================================================
-v3.8.1
-Dev:			Detection of developper to use specific configurations (eg no zip file)
+				use of colorID from AS! session file
 
+tbd:	ImpactMinTime vs min frames vs incrimpact frames
+tbd:	Interval for checking other files processed + check nbinstances first!
+
+
+
+v3.9.0 (Detection algorithm improved, multi-instances mode dynamic (using CPU and RAM usage), all files rejected during analysis are now logged, , bugfixes (progress bars, fatal errors))
+Algo:			Confidence min corrected
+Algo:			Correction impact radius calculation, parameters in advanced settings
+Log:			Logs as error rejected files during ROI/frames analysis
+Instances:		Changes from definition of max instances to choice of different level of resource usages (min, low, medium, high, max)
+Instances:		Reduces if needed number of instances to ensure min of RAM always available
+Instances:		Reduces if needed number of instances to ensure min of CPU always available
+Instances:		Exits DeTeCt child instance if parent not running
+Bugfix:			Displays correct progress bars
+Bugfix:			Long name rename : deactivation of warning popup window blocking (Lee Keith)
+Bugfix:			Timeout for csv dir creation and renaming detect files
+Bugfix:			Fatal error when cv::destroyWindow a non existent window
+Bugfix::		Correction of advanced settings window settings
+Dev:			Set null pointer after free
+Dev:			Use of str(n)cpy_s and str(n)cat_s
+Dev:			Detection of developper version to use specific configuration (eg no zip file)
+
+--------------------------------------------------------------------------------------
 v3.8.0 (bugfix integration with AutoStakkert!4, introduction of OpenCL)
 Autostakkert:	Info in log if launched from AS!
 OpenCL:			Check if available
@@ -126,7 +34,7 @@ GUI:			select folder button more understandable
 GUI:			instances "running" display
 Bugfix:			Space in full filename handling in AutoStakkert! session file
 Bugfix:			Bugfix security factor spin button
-
+--------------------------------------------------------------------------------------
 v3.7.3 (integration with Autostakkert 4)
 Autostakkert:	Integration with Autostakkert 4
 Autostakkert:	Force autoprocessing, no reprocessing and single instance in Autostakkert mode
@@ -136,15 +44,14 @@ GUI:			Deactivate at startup intermediate save of frames for identifying candida
 GUI:			Harmonize advanced/development settings menu/window naming
 Bugfix:			Test of ffmpeg dll on full pathname instead of short filename
 Bugfix:			Correct final progressbar in single instance mode
-
+--------------------------------------------------------------------------------------
 v3.7.2 (Rejection of bad frames, planet in zip filename, logs)
-
 Alignement:		Rejection of bad frames (using similarity change over frames)
 GUI:			Ignore incorrect frames default on
 GUI:			Description in user settings about flat preparation image and send email not working with webmails
 Log:			Planet name in zip filename
 Log:			Log of all rejected frames in output file, display of quantity and type of rejected frames
-
+--------------------------------------------------------------------------------------
 v3.7.1 (Improvement of ROI and alignment)
 ROI:			ROI min size changed to 68x68 pixels
 				Detection of background from histogram
@@ -152,7 +59,7 @@ ROI:			ROI min size changed to 68x68 pixels
 GUI:			Advanced settings : limits defined for all parameters
 Bugfix:			Autoupdate: download of mandatory dll(s) before updating exe
 Bugfix:			Set maxinstances back to 1 (was set to 12)
-
+--------------------------------------------------------------------------------------
 v3.7.0 (Autoupdate fix and extension to handle dlls, migration to openCV 4.6.0 / C++, bugfixes incl. Uranus-C raw videos reading)
 Autoupdate:		Pop-up windows to inform about update ongoing and done
 				Implementation of dll files changes handling
@@ -165,7 +72,7 @@ Buffix:			Reading of Uranus-C raw avi video (A. Frantzis) - fixed by openCV upda
 Bugfix:			Automatic relaunch after Autoupdate not working (fix WndResizer bug (null pointer not detected))
 Bugfix:			#of files to be processed when fileprocessing interrupted because ROI too small
 Bugfix:			bMat usage still activated
-
+--------------------------------------------------------------------------------------
 v3.6.2
 Detection:		Speed improvement (~60%) in multi instances mode (processing bigger acquisitions first)
 Files:			Improvement of numbering detection in filename
@@ -456,7 +363,7 @@ interface:	Main window not persistant
 interface:	Main window Maximize/minimize buttons added
 interface:	Main title bar standard style
 interface:	Messages changes
-code:		WndResizer ressources added
+code:		WndResizer resources added
 --------------------------------------------------------------------------------------
 v3.1.3: resizable window (from WndResizer class)
 interface:	Messages changes
@@ -469,3 +376,124 @@ code:		code cleaning
 --------------------------------------------------------------------------------------
 v3.1.1: migration to MSVS17/github, opencv 2.4.13.6
 -------------------------------------------
+
+
+===============================================================================================================
+                                       TODO LIST (highest to lowest priority)
+===============================================================================================================
+
+High priority:
+--------------
+E	Show computing progression in size not in number
+E	Show time remaining expectation
+E	FITS DATE/TIME format of SWIR PdM camera (2023-10-14 ; 16:20:38) + BITPIX -32
+E	Check usage of Date(UT), Noise, deviation, etc. from FC log
+E	Remove or ignore bright borders on detection image
+A	overexposed frames : ignore too much overexposed frames (eg 50% of pixels ?)
+A	overexposed images : test black max-mean white mean for error
+D	Double calculation of ROI (initially + for each frame on a 3x bigger ROI than defined)
+A	Check satellite shadow on mean image for 2nd round of yellow cross
+E	Calculate max pixel on scale 1/3 for blue cross
+E	Detection image optional display
+
+Bugs
+----
+Bugfix: count in multiinstance mode <> reality
+Bugfix: opencv alloc.cpp!73 error (-4:Insufficient memory) Failed to allocate 1031356 bytes in function 'cv:OutOfMemoryError' => allocate + free when child instance started for test ?
+Bugfix: Long name rename to be checked (look at all warnings + https://stackoverflow.com/questions/5188527/how-to-deal-with-files-with-a-name-longer-than-259-characters) (Lee)
+Bugfix: Long name rename : deactivate warning popup window (Lee)
+AutoStakkert mode: increase number of instances when AS not running (Lee)
+Main instance 2.5GB, children instance 310MB
+DeTeCt launch after single instance ? test on dataset
+Slowness in files acquisition addition
+FITS:			TBD: Check detection image Capture 2014-11-09T14_23_22\0001.fits should not be 0 ? (32b FITS)
+
+Functionalities
+---------------
+Instances:		available RAM check to adapt # of instances (200Mo/instance ?) - see https://stackoverflow.com/questions/63166/how-to-determine-cpu-and-memory-consumption-from-inside-a-process
+Instances:		available logical processors to adapt # of instances (1 core/instance)
+Instances:		Children list to optimize exit
+				Children count to stop processes scan
+				TBD: optimize children count process
+				TBD: InstanceType to modify with GetIntParam?
+
+Algorithm:		attempt to match impact candidates with brightest point in max-mean
+				*TBD: Prioritize as3 over file even if as3 is read after
+				check distance criteria (not working ?)
+				ignore bad centered images (part of ROI outside of fullframe)
+
+ROI:			Scan of 90  from cog to edge (for Saturn)
+				Increase size of ROI (Martin)
+				TBD: Use as3 ROI
+
+Detection:		Move use min duration in impact candidate function
+				Test max duration for impact candidate
+				Do not draw Null probability crosses
+Detection:		Check csv for low positives
+Detection:		Ignore "DSO", "Star"
+(Detection:		Look for second+ differential photometry (yellow cross) candidates near max brightness (blue cross))
+Detection:		Change color of crosses in case of low/high/error
+Detection:		Scan directory
+Detection:		log (x,y) for crosses
+Detection:		Max duration for impact
+Detection:		Null qualification for pixel like blue cross center
+Detection:		Do not draw blue cross when null qualification
+Detection:		*ignore off planet impact detection (check level of background?)
+Detection:		Check if several impact candidates which one closest to brightest point in dtc_max-mean image and use it
+Detection:		**stretch black level in detection max-mean/mean images
+
+GUI:			Advertise contributions by displaying current impact frequency estimation
+				**Extra tool to analyze images
+GUI:			Pause/Resume button (M.Lewis)
+GUI:			Forecast processing time left (A. Frantzis)
+GUI:			Exit mode for all instances (like Pause/Resume)
+GUI:			Resume option after quitting detect (through  noreprocessing option and flags to identify impact directories aborted/processing ongoing) (Alexandros)
+GUI:			End after next video (M.Lewis)
+
+Autostakkert:	Search as3 file at same location than movie if not found (cf. j20200828 ir685)
+Autostakkert:	Log AS3 (median quality)
+Autostakkert:	Use of as3 file compatibility with AS3 subfolder default option (Andy Casely)
+
+Medium priority:
+----------------
+				French GUI version
+				TBD: generate limited zip files
+GUI:			uses symbols instead of grey checkboxes
+Instances:		logs fps and # of frames in file_processed
+Instances:		check exact processes kills + auto kill windows + kill grand-sons process (image windows)
+Algorithm:		minimum size for flash
+Algorithm:		binning depending on size of planet to decrease computing A.(Wesley)
+Algorithm:		use WJ ims file for initial RoI/center of gravity
+WinJupos:		use of planet and equatorial radius information from measurement files (incl. from derotation file)
+
+Low priority:
+-------------
+GUI:			checkboxes for selecting files/folders to be processed (M.Lewis, Isaac Lozano)
+GUI:			Drag & drop functionality
+GUI:			Ability to send results at a later date easily. So an option to open the folder you checked the day before and send the results then
+GUI:			Identify Win11
+Firecapture:	code for live detection
+Dev:			cleans includes in headers vs sources
+Dev:			Dev. subrevision automatic version update for subscribers
+Dev:			Expose only needed functions
+
+Small updates:
+--------------
+GUI:			auto shutdown even if auto exit not checked
+GUI:			clean folders recursively on demand
+GUI:			Advanced option to mofify factor of frames for impact candidate
+				Advanced option to mofify min duration for impact candidate
+				Advanced option to mofify max distance for high impact probability
+				Advanced option to mofify min average brightness for high impact probability
+				Advanced option to mofify min confidence for high impact probability
+				Advanced option to mofify ROI min pixel brightness
+				Advanced option to mofify ROI min size
+SER format:		logs fps / gain / duration in structure if available
+SER format:		puts datation calculation either fully out or fully in ser header/timestamp reading function
+GUI:			display option for warnings
+Code:			wrapper for Warning() in C++
+Code:			Include filename in SerCapture struct for debug/warnings
+
+Suspended:
+----------
+Bugfix:			correct darkfile comment in log (not reproductable)

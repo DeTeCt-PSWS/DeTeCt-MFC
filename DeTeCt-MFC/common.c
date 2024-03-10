@@ -28,7 +28,7 @@ char *mid(const char *src, size_t start, size_t length, char *dst)
 		char msgtext[MAX_STRING] = { 0 };
 		sprintf(msgtext,"incorrect start %zd for %s\n",start, src);
 		Warning(WARNING_MESSAGE_BOX, "incorrect string start", __func__, msgtext);
-		strcpy(dst,"");
+		strcpy_s(dst, MAX_STRING, "");
 		return dst;
 	}
 	if ((start+len_valid>=MAX_STRING)) {
@@ -37,7 +37,7 @@ char *mid(const char *src, size_t start, size_t length, char *dst)
 		Warning(WARNING_MESSAGE_BOX, "incorrect string length", __func__, msgtext);
 		len_valid = MAX_STRING - start -1;
 	}
-    strncpy(dst, src + start, len_valid);
+    strncpy_s(dst, MAX_STRING, src + start, len_valid);
 /* zero terminate because strncpy() didn't ?  */
 /*    if(len < length) {*/
         dst[length] = '\0';
@@ -58,7 +58,7 @@ char *left(const char *src, size_t length, char *dst)
 	if (length<strlen(src)) {
 		mid(src, 0, len_valid,dst);
 	} else {
-		strcpy(dst, src);
+		strcpy_s(dst, MAX_STRING, src);
 	}
 	
 	return dst;
@@ -77,7 +77,7 @@ char *right(const char *src, size_t length, char *dst)
 	if (length<strlen(src)) {
 		mid(src, strlen(src)-len_valid, len_valid,dst);
 	} else {
-		strcpy(dst, src);
+		strcpy_s(dst, MAX_STRING, src);
 	}
 	
 	return dst;
@@ -117,7 +117,7 @@ char *replace_str(char *str, char *orig, char *rep)
   if(!(p = strstr(str, orig)))  // Is 'orig' even in 'str'?
     return str;
 
-  strncpy(buffer, str, p-str); // Copy characters from 'str' start to 'orig' st$
+  strncpy_s(buffer, MAX_STRING, str, p-str); // Copy characters from 'str' start to 'orig' st$
 
   sprintf(buffer+(p-str), "%s%s%c", rep, p+strlen(orig),'\0');
   
@@ -202,10 +202,10 @@ char* str_trail_fill(const char* src, const char *character, const int size, cha
 	size_t len_valid = strlen(src);
 
 	init_string(dst);
-	strcpy(dst, src);
+	strcpy_s(dst, MAX_STRING, src);
 	if (size > len_valid) {
 		for (int i = 0; i < (size - len_valid); i++) {
-			strcat(dst, character);
+			strcat_s(dst, MAX_STRING, character);
 		}
 	}
 	return dst;
@@ -230,7 +230,7 @@ char *getline_ux_win(FILE *file)
 	char CR=13;
 	char LF=10;
 
-	strcpy(buffer,"");
+	strcpy_s(buffer, sizeof(buffer), "");
 	nb_carac=0;
 	carac=(char) fgetc(file);
 	while ((carac!=LF) && (!feof(file))) {
@@ -260,7 +260,7 @@ void get_fileextension(const char *src, char *dst, int max)
 	if (!ext) {
 		*dst = '\0';
 	} else {
-		strncpy(dst, ++ext, max - 1);
+		strncpy_s(dst, MAX_STRING, ++ext, max - 1);
 		dst[max-1] = '\0';
 	}
 }
@@ -274,7 +274,7 @@ void get_folder(const char *src, char *dst)
 	if (!dir) {
 		*dst = '.';
 	} else {
-		strncpy(dst, src, strlen(src)-strlen(dir));
+		strncpy_s(dst, MAX_STRING, src, strlen(src)-strlen(dir));
 		dst[strlen(src)-strlen(dir)+1] = '\0';
 	}
 }

@@ -17,8 +17,9 @@
 #include "dtcas3.hpp"
 
 extern std::string app_title;
-
 extern std::string message_lines[MAX_STRING];
+extern bool dev_mode;
+
 
 struct FrameOrder {
 	bool operator()(ITEM* a, ITEM* b) {
@@ -44,10 +45,10 @@ typedef enum _Instance_type Instance_type;
 
 void			read_files(std::string folder, AcquisitionFilesList *acquisition_files);
 
-//int				itemcmp(const void *a, const void *b);
-int				framecmp(const void *a, const void *b);
+//int				item_point_val_cmp(const void *a, const void *b);
+int				item_frame_rank_cmp(const void *a, const void *b);
 
-int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, double radius, double incrLum, int impact_frames_min);
+int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, double radius, double incrLum, double radius_share, int impact_frames_min);
 
 
 //int				detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path);

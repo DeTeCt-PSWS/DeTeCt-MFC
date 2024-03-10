@@ -247,8 +247,3 @@ BOOL IsParentDeTeCt(DWORD *pASpid)
 	(*pASpid) = 0;
 	return FALSE;
 }
-
-BOOL IsParentAutostakkertRunning(const DWORD ASpid)
-{
-	return IsProcessRunning(ASpid);
-}
