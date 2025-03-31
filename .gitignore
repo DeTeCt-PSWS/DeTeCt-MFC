@@ -32,3 +32,4 @@
 *.sarif
 *.lastbuildstate
 *.ClangTidy
+/x64/Release/tests
