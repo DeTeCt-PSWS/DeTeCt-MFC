@@ -42,3 +42,4 @@ std::string					dirfilename(std::string directoryname_from_path, std::string fil
 bool						rmdir_force(const char* directory_name);
 int							NbWaitedUnlockedFile(CString filename, const int delay);
 int64						filesize(const char* filename);
+double						round_precision(const double number, const int precision);

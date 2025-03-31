@@ -170,3 +170,7 @@ extern "C" {
  *
  * Sep 25 2009	Add moveb()
  */
+int hgettime_dtc(
+const char* hstring,	/* FITS header string */
+const char* keyword,	/* FITS keyword */
+double* dval);		    /* Time in fractional years (returned) */

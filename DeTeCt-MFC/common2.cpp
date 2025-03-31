@@ -305,3 +305,10 @@ int64 filesize(const char* filename) /* MB */
 	std::ifstream in(filename, std::ios::binary | std::ios::ate);
 	return (int64) (in.tellg());
 }
+
+double	round_precision(const double number, const int precision)
+{
+	double divider = 1.0;
+	for (int i = 1; i <= precision; i++) divider *= 10.0;
+	return (round(number * divider) / divider);
+}

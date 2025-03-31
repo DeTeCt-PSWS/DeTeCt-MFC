@@ -53,6 +53,7 @@
 #define IDC_EDIT2                       1005
 #define IDC_EDIT3                       1006
 #define IDC_EDIT4                       1007
+#define IDC_EDIT5                       1008
 #define IDC_SPLIT1                      1009
 #define IDC_EDIT6                       1009
 #define IDC_SPIN1                       1010
@@ -78,11 +79,16 @@
 #define IDC_SPIN21                      1026
 #define IDC_EDIT9                       1027
 #define IDC_SPIN8                       1028
+#define IDC_CHECK19                     1029
 #define IDC_SPIN9                       1030
+#define IDC_CHECK20                     1030
 #define IDC_EDIT10                      1031
+#define IDC_SPIN28                      1031
 #define IDC_SPIN10                      1032
+#define IDC_SPIN29                      1032
 #define IDC_EDIT11                      1033
 #define IDC_SPIN11                      1034
+#define IDC_SPIN30                      1034
 #define IDC_EDIT12                      1035
 #define IDC_SPIN12                      1036
 #define IDC_EDIT13                      1037
@@ -109,24 +115,42 @@
 #define IDC_LIST1                       1056
 #define IDC_SPIN19                      1056
 #define IDC_PROGRESS1                   1057
+#define IDC_CHECK21                     1057
 #define IDC_PROGRESS2                   1058
+#define IDC_CHECK22                     1058
+#define IDC_CHECK23                     1059
 #define IDC_MFCLINK1                    1060
+#define IDC_CHECK24                     1060
 #define IDC_MFCLINK2                    1061
+#define IDC_EDIT20                      1061
 #define IDC_MFCLINK3                    1062
+#define IDC_SPIN22                      1062
+#define IDC_EDIT21                      1063
+#define IDC_SPIN23                      1064
+#define IDC_EDIT22                      1065
 #define IDC_STATICS                     1066
+#define IDC_SPIN24                      1066
+#define IDC_EDIT23                      1067
 #define IDC_STATICF                     1068
+#define IDC_SPIN25                      1068
 #define IDC_STATICI                     1069
+#define IDC_EDIT24                      1069
 #define IDC_STATICF3                    1070
 #define IDC_STATICF2                    1070
+#define IDC_SPIN26                      1070
 #define IDC_COMBO2                      1071
+#define IDC_EDIT25                      1072
 #define IDC_FRAME                       1073
+#define IDC_SPIN27                      1073
 #define IDC_FRAME_MINSIZE               1074
+#define IDC_CHECK25                     1074
 #define IDC_CHECK10                     1075
 #define IDC_IMPACTLOW                   1076
 #define IDC_CHECK17                     1076
 #define IDC_CHECK_CLEAN                 1076
 #define IDC_CHECK18                     1077
 #define IDC_STATIC_TOTALPROGRESS        1077
+#define IDC_CHECK26                     1077
 #define IDC_IMPACTHIGH                  1078
 #define IDC_NOREPROC                    1078
 #define IDC_IMPACTNULL                  1079
@@ -162,6 +186,7 @@
 #define IDC_CHECK_FLAT                  1108
 #define IDC_CHECK_DEBUG                 1109
 #define IDC_CHECK_MEAN_IMG              1110
+#define IDC_CHECK_NOOPENCL              1110
 #define IDC_CHECK_DETECTION_IMG         1111
 #define ID_FILE_OPENFOLDER              32771
 #define ID_SETTINGS_PREFERENCES         32772
@@ -191,7 +216,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        264
 #define _APS_NEXT_COMMAND_VALUE         32794
-#define _APS_NEXT_CONTROL_VALUE         1112
+#define _APS_NEXT_CONTROL_VALUE         1113
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

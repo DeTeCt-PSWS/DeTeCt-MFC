@@ -304,7 +304,7 @@ void dtcWriteLogHeader(std::string location) {
 		output_file << "DeTeCt; jovian impact detection software " << full_version.c_str() << "\n";
 		output_file << "PLEASE SEND THIS FILE to Marc Delcroix - delcroix.marc@free.fr - for work on impact frequency (participants will be named if work is published) - NO DETECTION MATTERS!\n";
 		//output_file << "confidence Rating   ; Start                     ; End                       ; Mid                       ; Duration  ; fps (fr/s)  ; File;                        DeTeCt version and comment; os_version; mean min;avg;max; mean2 min;avg;max; max-mean mean;avg;max; max-mean2 min;avg;max; diff min;avg;max; diff2 min;avg max; distance; Observer ; Location ; Scope ; Camera ; Filter ; Profile ; Diameter (arcsec) ; Magnitude ; Central Meridian (°) ;  Focal length (mm) ; Resolution (arcsec) ; Binning ; Bit depth ; Debayer ; Exposure (ms) ; Gain ; Gamma ; Auto exposure ; Software gain ; Auto histogram ; Brightness ; Auto gain ; Histogram min ; Histogram max ; Histogram (%) ; Noise ; Prefilter ; Sensor temperature (°C) ; Target                                                                                                                                                                                                                                                                                                      ; width ; height \n";
-		output_file << "confidence Rating    ; Start                     ; End                       ; Mid                       ; Duration   ; fps (fr/s)  ; File                                                                                                                                                                                                                                                           ; DeTeCt version and comment                                                                      ; os_version        ;mean min; avg   ; max   ;mean2 min; avg   ; max   ;max-mean mean; avg   ; max   ;max-mean2 min; avg   ; max   ;diff min; avg   ; max   ;diff2 min; avg   ; max   ; distance  ; Observer                        ; Location                        ; Scope                           ; Camera                          ; Filter          ; Profile         ; Diameter (arcsec); Magnitude; Central Meridian (°)        ; Focal length (mm); Resolution (arcsec); Binning; Bit depth; Debayer; Exposure (ms); Gain; Gamma; Auto exposure; Software gain; Auto histogram; Brightness; Auto gain; Histogram min; Histogram max; Histogram (%);    Noise; Prefilter                       ; Sensor temperature (°C); Target                                                                                                                                                                                                                                                                                                      ; width; height; ";
+		output_file << "confidence Rating    ; Start                     ; End                       ; Mid                       ; Duration   ; fps (fr/s)  ; File                                                                                                                                                                                                                                                           ; DeTeCt version and comment                                                                      ; os_version        ;mean min; avg   ; max   ;mean2 min; avg   ; max   ;max-mean mean; avg   ; max   ;max-mean2 min; avg   ; max   ;diff min; avg   ; max   ;diff2 min; avg   ; max   ; distance  ; Observer                        ; Location                        ; Scope                           ; Camera                          ; Filter          ; Profile         ; Diameter (arcsec); Magnitude; Central Meridian (°)        ; Focal length (mm); Resolution (arcsec); Binning; Bit depth; Debayer; Exposure (ms); Gain; Gamma; Auto exposure; Software gain; Auto histogram; Brightness; Auto gain; Histogram min; Histogram max; Histogram (%);    Noise; Prefilter                       ; Sensor temperature (°C); Target                                                                                                                                                                                                                                                                                                      ; width; height; temporal_density;";
 		output_file << "\n";
 		//              0.0000	Null         ; 2011/07/01 15:56,595000 LT; 2011/07/01 15:56,650000 LT; 2011/07/01 15:56,622500 LT;   3.3000 s; 3 0.000 fr/s; G:\work\Impact\tests\...
 		output_file.close();
@@ -346,7 +346,7 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 		char tmpline[MAX_STRING];
 										
 		snprintf(msgtext, MAX_STRING, "cannot find log file %s", CString2char(output_filename, tmpline));
-		ErrorExit(TRUE, "cannot find log file", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot find log file", __func__, msgtext);
 	}
 	*pwaitms += NbWaitedUnlockedFile(output_filename, FILEACCESS_WAIT_MS);
 	std::ofstream output_file(output_filename, std::ios_base::app);
@@ -360,7 +360,12 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 	if ((video_info.confidence < 0) && (video_info.nb_impact < 0)) {
 		output_file << "Error   ";
 	} else if (!opts.dateonly) {
-		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(4) << std::fixed << video_info.confidence << " ";
+		int precision = 4; // default
+		if		(video_info.confidence >= 100000)	precision = 0;
+		else if (video_info.confidence >= 10000)	precision = 1;
+		else if (video_info.confidence >= 1000)		precision = 2;
+		else if (video_info.confidence >= 100)		precision = 3;
+		output_file << std::setfill(' ') << std::setw(7) << std::setprecision(precision) << std::fixed << video_info.confidence << " ";
 	} else {
 		output_file << "N/A    ";
 	}
@@ -513,6 +518,7 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 	output_file << str_trail_fill(CaptureInfo.target, " ", 300, str_tmp) << "; ";
 	output_file << std::setfill(' ') << std::setw(5) << std::setprecision(3) << video_info.ROI_width << "; ";
 	output_file << std::setfill(' ') << std::setw(6) << std::setprecision(3) << video_info.ROI_height << "; ";
+	output_file << std::setfill(' ') << std::setw(16) << std::setprecision(3) << video_info.temporal_density << "; ";
 
 	output_file << std::endl;
 	output_file.close();
@@ -585,6 +591,7 @@ void dtcWriteLog2(const std::string location, const LogInfo video_info, const Dt
 		(*logline) << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.diff2_stat[1] << ";";
 		(*logline) << std::setfill(' ') << std::setw(7) << std::setprecision(3) << video_info.diff2_stat[2] << "; ";
 		(*logline) << std::setfill(' ') << std::setw(8) << std::setprecision(3) << video_info.distance;
+		(*logline) << std::setfill(' ') << std::setw(8) << std::setprecision(3) << video_info.temporal_density;
 	}
 	else (*logline) << ";;;;;;;;;;;;;;;;;";
 	(*logline) << "\n";

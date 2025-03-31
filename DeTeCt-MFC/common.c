@@ -290,7 +290,7 @@ bool file_exists(const char* fname)
 	return false;
 }
 
-void	ErrorExit(const bool display_msgbox, const char *title, const char *function, const char *text) {	
+void	ErrorExit(const bool exit_failure, const bool display_msgbox, const char *title, const char *function, const char *text) {	
 	char fulltext[MAX_STRING];
 	char fulltitle[MAX_STRING];
 	char buffer[MAX_STRING] = { 0 };
@@ -298,11 +298,11 @@ void	ErrorExit(const bool display_msgbox, const char *title, const char *functio
 	if (strlen(function)>0) {
 		sprintf_s(buffer, MAX_STRING, "Error: %s\n (message from function %s() )\n", text, function);
 		fprintf(stderr, "%s", buffer);
-		snprintf(fulltext, MAX_STRING, "%s\nWill now exit program", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nClick OK to exit", buffer);
 	} else {
 		sprintf_s(buffer, MAX_STRING, "Error: %s\n", text);
 		fprintf(stderr, "%s", buffer);
-		sprintf(fulltext, "%s\nWill now exit program", buffer);
+		sprintf(fulltext, "%s\nClick OK to exit", buffer);
 	}
 	OutputDebugStringA(buffer);
 	if (strlen(opts.ErrorsFilename) > 1) {
@@ -319,7 +319,7 @@ void	ErrorExit(const bool display_msgbox, const char *title, const char *functio
 		mbstowcs(wfulltext, fulltext, strlen(fulltext) + 1);
 		MessageBox(NULL, wfulltext, wfulltitle, MB_OK + MB_ICONERROR + MB_SETFOREGROUND + MB_TOPMOST);
 	}
-	exit(EXIT_FAILURE);
+	if (exit_failure) exit(EXIT_FAILURE);
 }
 
 
@@ -331,12 +331,12 @@ void	Warning(const bool display_msgbox, const char* title, const char* function,
 	if (strlen(function) > 0) {
 		sprintf_s(buffer, MAX_STRING, "Warning: %s\n (message from function %s() )\n", text, function);
 		fprintf(stderr, "%s", buffer);
-		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nClick OK to continue", buffer);
 	}
 	else {
 		sprintf_s(buffer, MAX_STRING, "Warning: %s\n", text);
 		fprintf(stderr, "%s", buffer);
-		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nClick OK to continue", buffer);
 	}
 	OutputDebugStringA(buffer);
 	if (strlen(opts.WarningsFilename) > 1) {
@@ -363,12 +363,12 @@ void	Info(const bool display_msgbox, const char* title, const char* function, co
 	if (strlen(function) > 0) {
 		sprintf_s(buffer, MAX_STRING, "Info in %s(): %s\n", function, text);
 		fprintf(stderr, "%s", buffer);
-		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nClick OK to continue", buffer);
 	}
 	else {
 		sprintf_s(buffer, MAX_STRING, "Info: %s\n", text);
 		fprintf(stderr, "%s", buffer);
-		snprintf(fulltext, MAX_STRING, "%s\nWill now continue program", buffer);
+		snprintf(fulltext, MAX_STRING, "%s\nClick OK to continue", buffer);
 	}
 	OutputDebugStringA(buffer);
 	if (strlen(opts.WarningsFilename) > 1) {

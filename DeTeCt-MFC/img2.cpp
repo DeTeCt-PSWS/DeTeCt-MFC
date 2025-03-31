@@ -61,7 +61,7 @@ cv::Point  dtcGetGrayMatCM(cv::Mat mat)
 		}
 	}
 	min_ROI_value = Y / (width*height);*/
-	min_ROI_value = dtcGetBackgroundFromHistogram(mat, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0);
+	min_ROI_value = (int) dtcGetBackgroundFromHistogram(mat, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0, false);
 	//if (min_ROI_value < opts.ROI_min_px_val)	min_ROI_value = opts.ROI_min_px_val;
 	
 	Y = 0.0;
@@ -115,7 +115,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	int width = img.cols;
 	int height = img.rows;
 
-	int background = dtcGetBackgroundFromHistogram(img, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0);
+	double background = (double) dtcGetBackgroundFromHistogram(img, opts.bg_detection_peak_factor, opts.bg_detection_consecutive_values, 0, false);
 	cv::Mat img_thr = img.clone();
 	cv::threshold(img, img_thr, background, 0, CV_THRESH_TOZERO);
 
@@ -124,7 +124,7 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 		perror("ERROR in dtcGetGrayImageROIcCM allocating memory");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot allocate memory", __func__, msgtext);
 	} else {
 		assert(tbuf != NULL);
 		assert(mbuf != NULL);
@@ -185,14 +185,20 @@ cv::Rect dtcGetGrayImageROIcCM(cv::Mat img, cv::Point cm, float medsize, double 
 	return cv::Rect(cm.x - hwd / 2, cm.y - hht / 2, hwd, hht);
 }
 
-cv::Scalar dtcGetSimilarity(const cv::Mat m1, const cv::Mat m2)
+/*************************************************************************************************************************************************/
+//
+//		Structural Similarity Index (SSIM): A method to measure the similarity between two images.
+//
+/*************************************************************************************************************************************************/
+
+cv::Scalar dtcGetSimilarity_SSIM(const cv::Mat mat1, const cv::Mat mat2)
 {
 	const double C1 = 6.5025, C2 = 58.5225;
 	/***************************** INITS **********************************/
 	int d = CV_32F;
 	cv::Mat I1, I2;
-	m1.convertTo(I1, d);           // cannot calculate on one byte large values
-	m2.convertTo(I2, d);
+	mat1.convertTo(I1, d);           // cannot calculate on one byte large values
+	mat2.convertTo(I2, d);
 	cv::Mat I2_2 = I2.mul(I2);        // I2^2
 	cv::Mat I1_2 = I1.mul(I1);        // I1^2
 	cv::Mat I1_I2 = I1.mul(I2);        // I1 * I2
@@ -222,6 +228,49 @@ cv::Scalar dtcGetSimilarity(const cv::Mat m1, const cv::Mat m2)
 	cv::Scalar mssim = mean(ssim_map); // mssim = average of ssim map
 	return mssim;
 }
+
+/*************************************************************************************************************************************************/
+//
+//		Mean Squared Error (MSE): Measures the average of the squares of the differences between corresponding elements
+//
+/*************************************************************************************************************************************************/
+
+cv::Scalar dtcGetSimilarity_MSE(const cv::Mat mat1, const cv::Mat mat2)
+{
+	cv::Mat mat1_32f, mat2_32f;
+	mat1.convertTo(mat1_32f, CV_32F);
+	mat2.convertTo(mat2_32f, CV_32F);
+
+	cv::Mat diff;
+	cv::absdiff(mat1_32f, mat2_32f, diff);		// Absolute difference between the two matrices
+	diff.convertTo(diff, CV_32F);  // Convert to float for precision
+	diff = diff.mul(diff);         // Square each element
+
+	cv::Scalar s = cv::sum(diff);  // Sum all elements
+
+	double mse	=  s[0] / (double)(mat1_32f.total());	// Normalize by total number of elements
+	mse			= 1.0 - mse / (255 * 255);		// transform error into simillarity and normamize by maximum of error (8bits)
+	
+	return (cv::Scalar) mse;
+}
+
+/*************************************************************************************************************************************************/
+//
+//		Normalized Cross-Correlation (NCC): Compares the degree to which the two matrices are correlated.
+//
+/*************************************************************************************************************************************************/
+
+cv::Scalar dtcGetSimilarity_NCC(const cv::Mat mat1, const cv::Mat mat2) {
+	cv::Mat mat1_32f, mat2_32f;
+	mat1.convertTo(mat1_32f, CV_32F);
+	mat2.convertTo(mat2_32f, CV_32F);
+
+	cv::Mat result;
+	cv::matchTemplate(mat1_32f, mat2_32f, result, cv::TM_CCORR_NORMED);
+
+	return result.at<float>(0, 0); // Since result is single value in this case
+}
+
 
 /*
  * medsize:	median buffer size
@@ -276,7 +325,7 @@ cv::Rect dtcGetGrayImageROIcCM2(cv::Mat img, cv::Point cm, float medsize, double
 		perror("ERROR in dtcGetGrayImageROIcCM2 allocating memory");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot allocate memory", __func__, msgtext);
 	}
 	else {
 		assert(tbuf != NULL);
@@ -463,7 +512,7 @@ cv::Rect dtcGetGrayImageROI(cv::Mat img, float medsize, double fact, double secf
 		perror("ERROR in dtcGetGrayImageROI allocating memory");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot allocate memory", __func__, msgtext);
 	}
 	else {
 		assert(tbuf != NULL);
@@ -556,7 +605,7 @@ cv::Rect dtcGetGrayMatROIcCM(cv::Mat *img, cv::Point cm, int medsize, double fac
 		DBOUT("ERROR in dtcGetGrayMatROIcCM allocating memory\n");
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot allocate memory");
-		ErrorExit(TRUE, "cannot allocate memory", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot allocate memory", __func__, msgtext);
 	} else {
 		assert(tbuf != NULL);
 		assert(mbuf != NULL);
@@ -722,7 +771,7 @@ cv::Mat dtcReduceMatToROI(cv::Mat src, cv::Rect roi)
 /**********************************************************************************************//**
  * @fn	cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore, int ign)
  *
- * @brief	Dtc get file ro ic centimetres.
+ * @brief	Dtc get file ROI
  *
  * @author	Jon
  * @date	2017-05-12
@@ -752,7 +801,7 @@ cv::Rect dtcGetFileROIcCM(DtcCapture *pcapture, const int ignore) {
 	cv::waitKey(0);
 	cv::destroyWindow("Debug1");
 }*/
-	if ((frame.empty()) ||(frame.dims == 0)) return roi;
+		if ((frame.empty()) ||(frame.dims == 0)) return roi;
 		if (error == 0) {
 			cv::Point cm;
 			gray = dtcGetGrayMat(&frame, pcapture);
@@ -795,25 +844,6 @@ void dtcDrawCM(Image image, cv::Point cm)
 	cv::line(image.frame, cv::Point(cm.x, cm.y + 5), cv::Point(cm.x, cm.y + 25), CV_RGB(255, 0, 0), 1, 8, 0);
 	cv::circle(image.frame, cm, 1, cv::Scalar(255, 255, 255));
 	cv::rectangle(image.frame, image.roi, CV_RGB(0, 255, 0), 1, 8, 0);
-}
-
-/**********************************************************************************************//**
- * @fn	void dtcDrawImpact(cv::Mat frame, cv::Point point)
- *
- * @brief	Draw the point where the impact ocurrs as a "crosshair".
- *
- * @author	Jon
- * @date	2017-05-12
- *
- * @param	frame	The frame.
- * @param	point	The point of impact.
- **************************************************************************************************/
-
-void dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, int lmax) {
-	cv::line(frame, cv::Point(point.x + lmin, point.y), cv::Point(point.x + lmax, point.y), colour, 2, 8, 0);
-	cv::line(frame, cv::Point(point.x - lmax, point.y), cv::Point(point.x - lmin, point.y), colour, 2, 8, 0);
-	cv::line(frame, cv::Point(point.x, point.y - lmax), cv::Point(point.x, point.y - lmin), colour, 2, 8, 0);
-	cv::line(frame, cv::Point(point.x, point.y + lmin), cv::Point(point.x, point.y + lmax), colour, 2, 8, 0);
 }
 
 /***************************************************************************************************
@@ -878,43 +908,115 @@ cv::Mat dtcGetHistogramImage(cv::Mat src, float scale, double thr)
  * @return	A cv::Mat with the histogram to be shown.
  **************************************************************************************************/
 
-int dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr)
+float dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr, const bool check_second_peak)
 {
-	int background					= 0;
+	int background[2]				= { 0,0 };
 	cv::Mat pHis;
 	const int hsize					= 256;
 	int phsize[]					= { hsize };
 	float range[]					= { 0 , (float)hsize };
 	const float* ranges[]			= { range };
-	int counter_below_threshold		= 0;
-	double min_val					= 0;
-	double max_val					= 0;
-	double bg_val					= 0;
+	int counter_below_threshold;
+	double min_val[2]				= { 0, 0 };
+	double max_val[2]				= { 0, 0 };
+	double bg_val[2]				= { 0, 0 };
 	double nb_val					= 0;
-	cv::Point min_loc				= { 0,0 };
-	cv::Point max_loc				= { 0,0 };
-
+	cv::Point min_loc[2]			= { {0,0},{0,0} };
+	cv::Point max_loc[2]			= { {0,0},{0,0} };
+	int bg_reached_index[2]			= { 0, 0 };
+	bool peak_reached;
+	int peak_index					= 0;
+	int best_peak					= 0;
+	
 	cv::calcHist(cv::makePtr<cv::Mat>(src), 1, { 0 }, cv::Mat(), pHis, 1, phsize, ranges, true, false);
-	if (thr) {
-		pHis.at<float>(0) = 0;
+	if (thr) pHis.at<float>(0) = 0;
+
+	peak_index = 0;
+	//cv::minMaxLoc(pHis, &min_val[peak_index], &max_val[peak_index], &min_loc[peak_index], &max_loc[peak_index]);
+	max_val[peak_index] = pHis.at<float>(0);
+	max_loc[peak_index] = cv::Point(0, 0);
+	for (int i = 0; i < hsize; i++) {	//	/!\  Only look for peak *before* first peak in case of error
+		if (pHis.at<float>(i) > max_val[peak_index]) {
+			max_val[peak_index] = pHis.at<float>(i);
+			max_loc[peak_index] = cv::Point(i, 0);
+		}
 	}
-	cv::minMaxLoc(pHis, &min_val, &max_val, &min_loc, &max_loc);
-	bg_val = MAX(max_val * background_threshold_max_factor, min_val + 1);
-//	if (bg_val > 0) {
-		for (int i = 0; i < hsize; i++) {
+	bg_val[peak_index] = MAX(max_val[peak_index] * background_threshold_max_factor, min_val[peak_index] + 1);
+	counter_below_threshold = 0;
+	peak_reached = false;
+	for (int i = 0; i < hsize; i++) {
+		nb_val = pHis.at<float>(i);
+		if (nb_val >= max_val[peak_index]) peak_reached = true;
+		if (peak_reached && (nb_val <= bg_val[peak_index])) {
+			counter_below_threshold++;
+			if (counter_below_threshold >= number_below_threshold) {
+				background[peak_index] = i;
+				break;
+			}
+		} else counter_below_threshold = 0;
+	}
+
+// warning, there could be 2 peaks in case of tight ROI or special blacker frame (eg. consolidated dtc image) - how to handle it ?
+// use corners on image to have bg estimation ? would not work in special cases
+// check for second peak and select the most relevant for background (lower background) if high enough
+	if (check_second_peak) {
+		//  calculate background reached before for 1st peak, to start there for looking for secondary peak
+		// 
+		counter_below_threshold = 0;
+		//peak_reached = false;	
+		int background_before_peak = 0;									// does not look for peak but for background
+		for (int i = (max_loc[peak_index].y - 1); i >= 0; i--) {		//	/!\  Only look for peak *before* first peak in case of error
 			nb_val = pHis.at<float>(i);
-			if (nb_val <= bg_val) {
+			//if (nb_val >= max_val[peak_index]) peak_reached = true;
+			//if (peak_reached && (nb_val <= bg_val[peak_index])) {
+			if (nb_val <= bg_val[peak_index]) {
 				counter_below_threshold++;
 				if (counter_below_threshold >= number_below_threshold) {
-					background = i;
+					background_before_peak = i;
 					break;
 				}
-			} else counter_below_threshold = 0;
+			}
+			else counter_below_threshold = 0;
 		}
-	//}
+		//
+		//find secondary peak
+		//
+		//pHis.at<float>(max_loc[peak_index]) = 0.0;
+
+		peak_index++;
+		max_val[peak_index] = pHis.at<float>(0);
+		max_loc[peak_index] = cv::Point(0, 0);
+		//cv::minMaxLoc(pHis, &min_val[peak_index], &max_val[peak_index], &min_loc[peak_index], &max_loc[peak_index]);
+		for (int i = 0; i < background_before_peak; i++) {	//	/!\  Only look for peak *before* first peak in case of error
+			if (pHis.at<float>(i) > max_val[peak_index]) {
+				max_val[peak_index] = pHis.at<float>(i);
+				max_loc[peak_index] = cv::Point(i, 0);
+			}
+		}
+	#define PEAKS_FACTOR 0.5 // 2252/3020
+		if (max_val[peak_index] >= PEAKS_FACTOR * max_val[peak_index - 1]) {
+			bg_val[peak_index] = MAX(max_val[peak_index] * background_threshold_max_factor, min_val[peak_index] + 1);
+			counter_below_threshold = 0;
+			peak_reached = false;
+
+			for (int i = 0; i < hsize; i++) {
+				nb_val = pHis.at<float>(i);
+				if (nb_val >= max_val[peak_index]) peak_reached = true;
+				if (peak_reached && (nb_val <= bg_val[peak_index])) {
+					counter_below_threshold++;
+					if (counter_below_threshold >= number_below_threshold) {
+						background[peak_index] = i;
+						break;
+					}
+				}
+				else counter_below_threshold = 0;
+			}
+		}
+		if (pHis.at<float>(max_loc[1]) < (pHis.at<float>(max_loc[0]))) best_peak = 1;
+	}
 	pHis.~Mat();
-	if (background > 0)	return background + 1;
-	else return 0;
+	/*if (background[best_peak] > 0)*/ return (float)(background[best_peak] + 1.0);
+	//else return 0.0;
 }
 
 

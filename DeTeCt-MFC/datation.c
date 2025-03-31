@@ -21,7 +21,7 @@
 
 
 const double FPS_MIN		=	0.01;
-const double FPS_MAX		=	2000.0;
+const double FPS_MAX		=	800.0;
 const double DURATION_MIN	=	0.0005;				/* 1.0/FPS_MAX; */
 const double DURATION_MAX	=	ONE_DAY_SEC;
 
@@ -29,7 +29,6 @@ const double DURATION_MAX	=	ONE_DAY_SEC;
 
 bool IsDateValid(double julianday);
 bool IsDurationValid(double duration);
-bool IsFPSValid(double fps);
 void CorrectDatationFromPIPP(int nbframes, double* pstart_time, double* pend_time, double* pduration, PIPPInfo* pipp_info, char* comment);
 
 /*****************************************************************************************/

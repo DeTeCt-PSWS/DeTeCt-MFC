@@ -35,13 +35,14 @@ struct _LogInfo {
 	double	max_mean2_stat[3];
 	double	diff_stat[3];
 	double	diff2_stat[3];
+	double	temporal_density;
 	char	*rating_classification;
 	int		ROI_width;
 	int		ROI_height;
 	//double noise;
 
 	_LogInfo(const char *fn, const double st, const double et, const double d,
-		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double dist, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3], const char *classification, const int width, const int height) {
+		const double fs, const TIME_TYPE tt, const char *com, const int ni, double c, double dist, double mean_m[3], double mean2_m[3], double max_mean_m[3], double max_mean2_m[3], double diff_m[3], double diff2_m[3], double td, const char *classification, const int width, const int height) {
 		filename =		(char*)fn;
 		start_time =	st;
 		end_time =		et;
@@ -60,6 +61,7 @@ struct _LogInfo {
 			diff_stat[i] =		diff_m[i];
 			diff2_stat[i] =		diff2_m[i];
 		}
+		temporal_density = td;
 		rating_classification =	(char*)classification;
 		ROI_width =	 width;
 		ROI_height = height;

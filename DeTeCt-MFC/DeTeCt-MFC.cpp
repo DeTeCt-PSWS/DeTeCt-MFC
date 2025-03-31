@@ -108,14 +108,14 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.ostype = 0;	// Source video type to extract frame
 	opts.ovtype = 0;	// Output video type to create
 
-// options?
-	opts.timeImpact					= 0;	// seconds
-	opts.impact_brightness_increase_min_factor				= 0;	// Minimum of brightness increase from mean value factor
-	opts.incrFrameImpact			= 0;	// Minimum number of frames for impact
-	opts.impact_duration_min		= 0;	// Min duration for impact
-	opts.impact_radius_min			= 0;	// Impact radius (pixels)
-	opts.impact_radius_max			= 0.0;	// Impact radius max (pixels)
-	opts.impact_radius_ratio		= 0.0;	// Impact radius ROI ratio
+	// options?
+	opts.timeImpact = 0;	// seconds
+	opts.impact_brightness_increase_min_factor = 0;	// Minimum of brightness increase from mean value factor
+	opts.incrFrameImpact = 0;	// Minimum number of frames for impact
+	opts.impact_duration_min = 0;	// Min duration for impact
+	opts.impact_radius_min = 0;	// Impact radius (pixels)
+	opts.impact_radius_max = 0.0;	// Impact radius max (pixels)
+	opts.impact_radius_ratio = 0.0;	// Impact radius ROI ratio
 	opts.impact_radius_shared_candidates_factor_min = 0.30;	// Share of brightest points located within radius distance of brightest candidate
 	opts.nframesROI = 0;				// Number of frames for ROI calculation
 	opts.nframesRef = 0;				// Number of frames for ROI calculation
@@ -155,7 +155,6 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.minframes = 0;				// Minimum # of frames to start processing
 	opts.filter = { 0, {0,0,0,0} };
 	opts.dateonly = FALSE;			// Display date information and stops processing
-	opts.ignore = TRUE;			// Ignore incorrect frames
 	opts.maxinstances = 1;				// Maximum number of DeTeCt instances running in parallel
 	opts.force_single_instance = FALSE;	// Force single instance mode
 	opts.reprocessing = FALSE;			// Reprocessing files already in DeTeCt.log
@@ -166,10 +165,16 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.clean_dir = FALSE;			// Cleans directory before processing
 	opts.show_detect_image = TRUE;				// show detection image
 	opts.show_mean_image = FALSE;			// show mean image
-	opts.bg_detection_peak_factor = 0;			// for min threshold to detect background
+	opts.bg_detection_peak_factor = 0;			// min threshold to detect background (% of peak factor)
 	opts.bg_detection_consecutive_values = 0;	// # of consecutive frames to be below peak factor for background detection
 	opts.transparency_min_pc = 20;					// tolerance in transparency for a frame compared to 1st frame
-	opts.similarity_decrease_max_pc = 12;			// max decrease between two frames similarity
+
+	opts.ignore = TRUE;			// Ignore incorrect frames
+	opts.use_one_algo_to_reject_frame = true;			// First similarity algorithm qualifying frame as incorrect is enough (if not checked *all* algorithms are needed)
+	opts.use_all_algo_for_test = false;					// Runs all algorithms without min decrease for logging in csv all results for min decrease fine tuningopts.use_reference_similarity					= { true, false, false };
+	opts.similarity_reference_decrease_min_pc		= { 3.00, 0.03, 0.08 };			// min decrease between two frames similarity (reference)
+	opts.use_previous_frame_similarity				= { false, false, false };
+	opts.similarity_previous_frame_decrease_min_pc	= { 2.00, 0.04, 0.11 };			// min decrease between two frames similarity (previous frame)
 
 
 // Status
@@ -184,6 +189,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.LogConsolidatedDirname[MAX_STRING] = { 0 };
 	opts.parent_instance		= FALSE;
 	opts.resources_usage		= 0;
+	opts.OpenCL					= TRUE;		//usage of graphics HW acceleration for computing
 
 	DeTeCtFileName(DeTeCtNameChar);
 	std::string DeTeCtName(DeTeCtNameChar); // "DeTeCt.exe"
@@ -435,7 +441,7 @@ if (opts.debug) MessageBox(NULL, _T("Launched from AutoStakkert PID ") + CString
 									if (_fullpath(buffer, object.c_str(), MAX_STRING) == NULL) {
 										 char msgtext[MAX_STRING] = { 0 };							
 										snprintf(msgtext, MAX_STRING, "cannot construct full path %s", object.c_str());
-										ErrorExit(TRUE, "cannot construct full path", __func__, msgtext);
+										ErrorExit(TRUE, TRUE, "cannot construct full path", __func__, msgtext);
 									};
 									target_file = std::string(buffer);
 								}
@@ -467,7 +473,7 @@ if (opts.debug) MessageBox(NULL, _T("Launched from AutoStakkert PID ") + CString
 									if (_fullpath(buffer, object.c_str(), MAX_STRING) == NULL) {
 										 char msgtext[MAX_STRING] = { 0 };
 										snprintf(msgtext, MAX_STRING, "cannot construct full path %s", object.c_str());
-										ErrorExit(TRUE, "cannot construct full path", __func__, msgtext);
+										ErrorExit(TRUE, TRUE, "cannot construct full path", __func__, msgtext);
 									};
 									target_folder = std::string(buffer);
 								}
@@ -707,8 +713,12 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 			}
 		}
 	}
-	if (IsOpenCL_ok) cv::ocl::setUseOpenCL(true);
-	message_lines[index_message] = "\0";
+	if (IsOpenCL_ok) {
+		cv::ocl::setUseOpenCL(opts.OpenCL);
+		if (opts.OpenCL)	message_lines[index_message++]= "OpenCL activated\n";
+		else				message_lines[index_message++]= "OpenCL deactivated (use advanced settings to change it)\n";
+		message_lines[index_message] = "\0";
+	}
 /* end  of openCL configuration*/
 
 

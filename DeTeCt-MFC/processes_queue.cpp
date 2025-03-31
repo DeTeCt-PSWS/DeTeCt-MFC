@@ -414,7 +414,7 @@ BOOL IsFileAlreadyQueued(const CString objectname, const CString QueueFilename) 
 }
 
 
-int  NbFilesFromQueue(const CString QueueFilename) //ok because of NbItem
+size_t NbFilesFromQueue(const CString QueueFilename) //ok because of NbItem
 {
 	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
 
@@ -473,7 +473,7 @@ BOOL GetProcessedFileFromQueue(CString *processed_filename, CString *processed_f
 		 char msgtext[MAX_STRING] = { 0 };
 		char tmpline[MAX_STRING];
 		snprintf(msgtext, MAX_STRING, "cannot find acquisition queue file %s", CString2char(QueueFilename, tmpline));
-		ErrorExit(TRUE, "queue file not found", __func__, msgtext);  	// exits DeTeCt if Queuefile does not exists
+		ErrorExit(TRUE, TRUE, "queue file not found", __func__, msgtext);  	// exits DeTeCt if Queuefile does not exists
 	}
 	CString	processed_line;
 	BOOL	status;
@@ -827,28 +827,28 @@ int ParentProcessChildren(const DWORD parent_PID, const BOOL kills)
 void	Set_ressource_usage(const int resources_usage) {
 
 	switch (resources_usage) {
-		case 1:
+		case 1:	// low
 			opts.maxinstances = std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 50.0;
+			opts.min_free_system_memory_pc	= 55.0;
 			opts.min_available_cpu_pc		= 70.0;
 			break;
-		case 2:
+		case 2: // medium
 			opts.maxinstances = std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 40.0;
+			opts.min_free_system_memory_pc	= 45.0;
 			opts.min_available_cpu_pc		= 50.0;
 			break;
-		case 3:
+		case 3: // high
 			opts.maxinstances = std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 30.0;
+			opts.min_free_system_memory_pc	= 35.0;
 			opts.min_available_cpu_pc		= 30.0;
 			break;
-		case 4:
+		case 4: // maximum
 			opts.maxinstances				= std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 20.0;
-			opts.min_available_cpu_pc		= 15.0;
+			opts.min_free_system_memory_pc	= 30.0;
+			opts.min_available_cpu_pc		= 5.0;
 			break;
 		default:
-		case 0:
+		case 0:	// minimum
 			opts.maxinstances				= 1;
 			opts.min_free_system_memory_pc	= 0.0;
 			opts.min_available_cpu_pc		= 0.0;
@@ -869,7 +869,8 @@ Designed to work with specifically Windows 7 and beyond
 */
 
 //creates a static variable to convert Bytes to Megabytes
-#define MB 1048576
+#define MB					1048576
+#define CPU_LOAD_WAIT_MS	250 
 
 static float CalculateCPULoad(unsigned long long idleTicks, unsigned long long totalTicks)
 {
@@ -895,13 +896,12 @@ static unsigned long long FileTimeToInt64(const FILETIME& ft)
 // Returns 1.0f for "CPU fully pinned", 0.0f for "CPU idle", or somewhere in between
 // You'll need to call this at regular intervals, since it measures the load between
 // the previous call and the current one.  Returns -1.0 on error.
-float GetCPULoad()
+float GetCPULoad(BOOL wait)
 {
-	Sleep(250); // to get correct value
+	if (wait) Sleep(CPU_LOAD_WAIT_MS); // to get correct value
 	FILETIME idleTime, kernelTime, userTime;
 	return GetSystemTimes(&idleTime, &kernelTime, &userTime) ? CalculateCPULoad(FileTimeToInt64(idleTime), FileTimeToInt64(kernelTime) + FileTimeToInt64(userTime)) : -1.0f;
 }
-
 
 int NbPossibleChildInstances_fromMemoryUsage() { //1ms
 	MEMORYSTATUS memStatus;
@@ -910,10 +910,9 @@ int NbPossibleChildInstances_fromMemoryUsage() { //1ms
 }
 
 int NbPossibleChildInstances_fromCPUUsage() { //150ms
-	GetCPULoad(); // to be called once for a correct value at second call
-	//Sleep(250);
+	GetCPULoad(FALSE); // to be called once for a correct value at second call
 	int nb_processors = std::thread::hardware_concurrency();
-	float CPULoad = GetCPULoad();
+	float CPULoad = GetCPULoad(TRUE);
 	int NbPossibleChildInstances_fromCPUUsage_min_available = (int) (nb_processors * (100.0 - opts.min_available_cpu_pc - (CPULoad * 100.0)) / DETECT_CHILD_PROC_FACTOR_PC);		// 1 instance consumes 2.25 processor max
 	//int NbPossibleChildInstances_fromCPUUsage_1proc_available	= nb_processors * (100 - (100 / nb_processors) - CPULoad) / 160;											// 1 instance consumes 1.60 processor
 

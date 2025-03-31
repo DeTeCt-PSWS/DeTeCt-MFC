@@ -68,7 +68,7 @@ void fitsGet_info(FileCapture *fc, const char *fname, double *date)
 	{
 		 char msgtext[MAX_STRING] = { 0 };										
 		snprintf(msgtext, MAX_STRING, "wrong fits header size in %s", fname);
-		ErrorExit(TRUE, "wrong fits header size", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "wrong fits header size", __func__, msgtext);
 	}
 	fc->header_size=nbhead;
 
@@ -89,7 +89,8 @@ double fitsJD_date(char *buffer)
 	delta_time_hour=0;
 	delta_time_min=0;
 	date = 0;
-	
+	double time = 0.0;
+
 	jd=gregorian_calendar_to_jd(1,1,1,0,0,0.0);
 	if (hgetdate (buffer,"DATE-OBS", &date)==1) {       /* '2012-08-04T06:23:14.618' */
 														/* '2015-04-20T21:36:08' */
@@ -709,6 +710,7 @@ double fitsJD_date(char *buffer)
 			/* '2015-04-20T21:36:08' */
 			if (debug_mode) { fprintf(stdout, "fitsJD_date: First DATE %f\n", date); }
 			jd = gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0) + (gregorian_calendar_to_jd((int)fabs(date) + 1, 1, 1, 0, 0, 0.0) - gregorian_calendar_to_jd((int)fabs(date), 1, 1, 0, 0, 0.0))*(date - (int)fabs(date));
+			if (hgettime_dtc(buffer, "TIME", &time) == 1) jd += time;
 		}
 	}
 	

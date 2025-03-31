@@ -74,8 +74,6 @@
 
 	void 			dtcDrawCM(Image image, cv::Point cm);
 	
-	void			dtcDrawImpact(cv::Mat frame, cv::Point point, cv::Scalar colour, int lmin, int lmax);
-
 	cv::Mat			dtcApplyMask(cv::Mat img);
 
 	cv::Rect		dtcCorrelateROI(cv::Mat frame, cv::Mat roi, cv::Point roi_coords, cv::Size roi_size);
@@ -84,7 +82,7 @@
 
 	cv::Mat 		dtcGetHistogramImage(cv::Mat src, float scale, double thr);	//cvCreateImage
 
-	int				dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr);
+	float			dtcGetBackgroundFromHistogram(cv::Mat src, const double background_threshold_max_factor, const int number_below_threshold, const double thr, bool check_second_peak);
 
 //	static void		dtcWriteFrame(cv::VideoWriter writer, cv::Mat img);   // test OpenCV 4.7.0 
 	int				doublecmp(const void *a, const void *b);
@@ -92,6 +90,8 @@
 
 	bool			isEqual(cv::Mat m1, cv::Mat m2);
 
-	cv::Scalar		dtcGetSimilarity(const cv::Mat m1, const cv::Mat m2);
+	cv::Scalar		dtcGetSimilarity_SSIM(const cv::Mat m1, const cv::Mat m2);
+	cv::Scalar		dtcGetSimilarity_MSE(const cv::Mat m1, const cv::Mat m2);
+	cv::Scalar		dtcGetSimilarity_NCC(const cv::Mat mat1, const cv::Mat mat2);
 
 #endif /* __IMG_H__ */

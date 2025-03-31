@@ -50,6 +50,8 @@ typedef struct _Datation_source Datation_source;
 	void 	fprint_timetype(FILE *stream, const TIME_TYPE timetype);
 	double 	JD_from_time_t(const time_t time_t_value);
 	int 	month_nb(char *month_letter);
+	bool	IsFPSValid(double fps);
+
 
 #ifdef __cplusplus 
 //}

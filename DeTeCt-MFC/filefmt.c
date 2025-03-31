@@ -272,7 +272,10 @@ FileCapture *FileCaptureFromFile(const char *fname, int *pframecount, const int 
 				}
 				
 				nChannels = 1;
-				depth     = fc->PixelDepth > 8 ? IPL_DEPTH_16U : IPL_DEPTH_8U;
+				depth = fc->PixelDepth > 8 ? IPL_DEPTH_16U : IPL_DEPTH_8U;
+				if		(fc->PixelDepth <= IPL_DEPTH_8U)  depth = IPL_DEPTH_8U;
+				else if	(fc->PixelDepth <= IPL_DEPTH_16U) depth = IPL_DEPTH_16U;
+				else if (fc->PixelDepth <= IPL_DEPTH_32F) depth = IPL_DEPTH_32F;
 				fc->image					= cvCreateImageHeader(cvSize(fc->ImageWidth, fc->ImageHeight), depth, nChannels);
 				assert(fc->image != NULL);
 				fc->image->imageData		= (char*) calloc(sizeof (char), fc->ImageBytes);
@@ -346,7 +349,7 @@ void fileReinitCaptureRead(FileCapture *fc,const char *fname)
 	{
 		 char msgtext[MAX_STRING] = { 0 };										
 		snprintf(msgtext, MAX_STRING, "cannot reinitialize capture file %s", fname);
-		ErrorExit(TRUE, "cannot reinitialize capture file", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot reinitialize capture file", __func__, msgtext);
 	}
 }
 
@@ -375,7 +378,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 	if (!(fc->fh = fopen(filename, "rb"))) {
 		 char msgtext[MAX_STRING] = { 0 };										
 		snprintf(msgtext, MAX_STRING, "cannot open file %s (frame %d/%d)\n", filename, fc->frame,fc->LastFileIdx);
-		ErrorExit(TRUE, "cannot open file", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot open file", __func__, msgtext);
 	}
 	switch (fc->FileType) {
 		case CAPTURE_FITS:
@@ -396,7 +399,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 					if (!ignore) {
 						 char msgtext[MAX_STRING] = { 0 };										
 						snprintf(msgtext, MAX_STRING, "cannot read fits header for file %s frame %d (Header size different from %zd)\n", filename, fc->frame, fc->header_size);
-						ErrorExit(TRUE, "cannot read fits header", __func__, msgtext);
+						ErrorExit(TRUE, TRUE, "cannot read fits header", __func__, msgtext);
 					}
 					else {
 						 char msgtext[MAX_STRING] = { 0 };										
@@ -419,7 +422,7 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 						if (!ignore) {
 							 char msgtext[MAX_STRING] = { 0 };										
 							snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
-							ErrorExit(TRUE, "cannot read fits frame", __func__, msgtext);
+							ErrorExit(TRUE, TRUE, "cannot read fits frame", __func__, msgtext);
 						}
 						else {
 							fc->ValidFrameCount--;
@@ -441,13 +444,13 @@ IplImage *fileQueryFrame(FileCapture *fc, const int ignore, int *perror)
 					cvReleaseImage(&old_image);
 					 char msgtext[MAX_STRING] = { 0 };										
 					snprintf(msgtext, MAX_STRING, "cannot read file frame %d for file %s", fc->frame, filename);
-					ErrorExit(TRUE, "cannot read file frame", __func__, msgtext);
+					ErrorExit(TRUE, TRUE, "cannot read file frame", __func__, msgtext);
 				} else {
 					fc->ValidFrameCount--;
 					(*perror)=1;
 					 char msgtext[MAX_STRING] = { 0 };										
 					snprintf(msgtext, MAX_STRING, "cannot read file frame #%d (%zd missing till frame #%zd) for file %s\n", fc->frame, fc->FrameCount-fc->ValidFrameCount, fc->FrameCount, filename);
-					ErrorExit(TRUE, "cannot read file frame", __func__, msgtext);
+					ErrorExit(TRUE, TRUE, "cannot read file frame", __func__, msgtext);
 					fc->image=old_image;
 					return fc->image;
 				}
@@ -500,6 +503,10 @@ void fileGet_info(FileCapture *fc, const char *fname, double *date)
 			break;
 	}
 	fc->BytesPerPixel = fc->PixelDepth > 8 ? 2 : 1;
+	if		(fc->PixelDepth <= IPL_DEPTH_8U)  fc->BytesPerPixel = 1;
+	else if (fc->PixelDepth <= IPL_DEPTH_16U) fc->BytesPerPixel = 2;
+	else if (fc->PixelDepth <= IPL_DEPTH_32F) fc->BytesPerPixel = 4;
+
 	fc->ImageBytes    = fc->ImageWidth * fc->ImageHeight * fc->BytesPerPixel;
 }
 

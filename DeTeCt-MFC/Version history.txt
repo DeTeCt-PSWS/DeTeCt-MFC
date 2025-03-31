@@ -3,11 +3,72 @@
 ===============================================================================================================
 				use of colorID from AS! session file
 
-tbd:	ImpactMinTime vs min frames vs incrimpact frames
-tbd:	Interval for checking other files processed + check nbinstances first!
+		check and improve performance using events tab in debug mode
+
+tbd:	E filter out candidate on frame level if not meeting final requirement (min. max-mean delta in detection image, distance to brightest point)
+tbd (linked):	D Check multiple impact candidates
+
+tbd:	E Ignore frames with satellites only (see RCa 20240902)
 
 
+tbd:	E binx3 before identifying brightest point in differential image (ROI sizes should be mulltiple of 3)
 
+tbd:	E Checking other files processed - check nbinstances first?
+tbd:	E No update of instances if only one file is missing, and currently being processed by main instance (not in AS mode)
+tbd:	E Use temporary file existence to indicate to main session that it should update (beware multiple sessions done)
+
+tbd:	Attempt reprocessing if child failed (check before the end of the processing)
+
+tbd:	E dtcGetBackgroundFromHistogram handling of different pixel depth sizes
+
+tbd:	E ImpactMinTime vs min frames vs incrimpact frames
+
+tbd:	D multi-instance mode with AS (session file in the CPU description line like "cores 8/16" - allow 7 instances)
+
+tbd:	E Display error counter apart from null
+
+tbd:	M planet mask for fast find of differential max point and brightest points
+
+tbd:	M Handling FITS 16b
+
+tbd:	E normalize black level in detection images
+
+
+v4.0.0 (=3.9.1) (Large improvement of detection algorithms/parameters/background detection - much less false/low detections, no detection images when error, proportional crosses, improvements, bug fixes)
+Algo:			Get the first valid (on planet) brightest point (blue cross)
+Algo:			Ignore brightest point on image borders
+Algo:			Ignore brightest point on bright lines (and remove them)
+Algo:			Ignore differential maximum/brightest point in frame or final dtc images if black or area surrounded by black (satellite outside of planet,; does not work for shadow transit)
+Algo:			Ignore differential maximum/brightest point in frame or final dtc images if not on planet (satellite outside of planet) (2 methods)
+Algo:			Proportional crosses visualising max differential photometry point and max point (was too big on small ROIs)
+Algo:			All dtc images/confidence parameters tuned for better detection
+Algo:			Rejection of frames: test similarity  with several algorithms (SSIM, MSE, NCC), best setup selected
+Algo:			Temporal density: test for having short impact candidates (failed, deactivated)
+Algo:			Background calculation optimized (better alignment, better impact detection); search for second peak in histogram tested but not needed - deactivated
+Algo:			Impact detection: check validity of candidate on single frame level
+Algo:			No detect images generation / calculation if image is not correct (incorrect ROI, too dark)
+Files:			FITS DATE/TIME format of SWIR PdM camera ; handling of BITPIX=32
+Instances:		Raise of min available memory for all modes
+Instances:		Waiting time for CPU Load only when needed
+GUI:			Clearer message when capture not readable (case M. Lewis)
+GUI:			Clearer messages if acquisition processing is in error
+GUI:			Error message and end of processing if exception occurs
+OpenCL:			Advanced setting option to deactivate OpenCL (not saved as reduced performance)
+General:		Auto shutdown PC option does not need auto exit (does it directly after processing)
+General:		Auto shutdown option deactivated by default after shutdown
+Advanced:		Saves also single frame when advanced user option save individual dtc frames is selected
+Autostakkert:	Use current directory for as3 files if acquisition file not found
+Autostakkert:	Only use planet (not surface) stabilization configuration for using autostakkert alignment
+Performance:	Frames similarity tests only if bad frames are ignored (default option)
+Bugfix:			Correct bad wmv fps info when number of frames kno<n
+Bugfix:			Fix position of resource usage control
+Bugfix:			Confidence format in log if >=100
+
+tbd:	D Check impact candidate spatial coherence
+tbd:	E Check if blue cross on white line, replace white line by bg level
+
+
+--------------------------------------------------------------------------------------
 v3.9.0 (Detection algorithm improved, multi-instances mode dynamic (using CPU and RAM usage), all files rejected during analysis are now logged, , bugfixes (progress bars, fatal errors))
 Algo:			Confidence min corrected
 Algo:			Correction impact radius calculation, parameters in advanced settings
@@ -386,9 +447,7 @@ High priority:
 --------------
 E	Show computing progression in size not in number
 E	Show time remaining expectation
-E	FITS DATE/TIME format of SWIR PdM camera (2023-10-14 ; 16:20:38) + BITPIX -32
 E	Check usage of Date(UT), Noise, deviation, etc. from FC log
-E	Remove or ignore bright borders on detection image
 A	overexposed frames : ignore too much overexposed frames (eg 50% of pixels ?)
 A	overexposed images : test black max-mean white mean for error
 D	Double calculation of ROI (initially + for each frame on a 3x bigger ROI than defined)

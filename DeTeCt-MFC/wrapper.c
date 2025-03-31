@@ -130,7 +130,7 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 					free(capt);
 					capt = NULL;
 					char msgtext[MAX_STRING] = { 0 };
-					snprintf(msgtext, MAX_STRING, "cannot read capture file %s\n", fname);
+					snprintf(msgtext, MAX_STRING, "cannot read capture file %s\n\nThis type of file could not be decoded or file might be corrupted.\n", fname);
 					Warning(WARNING_MESSAGE_BOX, "cannot read capture file", __func__, msgtext);
 					//exit(EXIT_FAILURE);
 					return NULL;

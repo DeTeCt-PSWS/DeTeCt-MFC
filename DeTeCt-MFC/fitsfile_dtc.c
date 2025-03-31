@@ -579,3 +579,56 @@ fitsropen (const char *inpath)
 
     return (fd);
 }
+
+int
+hgettime_dtc(
+	const char* hstring,	/* character string containing FITS header information
+		   in the format <keyword>= <value> {/ <comment>} */
+	const char* keyword,	/* character string containing the name of the keyword
+			   the value of which is returned.  hget searches for a
+			   line beginning with this string.  if "[n]" is present,
+			   the n'th token in the value is returned.
+			   (the first 8 characters must be unique) */
+	double* dval) {
+		double seconds, fday;
+		char* value, * cstr, * nval;
+		int hours, minutes;
+		*dval = 0.0;
+
+		/* Get value and comment from header string */
+		value = hgetc(hstring, keyword);
+
+		/* Translate value from ASCII to binary */
+		if (value != NULL) {
+
+			/* Extract time, if it is present */
+				nval = value;
+				hours = 0.0;
+				minutes = 0.0;
+				seconds = 0.0;
+				cstr = strchr(nval, ':');
+				if (cstr > value) {
+					*cstr = '\0';
+					hours = (int)atof(nval);
+					*cstr = ':';
+					nval = cstr + 1;
+					cstr = strchr(nval, ':');
+					if (cstr > value) {
+						*cstr = '\0';
+						minutes = (int)atof(nval);
+						*cstr = ':';
+						nval = cstr + 1;
+						seconds = atof(nval);
+					}
+					else {
+						minutes = (int)atof(nval);
+						seconds = 0.0;
+					}
+				}
+				fday = (hours + (minutes + seconds/ 60.0) / 60.0) / 24.0; 
+				//fday = ((3.6e3 * (double)hours) + (6.e1 * (double)minutes) + seconds) / 8.64e4;
+				*dval = *dval + fday;
+			return (1);
+		}
+		else return(0);
+}

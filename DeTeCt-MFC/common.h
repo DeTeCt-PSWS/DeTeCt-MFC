@@ -64,7 +64,7 @@ typedef unsigned long       DWORD;
 	void 	get_folder(const char *src, char *dst);
 	bool	file_exists(const char* fname);
 	
-	void	ErrorExit(const bool display_msgbox,	const char *title, const char* function, const char *text);
+	void	ErrorExit(const bool exit_failure, const bool display_msgbox,	const char *title, const char* function, const char *text);
 	void	Warning(const bool display_msgbox,		const char *title, const char* function, const char *text);
 	void	Info(const bool display_msgbox,			const char* title, const char* function, const char* text);
 

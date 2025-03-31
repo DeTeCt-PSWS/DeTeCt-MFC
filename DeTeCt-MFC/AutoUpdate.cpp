@@ -557,7 +557,7 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 	version_update.Revision		= 3;
 	version_update.SubRevision	= 0;
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
-		opts.impact_distance_max	= 0.03;		// to detect 2021.09.13 impact as high
+		//opts.impact_distance_max	= 0.03;		// to detect 2021.09.13 impact as high
 		opts.ROI_min_size			= 70;		// to ignore too small ROIs where impact could be missed
 		opts.impact_duration_min	= 0.4;		// to detect 2020.08.11 impact as high
 		WriteIni();
@@ -582,7 +582,7 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 	version_update.SubRevision	= 0;
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		opts.detail = FALSE;				// to size down zip files
-		opts.impact_confidence_min = 2.10;	// to improve detection
+		//opts.impact_confidence_min = 2.10;	// to improve detection
 		WriteIni();
 		update = TRUE;
 	}
@@ -593,7 +593,7 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 	version_update.SubRevision	= 0;
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		opts.detail = FALSE;				// to size down zip files
-		opts.impact_confidence_min = 2.10;	// to improve detection		// was not set as default in 3.6.0
+		//opts.impact_confidence_min = 2.10;	// to improve detection		// was not set as default in 3.6.0
 		WriteIni();
 		update = TRUE;
 	}
@@ -640,7 +640,7 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
 		opts.ROI_min_size = 68;					// to ignore too small ROIs where impact could be missed
 		opts.transparency_min_pc = 20;			// tolerance in transparency for a frame compared to 1st frame
-		opts.similarity_decrease_max_pc = 12;	// max decrease between two frames similarity
+		//opts.similarity_reference_decrease_min_pc = 12.0;	// max decrease between two frames similarity
 		WriteIni();
 		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
 		update = TRUE;
@@ -674,9 +674,9 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		update = TRUE;
 	}
 
-	version_update.Major = 3;
-	version_update.Minor = 9;
-	version_update.Revision = 0;
+	version_update.Major	= 3;
+	version_update.Minor	= 9;
+	version_update.Revision	= 0;
 	version_update.SubRevision = 0;
 	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
 		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
@@ -684,18 +684,39 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		update = TRUE;
 	}
 	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
-		opts.impact_radius_min							= 5;	// impact radius (px)
-		opts.impact_radius_ratio						= 50.0;	// Impact radius ROI ratio
-		opts.impact_radius_max							= 12.0;	// Impact radius max (pixels)
-		opts.impact_radius_shared_candidates_factor_min	= 0.30;	// Share of brightest points located within radius distance of brightest candidate
-		opts.impact_brightness_increase_min_factor		= 0.15; // Minimum of brightness increase from mean value factor
-		opts.resources_usage							= 1;
+		opts.impact_radius_min = 5;	// impact radius (px)
+		opts.impact_radius_ratio = 50.0;	// Impact radius ROI ratio
+		opts.impact_radius_max = 12.0;	// Impact radius max (pixels)
+		opts.impact_radius_shared_candidates_factor_min = 0.30;	// Share of brightest points located within radius distance of brightest candidate
+		opts.impact_brightness_increase_min_factor = 0.15; // Minimum of brightness increase from mean value factor
+		opts.resources_usage = 1;
 		WriteIni();
 		RemoveFromIni(L"radius=");
-		RemoveFromIni(L"impact_radius_ROI_ratio="); 
+		RemoveFromIni(L"impact_radius_ROI_ratio=");
 		RemoveFromIni(L"min_strength=");
 		RemoveFile((CString)"opencv_ffmpeg2413_64.dll", log_cstring_lines);
 		update = TRUE;
+	}
+
+	version_update.Major	= 4;
+	version_update.Minor	= 0;
+	version_update.Revision	= 0;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world460.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		opts.bg_detection_peak_factor	= 0.08;					// min threshold to detect background (% of peak factor)
+		opts.impact_distance_max		= 0.034;				// to detect 2021.10.15 impact as high (wa 0.03)
+		opts.impact_confidence_min		= 4.00;					// was too low (was 2.1)
+		opts.impact_max_avg_min			= 190;					// was too low (was 177)
+		opts.similarity_reference_decrease_min_pc[SSIM] = 7.00;	// was too low (was 3.0)
+		WriteIni();
+		RemoveFromIni(L"similarity_reference_decrease_min_pc=");
+		update = TRUE;
+	// /!\ For dev versions, new detect.ini parameters value will be overwritten by previous updates - new values for new version will only be used when new version is published
 	}
 
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -714,7 +735,7 @@ SG_Version AutoUpdate::SG_Version_from_ini(const char *SG_Version_string) {
 	SG_Version SG_Version_return = { 0, 0, 0, 0 };
 
 	std::string line(SG_Version_string);
-	int pos_separator = (int)line.find_first_of(".");
+	size_t pos_separator = (int)line.find_first_of(".");
 	if (pos_separator > 0) {
 		SG_Version_return.Major = stoi(line.substr(0, pos_separator));
 		line = line.substr(pos_separator + 1, line.size() - pos_separator - 1);

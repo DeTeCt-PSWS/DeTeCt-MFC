@@ -250,6 +250,7 @@ public:
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
 	virtual BOOL OnInitDialog();
+	void RefreshDialog();
 	DECLARE_MESSAGE_MAP()
 public:
 	afx_msg void OnBnClickedOk();
@@ -270,6 +271,7 @@ public:
 	CButton NoZip;
 	CButton Debug;
 	CButton CleanDir;
+	CButton NoOpenCL;
 	afx_msg void OnBnClickedClean();
 
 	/* Note: OnDeltaposSpin function only needed for non integer values */
@@ -293,7 +295,16 @@ public:
 	CEdit impactBrightThresh;
 	CSpinButtonCtrl brightThreshSpin;
 	CButton applyMask;
-	
+	CEdit impactDistanceMax; //double?
+	CSpinButtonCtrl impactDistanceMaxSpin;
+	afx_msg void OnDeltaposSpin28(NMHDR* pNMHDR, LRESULT* pResult);
+	CEdit impactMaxMeanMin; //double?
+	CSpinButtonCtrl impactMaxMeanMinSpin;
+
+	CEdit impactConfidenceMin; //double?
+	CSpinButtonCtrl impactConfidenceMinSpin;
+	afx_msg void OnDeltaposSpin30(NMHDR* pNMHDR, LRESULT* pResult);
+
 	//ROI
 	CEdit roiSizeFactor;
 	CSpinButtonCtrl sizeFactSpin;
@@ -323,10 +334,43 @@ public:
 	CComboBox debayeringCode;
 
 	afx_msg void OnCbnSelchangeCombo2();
-	CButton ignoreIncorrectFrames;
 	CButton useFilter;
 	CComboBox filterSelect;
 	afx_msg void OnBnClickedCheck15(); //use filter
+
+	//Rejection of frames
+	CButton ignoreIncorrectFrames;
+	CButton useOneAlgoToRejectFrame;
+	CButton useAllAlgoForTest;
+
+	CButton useRefSSIM;
+	CButton usePrevSSIM;
+	CButton useRefMSE;
+	CButton usePrevMSE;
+	CButton useRefNCC;
+	CButton usePrevNCC;
+
+	CEdit RefSSIMdecmin;
+	CSpinButtonCtrl RefSSIMdecminSpin;
+	afx_msg void OnDeltaposSpin22(NMHDR* pNMHDR, LRESULT* pResult);
+	CEdit PrevSSIMdecmin;
+	CSpinButtonCtrl PrevSSIMdecminSpin;
+	afx_msg void OnDeltaposSpin23(NMHDR* pNMHDR, LRESULT* pResult);
+	CEdit RefMSEdecmin;
+	afx_msg void OnDeltaposSpin24(NMHDR* pNMHDR, LRESULT* pResult);
+	CSpinButtonCtrl PrevMSEdecminSpin;
+	CEdit PrevMSEdecmin;
+	CSpinButtonCtrl RefMSEdecminSpin;
+	afx_msg void OnDeltaposSpin25(NMHDR* pNMHDR, LRESULT* pResult);
+	CEdit RefNCCdecmin;
+	CSpinButtonCtrl RefNCCdecminSpin;
+	afx_msg void OnDeltaposSpin26(NMHDR* pNMHDR, LRESULT* pResult);
+	CEdit PrevNCCdecmin;
+	CSpinButtonCtrl PrevNCCdecminSpin;
+	afx_msg void OnDeltaposSpin27(NMHDR* pNMHDR, LRESULT* pResult);
+
+
+
 };
 #pragma once
 

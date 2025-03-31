@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"3.9.0"
+#define VERSION_NB		"4.0.0"
 #define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -76,6 +76,9 @@ extern int debug_mode;
 
 enum _Planet_type { Mercury, Venus, Mars, Jupiter, Saturn, Uranus, Neptun, Notdefined };
 typedef enum _Planet_type Planet_type;
+
+enum Similarity_type { SSIM, MSE, NCC , max_similarity};
+//typedef enum _Similarity_type Similarity_type;
 
 #ifdef __cplusplus
 //extern "C" {
@@ -159,8 +162,14 @@ struct options {
 	double			bg_detection_peak_factor;			// for min threshold to detect background
 	int				bg_detection_consecutive_values;	// # of consecutive frames to be below peak factor for background detection
 	int				transparency_min_pc;					// tolerance in transparency for a frame compared to 1st frame
-	int				similarity_decrease_max_pc;			// max decrease between two frames similarity
-// Backup - force values
+	//bool			use_similarity[3];
+	bool			use_one_algo_to_reject_frame;			// First similarity algorithm qualifying frame as incorrect is enough (if not checked *all* algorithms are needed)
+	bool			use_all_algo_for_test;					// Runs all algorithms without min decrease for logging in csv all results for min decrease fine tuning
+	std::array<bool, max_similarity> use_reference_similarity;
+	std::array<bool, max_similarity> use_previous_frame_similarity;
+	std::array<double, max_similarity> similarity_reference_decrease_min_pc;			// max decrease between two frames similarity
+	std::array<double, max_similarity> similarity_previous_frame_decrease_min_pc;			// max decrease between two frames similarity
+	// Backup - force values
 	bool			interactive_bak;			// Backup of interactive status
 	bool			reprocessing_bak;			// Backup of reprocessing status
 	int				maxinstances_bak;			// Backup of Maximum number of DeTeCt instances status
@@ -179,6 +188,7 @@ struct options {
 	int				resources_usage;				//level of resources usage
 	float			min_free_system_memory_pc;
 	float			min_available_cpu_pc;
+	bool			OpenCL;							//usage of graphics HW acceleration for computing
 };
 typedef struct options OPTS;
 

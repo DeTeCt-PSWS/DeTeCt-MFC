@@ -119,7 +119,8 @@ cv::Mat dtcQueryFrame2(DtcCapture *capture, const int ignore, int *perror) {
 			// find maximum number of bits used
 			minMaxLoc(matrix_frame, &minVal, &maxVal, &minLoc, &maxLoc);
 			if (maxVal > pow(2, capture->u.filecapture->MaxBits)) {
-				maxbits = 16;
+				//maxbits = 16;
+				maxbits = 32;
 				while (maxVal <= pow(2, maxbits)) maxbits--;
 				maxbits++;
 				if (maxbits < 8) maxbits = 8; // image coded on 2 bytes ...
@@ -168,7 +169,7 @@ void dtcReinitCaptureRead2(DtcCapture **pcapture, const char *fname)
 		if (!(*pcapture = dtcCaptureFromFile2(fname, &framecount))) {
 			 char msgtext[MAX_STRING] = { 0 };
 			snprintf(msgtext, MAX_STRING, "cannot open file %s", fname);
-			ErrorExit(TRUE, "cannot reinitialize capture", __func__, msgtext);
+			ErrorExit(TRUE, TRUE, "cannot reinitialize capture", __func__, msgtext);
 		}
 		break;
 	}

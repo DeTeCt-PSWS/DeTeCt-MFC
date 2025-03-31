@@ -15,54 +15,60 @@ void read_autostakkert_session_config_line(std::string line, std::string *filena
 // ************** AS!3 session and WJ derot files *************
 // ************************************************************
 
-void read_autostakkert_session_file(std::string configfile, std::string *filename, std::vector<cv::Point> *cm_list, int *cm_list_start, int *cm_list_end, int *cm_frame_count) {
+void read_autostakkert_session_file(std::string configfile, std::string* filename, std::vector<cv::Point>* cm_list, int* cm_list_start, int* cm_list_end, int* cm_frame_count) {
 	(*filename) = "";
 	(*cm_list_start) = -1;
 	(*cm_list_end) = -1;
 	(*cm_frame_count) = -1;
-	
+
 	for (std::string line : read_txt(configfile)) {
 		read_autostakkert_session_config_line(line, filename, cm_list, cm_list_start, cm_list_end, cm_frame_count);
 		//do not read all file if cm list not needed and other values already found
 		if ((cm_list == NULL) && ((*filename) != "") && ((*cm_list_start) != -1) && ((*cm_list_end) != -1) && ((*cm_frame_count) != -1)) break;
 	}
-	
-//***** test if filename exists with full name or at the same directory as configfile
+
+	//***** test if filename exists with full name or at the same directory as configfile
 	if (!filesys::exists(filename->c_str())) {
 		std::string acquisition_file2(filename->c_str());
 		//(*filename) = configfile.substr(0, configfile.find_last_of("\\") + 1) + acquisition_file2.substr(acquisition_file2.find_last_of("\\") + 1, acquisition_file2.length());
-		(*filename) = dirfilename(configfile, acquisition_file2);
-//***** test if acquisition file is WJ derotated file
-		if ((!filesys::exists(filename->c_str())) && (acquisition_file2.find_last_of(WJ_DEROT_STRING) > 0)) {
-			(*filename) = ""; 
-			std::string winjupos_derotation_filename(acquisition_file2);
-			std::string WJ_derot_extension;
-			WJ_derot_extension = WJ_DEROT_EXT;
-			winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
-			if (!filesys::exists(winjupos_derotation_filename)) {
-				WJ_derot_extension = WJ_DEROT_EXT_OLD;
+		(*filename) = dirfilename(configfile, acquisition_file2); //new filename = acquisition file in configfile directory
+
+		//***** test if acquisition file is WJ derotated file
+		if (!filesys::exists(filename->c_str())) {
+			(*filename) = "";
+			if ((acquisition_file2.find_last_of(WJ_DEROT_STRING)) > 0) { //WinJupos file for acquisition2
+				std::string winjupos_derotation_filename(acquisition_file2);
+				std::string WJ_derot_extension;
+				WJ_derot_extension = WJ_DEROT_EXT;
 				winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
-			}
-//***** test if WJ derotation file exists
-			if (filesys::exists(winjupos_derotation_filename)) {
-				read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
-				if (!filesys::exists((*filename))) {
-					(*filename) = dirfilename(configfile, (*filename));
-					if (!filesys::exists((*filename))) (*filename) = "";
+				if (!filesys::exists(winjupos_derotation_filename)) {
+					WJ_derot_extension = WJ_DEROT_EXT_OLD;
+					winjupos_derotation_filename = winjupos_derotation_filename.substr(0, winjupos_derotation_filename.find_last_of(".") + 1) + WJ_derot_extension;
 				}
-			} else {
-//***** test if WJ derotated acquisition exists in current directory
-				//winjupos_derotation_filename = configfile.substr(0, configfile.find_last_of("\\") + 1) + winjupos_derotation_filename.substr(winjupos_derotation_filename.find_last_of("\\") + 1, winjupos_derotation_filename.length());
-				winjupos_derotation_filename = dirfilename(configfile, winjupos_derotation_filename);
+				//***** test if WJ derotation file exists
 				if (filesys::exists(winjupos_derotation_filename)) {
 					read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
-//					if (!filesys::exists((*filename))) {
-//						(*filename) = dirfilename(configfile, (*filename));
-					if (!filesys::exists((*filename))) (*filename) = "";
-//					}
-				} else (*filename) = "";
+					if (!filesys::exists((*filename))) {
+						(*filename) = dirfilename(configfile, (*filename));
+						if (!filesys::exists((*filename))) (*filename) = "";
+					}
+				}
+				else {
+					//***** test if WJ derotated acquisition exists in current directory
+									//winjupos_derotation_filename = configfile.substr(0, configfile.find_last_of("\\") + 1) + winjupos_derotation_filename.substr(winjupos_derotation_filename.find_last_of("\\") + 1, winjupos_derotation_filename.length());
+					winjupos_derotation_filename = dirfilename(configfile, winjupos_derotation_filename);
+					if (filesys::exists(winjupos_derotation_filename)) {
+						read_winjupos_file(winjupos_derotation_filename, filename, WJ_derot_extension);
+						//					if (!filesys::exists((*filename))) {
+						//						(*filename) = dirfilename(configfile, (*filename));
+						if (!filesys::exists((*filename))) (*filename) = "";
+						//					}
+					}
+					else (*filename) = "";
+				}
 			}
-		} else (*filename) = "";
+			else (*filename) = "";
+		} //filename exists
 	}
 }
 
@@ -71,6 +77,7 @@ void read_autostakkert_session_config_line(std::string line, std::string *filena
 //	std::ifstream file(path, std::ios::in);
 	std::vector<std::string> lines;
 	float x, y;
+	bool is_planet_stabilization = false;
 
 	trim_string(line);
 	if (starts_with(line, "file")) {
@@ -103,7 +110,14 @@ void read_autostakkert_session_config_line(std::string line, std::string *filena
 			(*cm_list_start) = 0;
 			(*cm_list_end) = 999999;
 		}
-	} else if ((cm_list != NULL) && (starts_with(line, "f "))) {
+	} else if (starts_with(line, "Planet Stabilization")) {
+			is_planet_stabilization = true;
+	} else if (starts_with(line, "Surface Stabilization")) {
+			is_planet_stabilization = false;
+			cm_list->clear();
+			(*cm_list_start) = 0;
+			(*cm_list_end) = 0;
+	} else if ((cm_list != NULL) && (is_planet_stabilization) && (starts_with(line, "f "))) {
 		lines.push_back(line);
 		line = line.substr(strlen("f "), line.length());
 		// replace comma by point

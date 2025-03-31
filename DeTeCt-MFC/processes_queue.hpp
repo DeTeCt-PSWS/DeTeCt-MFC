@@ -33,7 +33,7 @@ BOOL	IsFileAlreadyQueued		(const CString objectname, const CString QueueFilename
 void	PushFileToQueue			(const CString objectname, const CString QueueFilename);																			//API			-W-
 void	RemoveFileFromQueue		(const CString objectname, const  CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end);					//API+internal	--D
 
-int		NbFilesFromQueue		(const CString QueueFilename);																										//API			R--
+size_t	NbFilesFromQueue		(const CString QueueFilename);																										//API			R--
 BOOL	GetFileFromQueue		(CString *objectname, const CString QueueFilename);																					//API			-WD
 void	SetFileProcessingFromQueue(const CString objectname, const CString QueueFilename);																			//API			-WD
 void	SetProcessingFileProcessedFromQueue(const CString objectname, const CString details, const CString tag, const CString QueueFilename);						//API			-WD
@@ -53,7 +53,7 @@ int		ParentChildrenProcessesNumber(const DWORD parent_PID);
 
 // ************** memory and CPU functions **********
 void	Set_ressource_usage(const int resources_usage);
-float	GetCPULoad();
+float	GetCPULoad(const BOOL wait);
 int		NbPossibleChildInstances_fromMemoryUsage();
 int		NbPossibleChildInstances_fromCPUUsage();
 int		NbPossibleChildInstances_fromMemoryandCPUUsage();

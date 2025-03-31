@@ -207,6 +207,9 @@ SerCapture *serCaptureFromFile(const char *fname)
 			Trailer contains Date / Integer_64 (little-endian) time stamps in UTC for every image frame.*/
 
 		depth = sc->header.PixelDepth > 8 ? IPL_DEPTH_16U : IPL_DEPTH_8U;
+		if		(sc->header.PixelDepth <= IPL_DEPTH_8U)  depth = IPL_DEPTH_8U;
+		else if (sc->header.PixelDepth <= IPL_DEPTH_16U) depth = IPL_DEPTH_16U;
+		else if (sc->header.PixelDepth <= IPL_DEPTH_32F) depth = IPL_DEPTH_32F;
 
 		switch (sc->header.ColorID) {
 		case SER_RGB: case SER_BGR:
@@ -218,6 +221,9 @@ SerCapture *serCaptureFromFile(const char *fname)
 		}
 
 		sc->byte_depth = sc->header.PixelDepth > 8 ? 2 : 1;
+		if		(sc->header.PixelDepth <= IPL_DEPTH_8U)  sc->byte_depth = 1;
+		else if (sc->header.PixelDepth <= IPL_DEPTH_16U) sc->byte_depth = 2;
+		else if (sc->header.PixelDepth <= IPL_DEPTH_32F) sc->byte_depth = 4;
 		sc->BytesPerPixel = sc->byte_depth * sc->nChannels;
 		sc->ImageBytes = sc->header.ImageWidth * sc->header.ImageHeight * sc->BytesPerPixel;
 
@@ -315,7 +321,7 @@ void serReinitCaptureRead(SerCapture *sc,const char *fname)
 	if (fread(buffer, sizeof (char), SER_HEADER_SIZE, sc->fh) != SER_HEADER_SIZE) {
 		char msgtext[MAX_STRING] = { 0 };									
 		snprintf(msgtext, MAX_STRING, "wrong header size in %s", fname);
-		ErrorExit(TRUE, "wrong header size", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "wrong header size", __func__, msgtext);
 		//exit(EXIT_FAILURE);		
 	}
 /*	if (!(fsetpos(sc->fh, (fpos_t) (SER_HEADER_SIZE))))
@@ -791,7 +797,7 @@ void* serQueryFrameData(SerCapture *sc, const int ignore, int *perror)
 		if (!ignore) {
 			 char msgtext[MAX_STRING] = { 0 };										
 			snprintf(msgtext, MAX_STRING, "cannot read ser frame %zd", sc->frame);
-			ErrorExit(TRUE, "cannot read ser frame", __func__, msgtext);
+			ErrorExit(TRUE, TRUE, "cannot read ser frame", __func__, msgtext);
 		} else {
 			(*perror) = 1;
 			 char msgtext[MAX_STRING] = { 0 };	

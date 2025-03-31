@@ -285,11 +285,31 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.medSize =							::GetPrivateProfileInt(L"roi",		L"medbuf",											5, DeTeCtIniFilename);
 	opts.ROI_min_px_val =					::GetPrivateProfileInt(L"roi",		L"ROI_min_px_val",									10, DeTeCtIniFilename);
 	opts.ROI_min_size =						::GetPrivateProfileInt(L"roi",		L"ROI_min_size",									68, DeTeCtIniFilename);
-											::GetPrivateProfileString(L"background", L"bg_detection_peak_factor",					L"0.05", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"background", L"bg_detection_peak_factor",					L"0.08", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.bg_detection_peak_factor =			std::stod(optionStr);
 	opts.bg_detection_consecutive_values =	::GetPrivateProfileInt(L"background", L"bg_detection_consecutive_values",				5,	DeTeCtIniFilename);
 	opts.transparency_min_pc =				::GetPrivateProfileInt(L"rejection", L"transparency_min_pc",							20,	DeTeCtIniFilename);
-	opts.similarity_decrease_max_pc =		::GetPrivateProfileInt(L"rejection", L"similarity_decrease_max_pc",						12,	DeTeCtIniFilename);
+
+	opts.use_one_algo_to_reject_frame = ::GetPrivateProfileInt(L"rejection", L"use_one_algo_to_reject_frame",						true, DeTeCtIniFilename);
+	opts.use_reference_similarity[SSIM] =	::GetPrivateProfileInt(L"rejection", L"use_reference_similarity[SSIM]",					true, DeTeCtIniFilename);
+	opts.use_reference_similarity[MSE] = ::GetPrivateProfileInt(L"rejection", L"use_reference_similarity[MSE]",						false, DeTeCtIniFilename);
+	opts.use_reference_similarity[NCC] = ::GetPrivateProfileInt(L"rejection", L"use_reference_similarity[NCC]",						false, DeTeCtIniFilename);
+	opts.use_previous_frame_similarity[SSIM] = ::GetPrivateProfileInt(L"rejection", L"use_previous_frame_similarity[SSIM]",			false, DeTeCtIniFilename);
+	opts.use_previous_frame_similarity[MSE] = ::GetPrivateProfileInt(L"rejection", L"use_previous_frame_similarity[MSE]",			false, DeTeCtIniFilename);
+	opts.use_previous_frame_similarity[NCC] = ::GetPrivateProfileInt(L"rejection", L"use_previous_frame_similarity[NCC]",			false, DeTeCtIniFilename);
+
+											::GetPrivateProfileString(L"rejection", L"similarity_reference_decrease_min_pc[SSIM]",		L"7.00", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.similarity_reference_decrease_min_pc[SSIM] = std::stod(optionStr);
+											::GetPrivateProfileString(L"rejection", L"similarity_reference_decrease_min_pc[MSE]",		L"0.03", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.similarity_reference_decrease_min_pc[MSE] = std::stod(optionStr);
+											::GetPrivateProfileString(L"rejection", L"similarity_reference_decrease_min_pc[NCC]",		L"0.08", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.similarity_reference_decrease_min_pc[NCC] = std::stod(optionStr);
+											::GetPrivateProfileString(L"rejection", L"similarity_previous_frame_decrease_min_pc[SSIM]", L"2.00", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.similarity_previous_frame_decrease_min_pc[SSIM] = std::stod(optionStr);
+											::GetPrivateProfileString(L"rejection", L"similarity_previous_frame_decrease_min_pc[MSE]", L"0.04", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.similarity_previous_frame_decrease_min_pc[MSE] = std::stod(optionStr);
+											::GetPrivateProfileString(L"rejection", L"similarity_previous_frame_decrease_min_pc[NCC]", L"0.11", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+	opts.similarity_previous_frame_decrease_min_pc[NCC] = std::stod(optionStr);
 
 	opts.wait = 1;
 											::GetPrivateProfileString(L"roi",	L"sizfac",											L"0.90", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
@@ -299,11 +319,11 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	opts.threshold =						::GetPrivateProfileInt(L"impact",	L"thresh",											0, DeTeCtIniFilename);
 	opts.learningRate =																												0.0;
 	opts.thrWithMask =						::GetPrivateProfileInt(L"impact",	L"mask",											0, DeTeCtIniFilename);
-											::GetPrivateProfileString(L"impact",L"impact_distance_max",								L"0.03", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_distance_max",								L"0.036", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_distance_max = std::stod(optionStr);
-											::GetPrivateProfileString(L"impact",L"impact_max_avg_min",								L"177.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_max_avg_min",								L"188.0", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_max_avg_min = std::stod(optionStr);
-											::GetPrivateProfileString(L"impact",L"impact_confidence_min",							L"2.10", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
+											::GetPrivateProfileString(L"impact",L"impact_confidence_min",							L"4.00", optionStr, sizeof(optionStr) / sizeof(optionStr[0]), DeTeCtIniFilename);
 	opts.impact_confidence_min = std::stod(optionStr);
 	opts.histScale = 1;
 	opts.show_detect_image =				::GetPrivateProfileInt(L"view",		L"detect",											TRUE, DeTeCtIniFilename);
@@ -354,7 +374,10 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	else if (opts.maxinstances < 1) opts.maxinstances = 1;
 	opts.reprocessing =						::GetPrivateProfileInt(L"processing",	L"reprocessing",								TRUE, DeTeCtIniFilename);
 	opts.resources_usage =					::GetPrivateProfileInt(L"processing",	L"resources",									1, DeTeCtIniFilename);
-
+	
+	// OpenCL deactivation not saved
+	//opts.OpenCL =							::GetPrivateProfileInt(L"processing",	L"OpenCL",										TRUE, DeTeCtIniFilename);
+	
 	//AFX_MANAGE_STATE(AfxGetStaticModuleState());
 	//AFX_MANAGE_STATE(AFX_MODULE_STATE* pModuleState);
 	/*CWinApp* pwinapp;
@@ -468,6 +491,8 @@ END_MESSAGE_MAP()
 
 BOOL CDeTeCtMFCDlg::OnInitDialog()
 {
+	GetCPULoad(FALSE); // Need for a first call to get correct value at 2nd call
+
 	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE); // Autostakkert debug
 	CDialog::OnInitDialog();
 	if ((opts.autostakkert) && (!opts.parent_instance)) ShowWindow(SW_FORCEMINIMIZE); // Autostakkert debug
@@ -637,7 +662,6 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 		DisplayInstanceType(&nb_instances);
 	}
 
-	GetCPULoad(); // Need for a first call to get correct value at 2nd call
 	std::wstringstream ss_tmp;
 	StreamDeTeCtOSversions(&ss_tmp);
 	const auto processor_count_str = std::to_string(std::thread::hardware_concurrency());
@@ -653,7 +677,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	MEMORYSTATUS memStatus;
 	GlobalMemoryStatus(&memStatus);
 	ss_tmp.str(std::wstring());
-	ss_tmp << "Total memory = " << memStatus.dwTotalPhys / (1024 * 1024) << " MB (" << 100 - memStatus.dwMemoryLoad << "% available)";
+	ss_tmp << "Total memory = " << memStatus.dwTotalPhys / MEGABYTES << " MB (" << 100 - memStatus.dwMemoryLoad << "% available)";
 	impactDetectionLog.AddString(ss_tmp.str().c_str());
 	//ss_tmp << "Available memory = " << memStatus.dwAvailPhys / (1024 * 1024) << " MB (" << 100 - memStatus.dwMemoryLoad << "%)";
 	
@@ -672,7 +696,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	//PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
 	ss_tmp.str(std::wstring());
 	//ss_tmp << "CPU used = " << counterVal.doubleValue;
-	int CPULoad = (int) (GetCPULoad() * 100);
+	int CPULoad = (int) (GetCPULoad(FALSE) * 100);
 	ss_tmp << "CPU used = " << CPULoad << "% (";
 	//ss_tmp << " - " << std::thread::hardware_concurrency() * (100 - MIN_AVAILABLE_CPU_PC - CPULoad) / 100 << " or " << std::thread::hardware_concurrency() * (100 - (100 / std::thread::hardware_concurrency()) - CPULoad) / 100;
 	//impactDetectionLog.AddString(ss_tmp.str().c_str());
@@ -1335,7 +1359,7 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 			if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
 					char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot find acquisitions queue file %s", opts.DeTeCtQueueFilename);
-				ErrorExit(TRUE, "cannot finf acquisitions queue file", __func__, msgtext);
+				ErrorExit(TRUE, TRUE, "cannot finf acquisitions queue file", __func__, msgtext);
 			}
 			else PushFileToQueue(char2CString(filename.c_str(), &tmp), char2CString(opts.DeTeCtQueueFilename, &tmp2));*/
 								if (std::find(supported_fileext.begin(), supported_fileext.end(), extension) != supported_fileext.end()) acquisition_files.acquisition_size.at(index) *= nframe;
@@ -1405,9 +1429,9 @@ index++;
 			if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot find acquisitions queue file %s", opts.DeTeCtQueueFilename);
-				ErrorExit(TRUE, "cannot finf acquisitions queue file", __func__, msgtext);
+				ErrorExit(TRUE, TRUE, "cannot finf acquisitions queue file", __func__, msgtext);
 			}*/
-			int acquisitions_to_be_processed_local = 0;
+			size_t acquisitions_to_be_processed_local = 0;
 			opts.parent_instance = TRUE;
 			std::string output_dir = path;
 			output_dir.append("\\Impact_detection_run@").append(getRunTime().str().c_str());
@@ -1908,6 +1932,14 @@ BEGIN_MESSAGE_MAP(PrefDialog, CDialog)
 	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN18, &PrefDialog::OnDeltaposSpin18)		//bg Peak factor
 	//ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN19, &PrefDialog::OnDeltaposSpin19)	//bg consecutive values
 	ON_CBN_SELCHANGE(IDC_COMBO2,		&PrefDialog::OnCbnSelchangeCombo2)	//Debayer
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN22, &PrefDialog::OnDeltaposSpin22)		
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN23, &PrefDialog::OnDeltaposSpin23)		
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN24, &PrefDialog::OnDeltaposSpin24)		
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN25, &PrefDialog::OnDeltaposSpin25)		
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN26, &PrefDialog::OnDeltaposSpin26)		
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN27, &PrefDialog::OnDeltaposSpin27)
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN28, &PrefDialog::OnDeltaposSpin28)
+	ON_NOTIFY(UDN_DELTAPOS, IDC_SPIN30, &PrefDialog::OnDeltaposSpin30)
 END_MESSAGE_MAP()
 
 
@@ -1955,7 +1987,7 @@ PrefDialog::~PrefDialog()
 BOOL PrefDialog::OnInitDialog()
 {
 	CDialog::OnInitDialog();
-
+	
 	std::wstringstream ss;
 
 	//Processing visualisation
@@ -1968,7 +2000,7 @@ BOOL PrefDialog::OnInitDialog()
 	showSmooth.SetCheck(opts.viewSmo);
 	showHist.SetCheck(opts.viewHis);
 	showResult.SetCheck(opts.viewRes);
-	
+
 	//Impact
 	impactMinBrightnessIncreaseSpin.SetBuddy(&impactMinBrightnessIncrease);
 	impactMinBrightnessIncreaseSpin.SetRange(0, 1);
@@ -1984,7 +2016,15 @@ BOOL PrefDialog::OnInitDialog()
 	impactRadiusSharedFactorSpin.SetRange(0, 1);
 	brightThreshSpin.SetBuddy(&impactBrightThresh); //double?
 	brightThreshSpin.SetRange(0, 255);
-	
+	impactDistanceMaxSpin.SetBuddy(&impactDistanceMax); //double?
+	impactDistanceMaxSpin.SetRange(0, 1);
+	impactMaxMeanMinSpin.SetBuddy(&impactMaxMeanMin); //double?
+	impactMaxMeanMinSpin.SetRange(0, 255);
+	impactConfidenceMinSpin.SetBuddy(&impactConfidenceMin); //double?
+	impactConfidenceMinSpin.SetRange(0, 1);
+
+
+
 	ss << std::fixed << std::setprecision(2) << opts.impact_brightness_increase_min_factor;
 	impactMinBrightnessIncrease.SetWindowText(ss.str().c_str());
 	impactFrameNum.SetWindowText(std::to_wstring(opts.nframesRef).c_str());
@@ -2007,11 +2047,21 @@ BOOL PrefDialog::OnInitDialog()
 	ss << std::fixed << std::setprecision(0) << opts.threshold;
 	impactBrightThresh.SetWindowText(ss.str().c_str());
 	applyMask.SetCheck(opts.thrWithMask);
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(3) << opts.impact_distance_max;
+	impactDistanceMax.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << opts.impact_max_avg_min;
+	impactMaxMeanMin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.impact_confidence_min;
+	impactConfidenceMin.SetWindowText(ss.str().c_str());
 
 	saveIntFramesADUdtc.SetCheck(opts.allframes);
 	NoZip.SetCheck((int)(!opts.zip));
 	Debug.SetCheck(opts.debug);
 	CleanDir.SetCheck(opts.clean_dir);
+	NoOpenCL.SetCheck(!opts.OpenCL);
 
 	//ROI
 	sizeFactSpin.SetBuddy(&roiSizeFactor);
@@ -2020,7 +2070,7 @@ BOOL PrefDialog::OnInitDialog()
 	secFactSpin.SetRange(0, 1);
 	medianBufSpin.SetBuddy(&roiMedianBufSize);
 	medianBufSpin.SetRange(5, 50);
-	
+
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << opts.facSize;
 	roiSizeFactor.SetWindowText(ss.str().c_str());
@@ -2043,7 +2093,7 @@ BOOL PrefDialog::OnInitDialog()
 	ss.str(std::wstring());
 	ss << opts.bg_detection_consecutive_values;
 	bgValuesNum.SetWindowText(ss.str().c_str());
-	
+
 	//Other processingconfiguration
 	nframeSpin.SetBuddy(&impactFrameNum);
 	nframeSpin.SetRange(1, 50);
@@ -2051,7 +2101,7 @@ BOOL PrefDialog::OnInitDialog()
 	minFrameSpin.SetRange(3, 10000);
 	histoSpin.SetBuddy(&histScale);
 	histoSpin.SetRange(0, 1);
-	
+
 	minimumFrames.SetWindowText(std::to_wstring(opts.minframes).c_str()); //not shown
 	ss.str(std::wstring());
 	ss << std::fixed << std::setprecision(2) << opts.histScale;
@@ -2062,7 +2112,6 @@ BOOL PrefDialog::OnInitDialog()
 	debayeringCode.AddString(L"GRBG");
 	debayeringCode.AddString(L"BGGR");
 	debayeringCode.AddString(L"GBRG");
-	ignoreIncorrectFrames.SetCheck(opts.ignore);
 	useFilter.SetCheck(true);
 	filterSelect.EnableWindow(useFilter.GetCheck());
 	filterSelect.AddString(L"None");
@@ -2075,6 +2124,47 @@ BOOL PrefDialog::OnInitDialog()
 		debayeringCode.SetCurSel(0);
 	filterSelect.SetCurSel(opts.filter.type);
 
+	//Rejection of frames
+	ignoreIncorrectFrames.SetCheck(opts.ignore);
+	useOneAlgoToRejectFrame.SetCheck(opts.use_one_algo_to_reject_frame);
+	useAllAlgoForTest.SetCheck(opts.use_all_algo_for_test);
+	useRefSSIM.SetCheck(opts.use_reference_similarity[SSIM]);
+	usePrevSSIM.SetCheck(opts.use_previous_frame_similarity[SSIM]);
+	useRefMSE.SetCheck(opts.use_reference_similarity[MSE]);
+	usePrevMSE.SetCheck(opts.use_previous_frame_similarity[MSE]);
+	useRefNCC.SetCheck(opts.use_reference_similarity[NCC]);
+	usePrevNCC.SetCheck(opts.use_previous_frame_similarity[NCC]);
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.similarity_reference_decrease_min_pc[SSIM];
+	RefSSIMdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.similarity_previous_frame_decrease_min_pc[SSIM];
+	PrevSSIMdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.similarity_reference_decrease_min_pc[MSE];
+	RefMSEdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.similarity_previous_frame_decrease_min_pc[MSE];
+	PrevMSEdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.similarity_reference_decrease_min_pc[NCC];
+	RefNCCdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << opts.similarity_previous_frame_decrease_min_pc[NCC];
+	PrevNCCdecmin.SetWindowText(ss.str().c_str());
+
+	RefSSIMdecminSpin.SetBuddy(&RefSSIMdecmin);
+	RefSSIMdecminSpin.SetRange(0, 100);
+	PrevSSIMdecminSpin.SetBuddy(&PrevSSIMdecmin);
+	PrevSSIMdecminSpin.SetRange(0, 100);
+	RefMSEdecminSpin.SetBuddy(&RefMSEdecmin);
+	PrevMSEdecminSpin.SetRange(0, 100);
+	PrevMSEdecminSpin.SetBuddy(&PrevMSEdecmin);
+	RefNCCdecminSpin.SetBuddy(&RefNCCdecmin);
+	RefNCCdecminSpin.SetRange(0, 100);
+	PrevNCCdecminSpin.SetBuddy(&PrevNCCdecmin);
+	PrevNCCdecminSpin.SetRange(0, 100);
+	
 	return TRUE;
 }
 
@@ -2107,27 +2197,34 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK9, showResult);
 	
 	//Impact
-	DDX_Control(pDX, IDC_EDIT1, impactMinBrightnessIncrease);
-	DDX_Control(pDX, IDC_SPIN1, impactMinBrightnessIncreaseSpin);
-	DDX_Control(pDX, IDC_EDIT16, impactFrameNum);
-	DDX_Control(pDX, IDC_EDIT2, impactMinTime); //not shown
-	DDX_Control(pDX, IDC_SPIN2, minTimeSpin); //not shown
-	DDX_Control(pDX, IDC_EDIT6, impactRadiusMin);
-	DDX_Control(pDX, IDC_SPIN6, impactRadiusMinSpin);
-	DDX_Control(pDX, IDC_EDIT7, impactRadiusRatio);
-	DDX_Control(pDX, IDC_SPIN20, impactRadiusRatioSpin);
-	DDX_Control(pDX, IDC_EDIT8, impactRadiusMax);
-	DDX_Control(pDX, IDC_SPIN7, impactRadiusMaxSpin);
-	DDX_Control(pDX, IDC_EDIT9, impactRadiusSharedFactor);
-	DDX_Control(pDX, IDC_SPIN8, impactRadiusSharedFactorSpin);
-	DDX_Control(pDX, IDC_EDIT3, impactBrightThresh);
-	DDX_Control(pDX, IDC_SPIN3, brightThreshSpin);
-	DDX_Control(pDX, IDC_CHECK16, applyMask);
-	
-	DDX_Control(pDX, IDC_CHECK12,		saveIntFramesADUdtc);
-	DDX_Control(pDX, IDC_CHECK10,		NoZip);
-	DDX_Control(pDX, IDC_CHECK_DEBUG,	Debug);
-	DDX_Control(pDX, IDC_CHECK_CLEAN,	CleanDir);
+	DDX_Control(pDX, IDC_EDIT1,		impactMinBrightnessIncrease);
+	DDX_Control(pDX, IDC_SPIN1,		impactMinBrightnessIncreaseSpin);
+	DDX_Control(pDX, IDC_EDIT16,	impactFrameNum);
+	DDX_Control(pDX, IDC_EDIT2,		impactMinTime); //not shown
+	DDX_Control(pDX, IDC_SPIN2,		minTimeSpin); //not shown
+	DDX_Control(pDX, IDC_EDIT6,		impactRadiusMin);
+	DDX_Control(pDX, IDC_SPIN6,		impactRadiusMinSpin);
+	DDX_Control(pDX, IDC_EDIT7,		impactRadiusRatio);
+	DDX_Control(pDX, IDC_SPIN20,	impactRadiusRatioSpin);
+	DDX_Control(pDX, IDC_EDIT8,		impactRadiusMax);
+	DDX_Control(pDX, IDC_SPIN7,		impactRadiusMaxSpin);
+	DDX_Control(pDX, IDC_EDIT9,		impactRadiusSharedFactor);
+	DDX_Control(pDX, IDC_SPIN8,		impactRadiusSharedFactorSpin);
+	DDX_Control(pDX, IDC_EDIT3,		impactBrightThresh);
+	DDX_Control(pDX, IDC_SPIN3,		brightThreshSpin);
+	DDX_Control(pDX, IDC_CHECK16,	applyMask);
+	DDX_Control(pDX, IDC_EDIT4,		impactDistanceMax);
+	DDX_Control(pDX, IDC_SPIN28,	impactDistanceMaxSpin);
+	DDX_Control(pDX, IDC_EDIT5,		impactMaxMeanMin);
+	DDX_Control(pDX, IDC_SPIN29,	impactMaxMeanMinSpin);
+	DDX_Control(pDX, IDC_EDIT11,	impactConfidenceMin);
+	DDX_Control(pDX, IDC_SPIN30,	impactConfidenceMinSpin);
+
+	DDX_Control(pDX, IDC_CHECK12,			saveIntFramesADUdtc);
+	DDX_Control(pDX, IDC_CHECK10,			NoZip);
+	DDX_Control(pDX, IDC_CHECK_DEBUG,		Debug);
+	DDX_Control(pDX, IDC_CHECK_CLEAN,		CleanDir);
+	DDX_Control(pDX, IDC_CHECK_NOOPENCL,	NoOpenCL);
 
 	//ROI
 	DDX_Control(pDX, IDC_EDIT12, roiSizeFactor);
@@ -2152,9 +2249,33 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 
 	
 	DDX_Control(pDX, IDC_COMBO2, debayeringCode);
-	DDX_Control(pDX, IDC_CHECK14, ignoreIncorrectFrames);
 	DDX_Control(pDX, IDC_CHECK15, useFilter);
 	DDX_Control(pDX, IDC_COMBO1, filterSelect);
+
+	//Rejection of frames
+	DDX_Control(pDX, IDC_CHECK14, ignoreIncorrectFrames);
+	DDX_Control(pDX, IDC_CHECK25, useOneAlgoToRejectFrame);
+	DDX_Control(pDX, IDC_CHECK26, useAllAlgoForTest);
+
+	DDX_Control(pDX, IDC_CHECK19, useRefSSIM);
+	DDX_Control(pDX, IDC_EDIT20,  RefSSIMdecmin);
+	DDX_Control(pDX, IDC_SPIN22,  RefSSIMdecminSpin);
+	DDX_Control(pDX, IDC_CHECK20, usePrevSSIM);
+	DDX_Control(pDX, IDC_EDIT21,  PrevSSIMdecmin);
+	DDX_Control(pDX, IDC_SPIN23,  PrevSSIMdecminSpin);
+	DDX_Control(pDX, IDC_CHECK21, useRefMSE);
+	DDX_Control(pDX, IDC_EDIT22,  RefMSEdecmin);
+	DDX_Control(pDX, IDC_SPIN24,  RefMSEdecminSpin);
+	DDX_Control(pDX, IDC_CHECK22, usePrevMSE);
+	DDX_Control(pDX, IDC_EDIT23,  PrevMSEdecmin);
+	DDX_Control(pDX, IDC_SPIN25,  PrevMSEdecminSpin);
+	DDX_Control(pDX, IDC_CHECK23, useRefNCC);
+	DDX_Control(pDX, IDC_EDIT24,  RefNCCdecmin);
+	DDX_Control(pDX, IDC_SPIN26,  RefNCCdecminSpin);
+	DDX_Control(pDX, IDC_CHECK24, usePrevNCC);
+	DDX_Control(pDX, IDC_EDIT25,  PrevNCCdecmin);
+	DDX_Control(pDX, IDC_SPIN27,  PrevNCCdecminSpin);
+
 }
 
 // PrefDialog message handlers
@@ -2188,9 +2309,11 @@ void PrefDialog::OnBnClickedOk()
 	opts.allframes = saveIntFramesADUdtc.GetCheck();
 
 	//Dev options
-	opts.debug = Debug.GetCheck();
-	opts.zip = !NoZip.GetCheck();
-	opts.clean_dir = CleanDir.GetCheck();
+	opts.debug		= Debug.GetCheck();
+	opts.zip		= !NoZip.GetCheck();
+	opts.clean_dir	= CleanDir.GetCheck();
+	opts.OpenCL		= !NoOpenCL.GetCheck();
+	cv::ocl::setUseOpenCL(opts.OpenCL);
 
 	//Impact detection WARNING STOD or STOF or STOI
 	impactMinBrightnessIncrease.GetWindowTextW(str);
@@ -2213,6 +2336,13 @@ void PrefDialog::OnBnClickedOk()
 	impactBrightThresh.GetWindowTextW(str);
 	opts.threshold = std::stod(str.GetString());
 	opts.thrWithMask = applyMask.GetCheck();
+	impactDistanceMax.GetWindowTextW(str); //double?
+	opts.impact_distance_max = std::stof(str.GetString());
+	impactMaxMeanMin.GetWindowTextW(str); //double?
+	opts.impact_max_avg_min = std::stof(str.GetString());
+	impactConfidenceMin.GetWindowTextW(str); //double?
+	opts.impact_confidence_min = std::stof(str.GetString());
+
 
 	//ROI
 	roiSizeFactor.GetWindowTextW(str);
@@ -2239,10 +2369,34 @@ void PrefDialog::OnBnClickedOk()
 	//int bayerCodes[] = { 0, cv::COLOR_BayerBG2RGB, cv::COLOR_BayerGB2RGB, cv::COLOR_BayerRG2RGB, cv::COLOR_BayerGR2RGB };
 	
 	OnCbnSelchangeCombo2(); //Debayer code set
-	opts.ignore = ignoreIncorrectFrames.GetCheck();
 	opts.filter.type = filterSelect.GetCurSel();
 
+	//Rejection of frames
+	opts.ignore									= ignoreIncorrectFrames.GetCheck();
+	opts.use_one_algo_to_reject_frame			= useOneAlgoToRejectFrame.GetCheck();
+	opts.use_all_algo_for_test					= useAllAlgoForTest.GetCheck();
+	opts.use_reference_similarity[SSIM]			= useRefSSIM.GetCheck();
+	opts.use_previous_frame_similarity[SSIM]	= usePrevSSIM.GetCheck();
+	opts.use_reference_similarity[MSE]			= useRefMSE.GetCheck();
+	opts.use_previous_frame_similarity[MSE]		= usePrevMSE.GetCheck();
+	opts.use_reference_similarity[NCC]			= useRefNCC.GetCheck();
+	opts.use_previous_frame_similarity[NCC]		= usePrevNCC.GetCheck();
+	RefSSIMdecmin.GetWindowTextW(str);
+	opts.similarity_reference_decrease_min_pc[SSIM] = std::stof(str.GetString());
+	PrevSSIMdecmin.GetWindowTextW(str);
+	opts.similarity_previous_frame_decrease_min_pc[SSIM] = std::stof(str.GetString());
+	RefMSEdecmin.GetWindowTextW(str);
+	opts.similarity_reference_decrease_min_pc[MSE] = std::stof(str.GetString());
+	PrevMSEdecmin.GetWindowTextW(str);
+	opts.similarity_previous_frame_decrease_min_pc[MSE] = std::stof(str.GetString());
+	RefNCCdecmin.GetWindowTextW(str);
+	opts.similarity_reference_decrease_min_pc[NCC] = std::stof(str.GetString());
+	PrevNCCdecmin.GetWindowTextW(str);
+	opts.similarity_previous_frame_decrease_min_pc[NCC] = std::stof(str.GetString());
+		
 	WriteIni();
+	//PrefDialog::OnInitDialog();
+	Sleep(10);
 	CDialog::OnOK();
 }
 
@@ -2300,6 +2454,7 @@ void PrefDialog::OnBnClickedButton1()
 	Debug.SetCheck(false);
 	NoZip.SetCheck(false);
 	CleanDir.SetCheck(false);
+	NoOpenCL.SetCheck(false);
 
 	//Impact
 	std::wstringstream ss;										// only for floating values!
@@ -2317,6 +2472,16 @@ void PrefDialog::OnBnClickedButton1()
 	ss << std::fixed << std::setprecision(0) << 0.0;
 	impactBrightThresh.SetWindowText(std::to_wstring(0).c_str());
 	applyMask.SetCheck(false);
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(4) << 0.036;
+	impactDistanceMax.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(0) << 188;
+	impactMaxMeanMin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(1) << 4.00;
+	impactConfidenceMin.SetWindowText(ss.str().c_str());
+
 	
 	//ROI
 	ss.str(std::wstring());
@@ -2329,7 +2494,7 @@ void PrefDialog::OnBnClickedButton1()
 	
 	//Background detection
 	ss.str(std::wstring());
-	ss << std::fixed << std::setprecision(2) << 0.05;
+	ss << std::fixed << std::setprecision(2) << 0.08;
 	bgPeakFactor.SetWindowText(ss.str().c_str());
 	bgValuesNum.SetWindowText(std::to_wstring(5).c_str());
 
@@ -2341,25 +2506,54 @@ void PrefDialog::OnBnClickedButton1()
 	histScale.SetWindowText(ss.str().c_str());
 	
 	debayeringCode.SetCurSel(0);
-	ignoreIncorrectFrames.SetCheck(true);
 	useFilter.SetCheck(true);
 	filterSelect.SetCurSel(1);
 	//filterSelect.EnableWindow(useFilter.GetCheck()); removed as None filter is possible
 
+	//Rejection of frames
+	ignoreIncorrectFrames.SetCheck(true);
+	useRefSSIM.SetCheck(true);
+	usePrevSSIM.SetCheck(false);
+	useRefMSE.SetCheck(false);
+	usePrevMSE.SetCheck(false);
+	useRefNCC.SetCheck(false);
+	usePrevNCC.SetCheck(false);
+	useOneAlgoToRejectFrame.SetCheck(true);
+	useAllAlgoForTest.SetCheck(false);
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 7.00;
+	RefSSIMdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 2.00;
+	PrevSSIMdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.03;
+	RefMSEdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.04;
+	PrevMSEdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.08;
+	RefNCCdecmin.SetWindowText(ss.str().c_str());
+	ss.str(std::wstring());
+	ss << std::fixed << std::setprecision(2) << 0.11;
+	PrevNCCdecmin.SetWindowText(ss.str().c_str());
+
 	opts.impact_duration_min =		0.4;
 	opts.ROI_min_px_val =			10;
 	opts.ROI_min_size = 68;					// to ignore too small ROIs where impact could be missed
-	opts.impact_distance_max =		0.03;
-	opts.impact_max_avg_min =		177.0;
-	opts.impact_confidence_min =	3.0;
+	opts.impact_distance_max =		0.036;
+	opts.impact_max_avg_min =		188.0;
+	opts.impact_confidence_min =	4.0;
 	opts.transparency_min_pc =		20;			// tolerance in transparency for a frame compared to 1st frame
-	opts.similarity_decrease_max_pc = 12;	// max decrease between two frames similarity
+	opts.similarity_reference_decrease_min_pc = { 7.0, 0.03, 0.08 };	// max decrease between two frames similarity
+	opts.similarity_previous_frame_decrease_min_pc = { 2.00, 0.04, 0.11 };	// max decrease between two frames similarity
 	//opts.impact_brightness_increase_min_factor =		0.15; // Minimum of brightness increase from mean value factor
 	opts.resources_usage = 1;
 	strcpy_s(opts.darkfilename, sizeof(opts.darkfilename), "darkfile.tif");
 
 	// Apply changes
-	Sleep(1000); // to give opportunity to see changes
+	Sleep(10); // to give opportunity to see changes
 	PrefDialog::OnBnClickedOk();
 }
 
@@ -2577,30 +2771,255 @@ void PrefDialog::OnDeltaposSpin18(NMHDR* pNMHDR, LRESULT* pResult)
 }
 
 /**************************************************************************************************
- * @fn	void PrefDialog::OnDeltaposSpin19(NMHDR *pNMHDR, LRESULT *pResult)
+ * @fn	void PrefDialog::OnDeltaposSpin22(NMHDR *pNMHDR, LRESULT *pResult)
  *
- * @brief	Executes the deltapos spin for the background detection consecutive frames.
+ * @brief	Executes the deltapos spin for the rejection of frames.
  *
  * @author	Marc
- * @date	2023-04-13
+ * @date	2024-11-27
  *
  * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
  * @param [out]	  	pResult	If non-null, the result.
  **************************************************************************************************/
 
-/*void PrefDialog::OnDeltaposSpin19(NMHDR* pNMHDR, LRESULT* pResult)
+void PrefDialog::OnDeltaposSpin22(NMHDR* pNMHDR, LRESULT* pResult)
 {
+	float fMin = 0.01f;
+	float fMax = 100.0f;
+	float fStep = 0.01f;
+
 	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
 	CString str;
-	bgValuesNum.GetWindowTextW(str);
-	int val = std::stoi(str.GetString());
-	val += pNMUpDown->iDelta;
+	RefSSIMdecmin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
 	std::wstringstream ss;
-	//ss << std::fixed << std::setprecision(2) << val;
-	ss << val;
-	bgValuesNum.SetWindowTextW(ss.str().c_str());
+	ss << std::fixed << std::setprecision(2) << val;
+	RefSSIMdecmin.SetWindowTextW(ss.str().c_str());
 	*pResult = 0;
-}*/
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin23(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the rejection of frames.
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin23(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.01f;
+	float fMax = 100.0f;
+	float fStep = 0.01f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	PrevSSIMdecmin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	PrevSSIMdecmin.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin24(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the rejection of frames.
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin24(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.01f;
+	float fMax = 100.0f;
+	float fStep = 0.01f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	RefMSEdecmin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	RefMSEdecmin.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin25(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the rejection of frames.
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin25(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.01f;
+	float fMax = 100.0f;
+	float fStep = 0.01f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	PrevMSEdecmin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	PrevMSEdecmin.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin26(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the rejection of frames.
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin26(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.01f;
+	float fMax = 100.0f;
+	float fStep = 0.01f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	RefNCCdecmin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	RefNCCdecmin.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin27(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	Executes the deltapos spin for the rejection of frames.
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin27(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.01f;
+	float fMax = 100.0f;
+	float fStep = 0.01f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	PrevNCCdecmin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(2) << val;
+	PrevNCCdecmin.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin28(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief	
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin28(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.0f;
+	float fMax = 1.0f;
+	float fStep = 0.001f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	impactDistanceMax.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(3) << val;
+	impactDistanceMax.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+/**************************************************************************************************
+ * @fn	void PrefDialog::OnDeltaposSpin28(NMHDR *pNMHDR, LRESULT *pResult)
+ *
+ * @brief
+ *
+ * @author	Marc
+ * @date	2024-11-27
+ *
+ * @param [in,out]	pNMHDR 	If non-null, the action carried in the spin.
+ * @param [out]	  	pResult	If non-null, the result.
+ **************************************************************************************************/
+
+void PrefDialog::OnDeltaposSpin30(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	float fMin = 0.0f;
+	float fMax = 200.0f;
+	float fStep = 0.1f;
+
+	LPNMUPDOWN pNMUpDown = reinterpret_cast<LPNMUPDOWN>(pNMHDR);
+	CString str;
+	impactConfidenceMin.GetWindowTextW(str);
+	float val = std::stof(str.GetString());
+	val += pNMUpDown->iDelta * fStep;
+	if (val < fMin)	val = fMin;
+	if (val > fMax)	val = fMax;
+	std::wstringstream ss;
+	ss << std::fixed << std::setprecision(1) << val;
+	impactConfidenceMin.SetWindowTextW(ss.str().c_str());
+	*pResult = 0;
+}
+
+
+
 
 
 void PrefDialog::OnCbnSelchangeCombo2()

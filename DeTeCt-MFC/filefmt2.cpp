@@ -444,7 +444,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 	if (!(fc->fh = fopen(filename, "rb"))) {
 		char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot open %s file (frame %d/%d)", filename, fc->frame, fc->LastFileIdx);
-		ErrorExit(TRUE, "cannot open file", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot open file", __func__, msgtext);
 	}
 	switch (fc->FileType) {
 	case CAPTURE_FITS:
@@ -465,7 +465,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 				if (!ignore) {
 					char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
-					ErrorExit(TRUE, "cannot read fits header", __func__, msgtext);
+					ErrorExit(TRUE, TRUE, "cannot read fits header", __func__, msgtext);
 				}
 				else {
 					char msgtext[MAX_STRING] = { 0 };
@@ -487,7 +487,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 					if (!ignore) {
 						char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
-						ErrorExit(TRUE, "cannot read fits frame", __func__, msgtext);
+						ErrorExit(TRUE, TRUE, "cannot read fits frame", __func__, msgtext);
 					}
 					else {
 						fc->ValidFrameCount--;
@@ -514,7 +514,7 @@ cv::Mat fileQueryFrame2(FileCapture2 *fc, const int ignore, int *perror)
 				}
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
-				ErrorExit(TRUE, "cannot read frame", __func__, msgtext);
+				ErrorExit(TRUE, TRUE, "cannot read frame", __func__, msgtext);
 			}
 			else {
 				fc->ValidFrameCount--;
@@ -592,7 +592,7 @@ cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // te
 	if (!(fc->fh = fopen(filename, "rb"))) {
 		 char msgtext[MAX_STRING] = { 0 };
 		snprintf(msgtext, MAX_STRING, "cannot open %s file (frame %d/%d)", filename, fc->frame, fc->LastFileIdx);
-		ErrorExit(TRUE, "cannot open file", __func__, msgtext);
+		ErrorExit(TRUE, TRUE, "cannot open file", __func__, msgtext);
 	}
 	switch (fc->FileType) {
 	case CAPTURE_FITS:
@@ -613,7 +613,7 @@ cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // te
 				if (!ignore) {
 					 char msgtext[MAX_STRING] = { 0 };
 					snprintf(msgtext, MAX_STRING, "cannot read fits header frame %d (Header size different from %zd) for file %s", fc->frame, fc->header_size, filename);
-					ErrorExit(TRUE, "cannot read fits header", __func__, msgtext);
+					ErrorExit(TRUE, TRUE, "cannot read fits header", __func__, msgtext);
 				}
 				else {
 					 char msgtext[MAX_STRING] = { 0 };
@@ -637,7 +637,7 @@ cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // te
 					if (!ignore) {
 						 char msgtext[MAX_STRING] = { 0 };
 						snprintf(msgtext, MAX_STRING, "cannot read fits frame %d for file %s", fc->frame, filename);
-						ErrorExit(TRUE, "cannot read fits frame", __func__, msgtext);
+						ErrorExit(TRUE, TRUE, "cannot read fits frame", __func__, msgtext);
 					}
 					else {
 						fc->ValidFrameCount--;
@@ -666,7 +666,7 @@ cv::Mat fileQueryFrameMat(FileCapture *fc, const int ignore, int *perror)  // te
 				}
 				char msgtext[MAX_STRING] = { 0 };
 				snprintf(msgtext, MAX_STRING, "cannot read frame %d for file %s", fc->frame, filename);
-				ErrorExit(TRUE, "cannot read frame", __func__, msgtext);
+				ErrorExit(TRUE, TRUE, "cannot read frame", __func__, msgtext);
 			}
 			else {
 				fc->ValidFrameCount--;

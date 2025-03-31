@@ -43,12 +43,15 @@ struct AcquisitionFilesList {
 enum class _Instance_type { autostakkert_parent, parent, autostakkert_single, single, autostakkert_child, child };
 typedef enum _Instance_type Instance_type;
 
+enum class _Comparison_type { reference, previous_frame, max_comparison_type };
+typedef enum _Comparison_type Comparison_type;
+
 void			read_files(std::string folder, AcquisitionFilesList *acquisition_files);
 
 //int				item_point_val_cmp(const void *a, const void *b);
 int				item_frame_rank_cmp(const void *a, const void *b);
 
-int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, double radius, double incrLum, double radius_share, int impact_frames_min);
+int				detect_impact(DTCIMPACT *dtc, DTCIMPACT *dtcout, double meanValue, LIST *list, ITEM** dtcMax, double *ptemporal_density, double radius, double incrLum, double radius_share, int impact_frames_min, double temporal_density_min, std::vector<std::string>* pdetect_impact_log_messages);
 
 
 //int				detect(std::vector<std::string> current_file_list, OPTS *opts, std::string scan_folder_path);
@@ -62,6 +65,6 @@ void			zip(char *zipfilename, char *item_to_be_zipped, std::wstring output_filen
 Instance_type	DisplayInstanceType(int *nbinstances);
 
 void			WriteIni();
-void			AcquisitionFileListToQueue(AcquisitionFilesList* pacquisition_files, const CString tag_current, const size_t index_current, const CString out_directory, int* acquisitions_to_be_processed);
+void			AcquisitionFileListToQueue(AcquisitionFilesList* pacquisition_files, const CString tag_current, const size_t index_current, const CString out_directory, size_t* acquisitions_to_be_processed);
 
 //BOOL			RemoveFromIni(const CString line_to_remove);
