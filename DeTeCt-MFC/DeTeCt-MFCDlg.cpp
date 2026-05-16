@@ -39,7 +39,7 @@ with
 #pragma comment(lib,"pdh.lib")
 
 //#define FFMPEGDLL "opencv_ffmpeg2413_64.dll"
-#define FFMPEGDLL "opencv_videoio_ffmpeg460_64.dll"
+#define FFMPEGDLL "opencv_videoio_ffmpeg4120_64.dll"
 
 std::string message_lines[MAX_STRING];
 
@@ -1313,12 +1313,13 @@ void CDeTeCtMFCDlg::OnFileOpenFolder()
 			int index = 0;
 			std::string filename;
 			std::vector<std::string> supported_fileext = { FILES_EXT };
-			while (index< acquisition_files.file_list.size()) {
+			while (index < acquisition_files.file_list.size()) {
 				filename = acquisition_files.file_list.at(index);
 				std::wstringstream ss3;
 				std::string filename_acquisition;
 				int nframe = -1;
 				PIPPInfo pipp_info;
+bool is_file_kept = true;
 
 				if ((Is_Capture_OK_from_File(filename, &filename_acquisition, &nframe, &ss3)) &&
 					// ********* Ignores if less than minimum frames
@@ -1400,19 +1401,22 @@ if (opts.debug) impactDetectionLog.AddString(L"!Debug info: Logfile=" + (CString
 							acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
 							acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
 							acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin() + index); // WARNING in debug, error in .begin()
+is_file_kept = false;
 						}
-index++;
+//index++;
 					}
 					else { //file to be ignored
 						acquisition_files.file_list.erase(acquisition_files.file_list.begin() + index);
 						acquisition_files.acquisition_file_list.erase(acquisition_files.acquisition_file_list.begin() + index);
 						acquisition_files.nb_prealigned_frames.erase(acquisition_files.nb_prealigned_frames.begin() + index); // WARNING in debug, error in .begin()
 						acquisition_files.acquisition_size.erase(acquisition_files.acquisition_size.begin() + index); // WARNING in debug, error in .begin()
+is_file_kept = false;
 				}
 				impactDetectionLog.AddString((CString)getDateTime().str().c_str() + ss3.str().c_str());
 				CDeTeCtMFCDlg::getLog()->SetTopIndex(CDeTeCtMFCDlg::getLog()->GetCount() - 1);
 				//this->RedrawWindow();
 				CDeTeCtMFCDlg::getLog()->RedrawWindow();
+if (is_file_kept) index++;
 			}
 		}
 		if (acquisition_files.file_list.size() <= 0) {

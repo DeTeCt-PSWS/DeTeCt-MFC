@@ -32,6 +32,7 @@
     <Text Include="Documents\ReadMe.txt">
       <Filter>documentation</Filter>
     </Text>
+    <Text Include="OpenCV configuration.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DeTeCt-MFC.hpp">

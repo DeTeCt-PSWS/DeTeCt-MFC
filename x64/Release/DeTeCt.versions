@@ -1,4 +1,4 @@
-DeTeCt.exe;4.0.0.0
-DeTeCt.ini;4.0.0.0
-opencv_videoio_ffmpeg;460_64
-opencv_world;460
+DeTeCt.exe;4.0.2.0
+DeTeCt.ini;4.0.2.0
+opencv_videoio_ffmpeg;4120_64
+opencv_world;4120

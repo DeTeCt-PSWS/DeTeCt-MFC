@@ -985,7 +985,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 			cv::Mat pADUdtcImg;
 	cv::Mat pADUmaxImg;
 	cv::Mat pADUavgImg;
-			cv::UMat pADUdtcImg2;				//was cv::Mat
+			cv::Mat pADUdtcImg2;				//was cv::YMat
 			//cv::UMat pADUavgImg;				//was cv::Mat
 			cv::UMat pADUdarkImg;				//was cv::Mat
 			cv::UMat pFlatADUmaxImg;			//was cv::Mat
@@ -1963,10 +1963,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 
 					/*Max-mean non normalized image*/
 					//works on 8 or 16 bits images
-					if (maxLum > 255)
-						pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / (255.0*255.0), 0);
-					else
-						pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / 255.0, 0);
+					if (maxLum > 255)	pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / (255.0 * 255.0), 0);
+					else				pADUdtcMat.convertTo(pADUdtcMat, -1, maxLum / 255.0, 0);
 					cv::Mat pADUdtcMatSmooth;
 					if (pADUdtcMat.type() != CV_32F) pADUdtcMat.convertTo(pADUdtcMat, CV_32F);
 					pADUdtcMat.copyTo(pADUdtcMatSmooth);
@@ -1980,9 +1978,9 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 					pADUmaxMat.convertTo(pADUmaxMat, CV_8U);
 					pADUdtcMat.convertTo(pADUdtcImg2, CV_8UC3);
 					cv::cvtColor(pADUdtcImg2, pADUdtcImg2, CV_GRAY2BGR);
-			//cv::cvtColor(pADUdtcMat, pADUdtcMat, cv::COLOR_BGR2GRAY);
-				cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
-				pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
+					//cv::cvtColor(pADUdtcMat, pADUdtcMat, cv::COLOR_BGR2GRAY);
+					cv::minMaxLoc(pADUdtcMat, &minLum, &maxLum, &minPoint, &maxPoint);
+					pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
 			//pADUdtcMat.convertTo(pADUdtcMat, CV_8U);
 
 			//cv::minMaxLoc(pADUavgMat, &minLum, &maxLum, &minPoint, &maxPoint);
@@ -2592,7 +2590,7 @@ dtcDrawImpact(pADUdtcMat_planet_only_view, brightestDtcImgPoint, CV_RGB(0, 128, 
 				pFlatADUmaxMat.~UMat();
 				pADUdtcMat.~Mat();
 				pADUdtcImg.~Mat();
-				pADUdtcImg2.~UMat();
+				pADUdtcImg2.~Mat();
 
 
 				char buffer5[MAX_STRING] = { 0 };

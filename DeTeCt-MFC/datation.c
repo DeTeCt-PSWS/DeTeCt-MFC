@@ -1375,6 +1375,9 @@ int dtcGetInfoDatationFromLogFile(const char *filename, double *jd_start_time_lo
 	char end_value[MAX_STRING]				= { 0 };
 	struct dirent *pDirent;
 	DIR *pDir;
+	bool is_date_UT_read					= false; //for FireCapture, to stop processing date if already read (in case order is changed in the log file)
+	bool is_start_UT_read					= false; //for FireCapture, to stop processing start time if already read (in case order is changed in the log file)
+	bool is_end_UT_read						= false; //for FireCapture, to stop processing start time if already read (in case order is changed in the log file)
 
 	(*jd_start_time_loginfo)				= JD_init;
 	(*jd_end_time_loginfo)					= (*jd_start_time_loginfo);
@@ -1690,9 +1693,13 @@ MM.dd.yyyy
 					else if (strcmp(value, "Uranus") == 0) *planet = Uranus;
 					else if (strcmp(value, "Neptun") == 0) *planet = Neptun;
 				}
-				if (strcmp(fieldname,"Date")==0)  { 	/* Date=11.03.2011 */
+				if (((strcmp(fieldname,"Date")==0) && !is_date_UT_read) || (strcmp(fieldname, "Date(UT)") == 0)) { 	/* Date=11.03.2011 */
 					//(*ptimetype_log)=LT;
 					(*ptimetype_log) = Undefined;
+					if (strcmp(fieldname, "Date(UT)") == 0) {
+						(*ptimetype_log) = UT;
+						is_date_UT_read = true;
+					}
 					if ((software_version>2.3) || ((software_version==2.3) && ((software_beta>=16) || (software_beta<=0)))) {
 						strcpy_s(date_value, sizeof(date_value), value);
 					} else {
@@ -1943,9 +1950,10 @@ MM.dd.yyyy
 	HH_mm_ss	8
 	KK_mm_ss	8		?
 	KK_mm_ss a 	11 */
-				} else if ((strcmp(fieldname,"Start")==0) || (strcmp(fieldname,"Start(UT)")==0)) { 	/* Start=01:01:47 */
+				} else if (((strcmp(fieldname,"Start")==0) && !is_start_UT_read) || (strcmp(fieldname,"Start(UT)")==0)) { 	/* Start=01:01:47 */
 					if (strcmp(fieldname, "Start(UT)") == 0) {
 						(*ptimetype_log) = UT;
+						is_start_UT_read = true;
 					}
 					if ((software_version>2.3) || ((software_version == 2.3) && ((software_beta >= 16) || (software_beta <= 0)))) {
 						strcpy_s(start_value, sizeof(start_value), value);
@@ -1968,10 +1976,11 @@ MM.dd.yyyy
 						(*jd_start_time_loginfo)=gregorian_calendar_to_jd(year, month, day, hour, min, sec);
 												if (debug_mode) { fprintf(stdout,"dtcGetInfoDatationFromLogFile: y m d h m s|%d %d %d %d %d %f|\n", year, month, day, hour, min,sec); }
 					}
-				} else if ((strcmp(fieldname,"End")==0) || (strcmp(fieldname,"End(UT)")==0)) { 	/* End=01:01:47 */
+				} else if (((strcmp(fieldname,"End")==0) && !is_end_UT_read)|| (strcmp(fieldname,"End(UT)")==0)) { 	/* End=01:01:47 */
 					end_time_flag = 1;
 					if (strcmp(fieldname, "End(UT)") == 0) {
 						(*ptimetype_log) = UT;
+						is_end_UT_read = true;
 					}
 					if ((software_version>2.3) || ((software_version == 2.3) && ((software_beta >= 16) || (software_beta <= 0)))) {
 						strcpy_s(end_value, sizeof(end_value), value);

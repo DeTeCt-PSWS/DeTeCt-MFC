@@ -116,14 +116,18 @@ DtcCapture* dtcCaptureFromFile2(const char *fname, int* pframecount)
 //			if (!(capt->u.capture = cvCaptureFromFile(fname))) {
 /*			if (!(capt->u.capture = cvCreateFileCapture(fname))) {
 */
-				//if (!(capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname)))) {
-				//free(capt->u.capture);
-				// capt->u.capture=NULL;
-				//capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname));
-				//cv::VideoCapture NewVideo = cv::VideoCapture(fname);
-				//capt->u.videocapture = VideoCaptureFromFile(fname);
-			capt->u.videocapture = new cv::VideoCapture(fname, cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY}); // cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
-				//capt->u.videocapture->open(fname, cv::CAP_ANY);
+//if (!(capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname)))) {
+//free(capt->u.capture);
+// capt->u.capture=NULL;
+//capt->u.videocapture = cv::makePtr<cv::VideoCapture>(cv::VideoCapture(fname));
+//cv::VideoCapture NewVideo = cv::VideoCapture(fname);
+//capt->u.videocapture = VideoCaptureFromFile(fname);
+			std::string string_fname(fname);
+			capt->u.videocapture = new cv::VideoCapture(string_fname, cv::CAP_ANY, { cv::CAP_PROP_HW_ACCELERATION_USE_OPENCL, cv::VIDEO_ACCELERATION_NONE });
+			// cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
+			//capt->u.videocapture = new cv::VideoCapture(string_fname, cv::CAP_ANY, {cv::CAP_PROP_HW_ACCELERATION, cv::VIDEO_ACCELERATION_ANY}); // cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
+			//capt->u.videocapture = new cv::VideoCapture(string_fname, cv::CAP_ANY); // cv::CAP_FFMPEG or cv::CAP_DSHOW or cv::CAP_ANY or cv::CAP_IMAGES
+			//capt->u.videocapture->open(fname, cv::CAP_ANY);
 				if (capt->u.videocapture->isOpened()) capt->framecount = (int)(dtcGetCaptureProperty(capt, cv::CAP_PROP_FRAME_COUNT));
 				if ((!capt->u.videocapture->isOpened()) || (capt->framecount < 0)) {
 					delete capt->u.videocapture;

@@ -6,8 +6,8 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"4.0.0"
-#define VERSION_DATE	"(Aug.26,2020)"
+#define VERSION_NB		"4.0.2"
+//#define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
 

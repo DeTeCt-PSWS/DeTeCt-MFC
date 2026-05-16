@@ -716,8 +716,25 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		WriteIni();
 		RemoveFromIni(L"similarity_reference_decrease_min_pc=");
 		update = TRUE;
-	// /!\ For dev versions, new detect.ini parameters value will be overwritten by previous updates - new values for new version will only be used when new version is published
 	}
+
+
+	version_update.Major = 4;
+	version_update.Minor = 0;
+	version_update.Revision = 2;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world4120.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg4120_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		RemoveFile((CString)"opencv_world460.dll", log_cstring_lines);
+		RemoveFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+
+	// /!\ For dev versions, new detect.ini parameters value will be overwritten by previous updates - new values for new version will only be used when new version is published
 
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// DO NOT FORGET: All default values must be setup in parallel in::
