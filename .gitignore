@@ -33,3 +33,5 @@
 *.lastbuildstate
 *.ClangTidy
 /x64/Release/tests
+/x64/Release/opencv_videoio_ffmpeg4120_64.dll
+/x64/Release/opencv_world4120.dll
