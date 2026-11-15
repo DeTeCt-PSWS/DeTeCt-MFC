@@ -6,7 +6,7 @@
 
 #define PROGNAME		"DeTeCt"
 #define LONGNAME		"jovian impact DeTeCtion"
-#define VERSION_NB		"4.0.2"
+#define VERSION_NB		"4.1.0"
 //#define VERSION_DATE	"(Aug.26,2020)"
 
 //#define VERSION_MSVC ""
@@ -47,7 +47,7 @@
 #define DTC_QUEUE_PREFIX		"_processes_queue"
 #define DTC_MAX_FRAME_PREFIX	"_dtc_max_frame"
 #define DTC_DIFF_FRAME_PREFIX	"_dtc_diff_frame"
-#define SINGLE_PREFIX			"_single_"
+#define SINGLE_FRAME_PREFIX		"_frame"
 
 #define DTC_QUEUE_EXT			".lst"
 #define VIDEOS_EXT				"m4v", "avi", "ser", "wmv" , "mp4", "mov"
@@ -155,6 +155,7 @@ struct options {
 	bool			interactive;			// Normal interactive mode or automatic mode
 	bool			autoexit;			// Automatic exit when processing done
 	bool			shutdown;			// Automatic PC shutdownn when auto exit
+	bool			dynamic_resources; // Automatic dynamic resources usage
 	bool			flat_preparation;			// Flag to create flat
 	bool			clean_dir;			// Cleans directory before processing
 	bool			show_detect_image;				// show detection image
@@ -173,6 +174,7 @@ struct options {
 	bool			interactive_bak;			// Backup of interactive status
 	bool			reprocessing_bak;			// Backup of reprocessing status
 	int				maxinstances_bak;			// Backup of Maximum number of DeTeCt instances status
+	int				maxinstances_changed;		// Flag for Maximum number of DeTeCt instances changed
 	bool			force_single_instance;
 // Status
 	bool			autostakkert;			// Launched from autostakkert

@@ -209,6 +209,26 @@ void GetOSversion(std::string *pos_version)
 // **************** File functions ****************************
 // ************************************************************
 
+bool URLUncachedDownloadToFile(CString URL, CString DownloadedFilename){
+
+	MyCallback pCallback;
+
+	DeleteUrlCacheEntry(URL);
+	InternetSetOption(NULL, INTERNET_OPTION_END_BROWSER_SESSION, NULL, 0);		// Empties WinInet cache for this session, so that the download is not cached and is always downloaded fresh
+
+	CString URL_unique;															// Unique URL to avoid caching
+	URL_unique.Format(_T("%s?t=%I64u"), URL.GetString(), GetTickCount64());
+	
+	HRESULT hr = 0;
+	hr = URLDownloadToFile(
+		NULL,								// A pointer to the controlling IUnknown interface (not needed here)
+		URL_unique,
+		DownloadedFilename, 0,				// Reserved. Must be set to 0.
+		&pCallback);						// status callback interface (not needed for basic use)
+
+	return (SUCCEEDED(hr));
+}
+
 /**** return full filename constructed from first file directory and second file short filename ***/
 std::string dirfilename(std::string directoryname_from_path, std::string filename_from_path) {
 	return directoryname_from_path.substr(0, directoryname_from_path.find_last_of("\\") + 1) + filename_from_path.substr(filename_from_path.find_last_of("\\") + 1, filename_from_path.length());
@@ -305,6 +325,10 @@ int64 filesize(const char* filename) /* MB */
 	std::ifstream in(filename, std::ios::binary | std::ios::ate);
 	return (int64) (in.tellg());
 }
+
+// ************************************************************
+// **************** Maths functions ****************************
+// ************************************************************
 
 double	round_precision(const double number, const int precision)
 {

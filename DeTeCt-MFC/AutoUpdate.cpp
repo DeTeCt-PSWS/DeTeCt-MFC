@@ -139,12 +139,11 @@ BOOL AutoUpdate::SG_GetVersion_from_ConfigFile(SG_Version* ver, std::vector<CStr
 
 	/**** downloads version file ***/
 	DeleteUrlCacheEntry(URL);
+	InternetSetOption(NULL,	INTERNET_OPTION_END_BROWSER_SESSION, NULL,	0);
+	CString URL_unique;
+	URL_unique.Format(_T("%s?t=%I64u"),URL.GetString(), GetTickCount64());
 	HRESULT hr = 0;
-	hr = URLDownloadToFile(
-		NULL,   // A pointer to the controlling IUnknown interface (not needed here)
-		URL,
-		VerName, 0,		      // Reserved. Must be set to 0.
-		&pCallback); // status callback interface (not needed for basic use)
+	hr = URLUncachedDownloadToFile(URL, VerName);
 	if (SUCCEEDED(hr)) {
 		std::ifstream ConfigFile(m_VersionsFullPath, std::ifstream::in);
 		CT2A tmp(m_SelfFileName + ";");
@@ -468,11 +467,7 @@ BOOL AutoUpdate::CheckForUpdates(std::vector<CString> *log_cstring_lines)
 		if (opts.debug) (*log_cstring_lines).push_back((CString)"Info: downloading updates ...");
 		DeleteUrlCacheEntry(URL);
 		HRESULT hr = 0;
-		hr = URLDownloadToFile(
-			NULL,   // A pointer to the controlling IUnknown interface (not needed here)
-			URL,
-			ExeName, 0,		      // Reserved. Must be set to 0.
-			&pCallback); // status callback interface (not needed for basic use)
+		hr = URLUncachedDownloadToFile(URL, ExeName);
 		if (SUCCEEDED(hr))
 		{
 			// Check if the version string matches the file name on the server
@@ -734,6 +729,27 @@ BOOL	AutoUpdate::Update_ini_parameters_resources_files(const SG_Version version_
 		update = TRUE;
 	}
 
+	version_update.Major = 4;
+	version_update.Minor = 1;
+	version_update.Revision = 0;
+	version_update.SubRevision = 0;
+	if (pre_update && (SG_Version_number(version_current) < SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update)))) {
+		DownloadFile((CString)"opencv_world4120.dll", log_cstring_lines);
+		DownloadFile((CString)"opencv_videoio_ffmpeg4120_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		RemoveFile((CString)"opencv_world460.dll", log_cstring_lines);
+		RemoveFile((CString)"opencv_videoio_ffmpeg460_64.dll", log_cstring_lines);
+		update = TRUE;
+	}
+
+	if (!pre_update && ((SG_Version_number(version_current) == SG_Version_number(version_update)) || (force_all_updates && (SG_Version_number(version_current) <= SG_Version_number(version_update))))) {
+		opts.dynamic_resources = false;
+		WriteIni();
+		update = TRUE;
+	}
+
 	// /!\ For dev versions, new detect.ini parameters value will be overwritten by previous updates - new values for new version will only be used when new version is published
 
 	//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -824,12 +840,8 @@ BOOL AutoUpdate::DownloadFile(const CString FileName, std::vector<CString>* log_
 	CString URL = AutoUpdate::m_DownloadLink + FileName;
 	DeleteUrlCacheEntry(URL);
 	HRESULT hr = 0;
-	hr = URLDownloadToFile(
-		NULL,   // A pointer to the controlling IUnknown interface (not needed here)
-		URL,
-		FullPathName, 0,		      // Reserved. Must be set to 0.
-		&pCallback); // status callback interface (not needed for basic use)
-	if (SUCCEEDED(hr))
+	hr = hr = URLUncachedDownloadToFile(URL, FullPathName);
+if (SUCCEEDED(hr))
 	{
 		(*log_cstring_lines).push_back((CString)"Info: " + FileName + (CString)" successfully downloaded.");
 		return TRUE;

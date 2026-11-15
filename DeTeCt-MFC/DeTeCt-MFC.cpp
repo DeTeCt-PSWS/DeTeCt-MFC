@@ -147,6 +147,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.ADUdtconly = FALSE;			// Use ADUdtc algorithm only
 	opts.detail = FALSE;			// Use ADUdtc algorithm only with 2 more images as output
 	opts.zip = TRUE;				// Creates zip of impact_detection folder at the end of processing
+	opts.OpenCL = TRUE;				// Use OpenCL for computing
 	opts.email = TRUE;				// Send email at the end of processing
 	opts.allframes = FALSE;			// Save all intermediate mac frames from ADUdtc algorithm
 	opts.impact_distance_max = 0;				// Maximum value for distance between old algorithm and max in detection image for being a possible impact
@@ -161,6 +162,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.interactive = FALSE;			// Normal interactive mode or automatic mode
 	opts.autoexit = FALSE;			// Automatic exit when processing done
 	opts.shutdown = FALSE;			// Automatic PC shutdownn when auto exit
+	opts.dynamic_resources = FALSE; // Automatic dynamic resources usage 
 	opts.flat_preparation = FALSE;			// Flag to create flat
 	opts.clean_dir = FALSE;			// Cleans directory before processing
 	opts.show_detect_image = TRUE;				// show detection image
@@ -181,6 +183,7 @@ BOOL CDeTeCtMFCApp::InitInstance()
 	opts.interactive_bak		= FALSE;	// Backup of interactive status
 	opts.reprocessing_bak		= FALSE;	// Backup of reprocessing status
 	opts.maxinstances_bak		= 1;		// Backup of Maximum number of DeTeCt instances status
+	opts.maxinstances_changed	= FALSE;		// Flag for Maximum number of DeTeCt instances changed
 	opts.autostakkert			= FALSE;	// Launched from autostakkert
 	opts.autostakkert_PID		= 0;		// Parent autostakkert PID
 	opts.detect_PID = 0;					// Parent detect PID
@@ -681,6 +684,7 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 
 					//Platform Name
 					//std::cout << "Platform Name: " << platform->name().c_str() << "\n" << endl;
+					message_lines[index_message] += " version " + std::string(device.OpenCL_C_Version()) + " for ";
 					message_lines[index_message] += platform->name();
 					//Access Device within Platform
 					cv::ocl::Device current_device;
@@ -710,6 +714,272 @@ CreateQueueFileName(); // Also sets parent_instance - defines opts.DeTeCtQueueFi
 						cin.ignore(1);
 					}
 				}
+// Bonnes pratiques OpenCL:
+//1. Keep data in UMat as long as possible
+//		eg. do not use umat.getMat or mat.copyTo(umat) as it provoikes synchronization and data transfer between CPU and GPU
+//2. Reuse buffers (do not recreate them at each iteration) to avoid memory allocation and deallocation overhead
+//3. avoid using CPU operations inside pipeline (could need reduction and synchro,ization)
+//		eg. avoid using cv::minMaxLoc, cv::meanStdDev, cv::countNonZero, cv::findContours, cv::connectedComponentsWithStats, cv::connectedComponents, cv::HoughLines, cv::HoughLinesP, cv::HoughCircles, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+//		eg. mean, minMaxLoc, cvountNonZero, histograms : try to group them at the end of the pipeline 
+//4.		preallocate Umats (Umat gray.create(height, width, CV_8UC1);then run functions that will be used later (cvtColor, GuassianBLur, etc.)
+//5. Avoid resizing image frequently (reallocate buiffers, recompile kernels, etc.) : try to resize once at the beginning of the pipeline and keep the same size for all processing
+//6.  Compile kernels at the beginning of the pipeline and reuse them (avoid recompiling kernels at each iteration)
+//7.  Avoid non OpenbCL accelerated functions (eg. cv::dft, cv::idft, cv::filter2D, cv::GaussianBlur, cv::medianBlur, cv::bilateralFilter, cv::resize, cv::warpAffine, cv::warpPerspective, cv::remap, cv::cvtColor, cv::threshold, cv::adaptiveThreshold, cv::equalizeHist, cv::calcHist, cv::normalize, cv::compareHist, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+//		some use partially or fully CPU
+//8.  Avoid using OpenCV functions that are not implemented for OpenCL (eg. cv::dft, cv::idft, cv::filter2D, cv::GaussianBlur, cv::medianBlur, cv::bilateralFilter, cv::resize, cv::warpAffine, cv::warpPerspective, cv::remap, cv::cvtColor, cv::threshold, cv::adaptiveThreshold, cv::equalizeHist, cv::calcHist, cv::normalize, cv::compareHist, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+// can be tested with or without OPenCL by testing before and after cv::ocl::setUseOpenCL(false);
+//9. read directly in UMLat (eg. cv::VideoCapture::read(umat)) to avoid data transfer between CPU and GPU
+//10. Use asynchronouyus mode as much as possible: imshow, waitKey or getMat provoke synchronization and data transfer between CPU and GPU
+//11. Do not use pixel per pixel access (eg. for (int y=0; y<h; y++) { for (int x = 0; x < w; x++) {...}})
+//		Use instead vectorized operations (eg. cv::add, cv::subtract, cv::multiply, cv::divide, cv::min, cv::max, cv::absdiff, cv::bitwise_and, cv::bitwise_or, cv::bitwise_xor, cv::bitwise_not, cv::compare, cv::inRange, cv::threshold, etc.) instead of pixel per pixel access 
+//12. Monitar GPU memory - release useless buffers (tmp.release())
+//A. avoid using OpenCV functions that are not implemented for OpenCL (eg. cv::dft, cv::idft, cv::filter2D, cv::GaussianBlur, cv::medianBlur, cv::bilateralFilter, cv::resize, cv::warpAffine, cv::warpPerspective, cv::remap, cv::cvtColor, cv::threshold, cv::adaptiveThreshold, cv::equalizeHist, cv::calcHist, cv::normalize, cv::compareHist, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+
+
+// Bonnes pratiques OpenCL:
+//1. Keep data in UMat as long as possible
+//		eg. do not use umat.getMat or mat.copyTo(umat) as it provoikes synchronization and data transfer between CPU and GPU
+//2. Reuse buffers (do not recreate them at each iteration) to avoid memory allocation and deallocation overhead
+//3. avoid using CPU operations inside pipeline (could need reduction and synchro,ization)
+//		eg. avoid using cv::minMaxLoc, cv::meanStdDev, cv::countNonZero, cv::findContours, cv::connectedComponentsWithStats, cv::connectedComponents, cv::HoughLines, cv::HoughLinesP, cv::HoughCircles, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+//		eg. mean, minMaxLoc, cvountNonZero, histograms : try to group them at the end of the pipeline 
+//4.		preallocate Umats (Umat gray.create(height, width, CV_8UC1);then run functions that will be used later (cvtColor, GuassianBLur, etc.)
+//5. Avoid resizing image frequently (reallocate buiffers, recompile kernels, etc.) : try to resize once at the beginning of the pipeline and keep the same size for all processing
+//6.  Compile kernels at the beginning of the pipeline and reuse them (avoid recompiling kernels at each iteration)
+//7.  Avoid non OpenbCL accelerated functions (eg. cv::dft, cv::idft, cv::filter2D, cv::GaussianBlur, cv::medianBlur, cv::bilateralFilter, cv::resize, cv::warpAffine, cv::warpPerspective, cv::remap, cv::cvtColor, cv::threshold, cv::adaptiveThreshold, cv::equalizeHist, cv::calcHist, cv::normalize, cv::compareHist, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+//		some use partially or fully CPU
+//8.  Avoid using OpenCV functions that are not implemented for OpenCL (eg. cv::dft, cv::idft, cv::filter2D, cv::GaussianBlur, cv::medianBlur, cv::bilateralFilter, cv::resize, cv::warpAffine, cv::warpPerspective, cv::remap, cv::cvtColor, cv::threshold, cv::adaptiveThreshold, cv::equalizeHist, cv::calcHist, cv::normalize, cv::compareHist, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+// can be tested with or without OPenCL by testing before and after cv::ocl::setUseOpenCL(false);
+//9. read directly in UMLat (eg. cv::VideoCapture::read(umat)) to avoid data transfer between CPU and GPU
+//10. Use asynchronouyus mode as much as possible: imshow, waitKey or getMat provoke synchronization and data transfer between CPU and GPU
+//11. Do not use pixel per pixel access (eg. for (int y=0; y<h; y++) { for (int x = 0; x < w; x++) {...}})
+//		Use instead vectorized operations (eg. cv::add, cv::subtract, cv::multiply, cv::divide, cv::min, cv::max, cv::absdiff, cv::bitwise_and, cv::bitwise_or, cv::bitwise_xor, cv::bitwise_not, cv::compare, cv::inRange, cv::threshold, etc.) instead of pixel per pixel access 
+//12. Monitar GPU memory - release useless buffers (tmp.release())
+//A. avoid using OpenCV functions that are not implemented for OpenCL (eg. cv::dft, cv::idft, cv::filter2D, cv::GaussianBlur, cv::medianBlur, cv::bilateralFilter, cv::resize, cv::warpAffine, cv::warpPerspective, cv::remap, cv::cvtColor, cv::threshold, cv::adaptiveThreshold, cv::equalizeHist, cv::calcHist, cv::normalize, cv::compareHist, cv::matchTemplate, cv::phaseCorrelate, cv::PSNR, cv::quality::QualityBase, cv::quality::QualityBRISQUE, cv::quality::QualityNIQE, cv::quality::QualityNRMSE, cv::quality::QualityPSNR, cv::quality::QualitySSIM
+
+
+/*B. Fonctions generalement bien accelerees par OpenCL
+
+				Celles - ci valent souvent la peine d'etre executees sur des UMat :
+
+					Transformations de base
+					C++
+					resize()
+					flip()
+					transpose()
+					rotate()
+					copyMakeBorder()
+					Operations arithmetiques
+					C++
+					add()
+					subtract()
+					multiply()
+					divide()
+					absdiff()
+					compare()
+					bitwise_and()
+					bitwise_or()
+					bitwise_xor()
+					bitwise_not()
+
+					Conversions
+					C++
+					cvtColor()
+					convertTo()
+					normalize()
+					Filtres
+					C++
+					blur()
+					boxFilter()
+					GaussianBlur()
+					medianBlur()
+					bilateralFilter() // suivant version et parametres
+					sepFilter2D()
+					filter2D()
+					Morphologie
+					C++
+					erode()
+					dilate()
+					morphologyEx()
+					Detection de contours
+					C++
+					Canny()
+					Sobel()
+					Scharr()
+					Laplacian()
+					Statistiques simples
+					C++
+					mean()
+					meanStdDev()
+					minMaxLoc()
+					countNonZero()
+					sum()
+
+					Meme si ces fonctions sont accelerees, certaines necessitent une reduction GPU->CPU en fin de calcul.
+
+					2. Fonctions partiellement accelerees
+
+					Ces fonctions peuvent utiliser OpenCL pour certaines parties uniquement :
+
+				C++
+					threshold()
+					adaptiveThreshold()
+					integral()
+					distanceTransform()
+
+					ou selon la profondeur d'image :
+
+					C++
+					matchTemplate()
+
+
+					Certaines combinaisons de types :
+
+				Plain Text
+					CV_8U
+					CV_16U
+					CV_32F
+
+					sont accelerees alors que d'autres retombent sur le CPU.
+
+					3. Fonctions souvent executees sur CPU malgre UMat
+
+					Celles - ci sont les principales sources de deception.
+
+					Contours
+					C++
+					findContours()
+
+					Historique : pas de backend OpenCL complet.
+
+					Hough
+					C++
+					HoughLines()
+					HoughLinesP()
+					HoughCircles()
+
+					Suivant la version et la plateforme, le support OpenCL est limite.
+
+					Geometrie
+					C++
+					approxPolyDP()
+					convexHull()
+					pointPolygonTest()
+
+					Souvent CPU.
+
+					Analyse de composantes connectees
+					C++
+					connectedComponents()
+					connectedComponentsWithStats()
+
+
+					Tres souvent CPU.
+
+					Fonctions video
+					C++
+					calcOpticalFlowPyrLK()
+					calcOpticalFlowFarneback()
+
+					Support dependant de la version, parfois via modules dedies plutot que T - API.
+
+					Detection de blobs
+					C++
+					SimpleBlobDetector
+
+					CPU.
+
+					CascadeClassifier
+					C++
+					detectMultiScale()
+
+					Generalement CPU.
+
+					Comment savoir avec certitude ?
+
+					Le meilleur moyen est de lancer :
+
+				C++
+					std::cout << cv::getBuildInformation() << std::endl;
+
+				puis de definir :
+
+				C++
+					OPENCV_OPENCL_DEBUG = 1
+
+					avant l'execution.
+
+					Sous Windows :
+
+				BAT
+					set OPENCV_OPENCL_DEBUG = 1
+
+					ou
+
+					C++
+					_putenv("OPENCV_OPENCL_DEBUG=1");
+
+				OpenCV affiche alors des informations sur :
+
+				les kernels compiles,
+					le device OpenCL utilise,
+					certaines bascules CPU / GPU.
+					Outil tres utile pour detecter les retours CPU caches
+
+					Fais deux mesures :
+
+				C++
+					cv::ocl::setUseOpenCL(true);
+
+				puis
+
+					C++
+					cv::ocl::setUseOpenCL(false);
+
+			Si:
+
+				Plain Text
+					Mat = 25 ms
+					UMat = 5 ms
+
+
+					-> tres bon candidat OpenCL.
+
+					Si :
+
+				Plain Text
+					Mat = 25 ms
+					UMat = 30 ms
+
+					-> il y a probablement :
+
+				des transferts CPU<->GPU,
+					ou une fonction non acceleree dans la chaîne.
+					Cas particulier de ton traitement video
+
+					Pour une chaîne typique :
+
+				Plain Text
+					Lecture video
+					-> cvtColor
+					-> GaussianBlur
+					-> threshold
+					-> morphologyEx
+					-> Canny
+					-> findContours
+
+					tout est generalement accelere jusqu'à findContours().
+
+					Le coût typique est alors :
+
+				Plain Text
+					GPU : cvtColor
+					GPU : GaussianBlur
+					GPU : threshold
+					GPU : morphologyEx
+					GPU : Canny
+					CPU : findContours
+*/
 			}
 		}
 	}

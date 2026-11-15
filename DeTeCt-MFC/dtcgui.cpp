@@ -126,7 +126,7 @@ void read_files(std::string folder,  AcquisitionFilesList *acquisition_files) {
 
 	// ignored dtc own files
 	std::vector<std::string> not_supported_suffix = { DTC_MAX_MEAN_SUFFIX, DTC_MAX_MEAN1_SUFFIX, DTC_MAX_MEAN2_SUFFIX, DTC_MEAN_SUFFIX, DTC_MEAN2_SUFFIX,
-		DTC_DIFF_SUFFIX, DTC_DIFF2_SUFFIX, VIDEOTEST_SUFFIX, DTC_MAX_SUFFIX, MEAN_SUFFIX, DTC_SUFFIX, DTC_DIFF_FRAME_PREFIX, DTC_MAX_FRAME_PREFIX };
+		DTC_DIFF_SUFFIX, DTC_DIFF2_SUFFIX, VIDEOTEST_SUFFIX, DTC_MAX_SUFFIX, MEAN_SUFFIX, DTC_SUFFIX, DTC_DIFF_FRAME_PREFIX, DTC_MAX_FRAME_PREFIX, SINGLE_FRAME_PREFIX };
 
 	if (!(directory = opendir(folder.c_str()))) {
 		closedir(directory);
@@ -837,17 +837,22 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 //		if ((!opts.parent_instance) || (strlen(opts.DeTeCtQueueFilename) == 0)) acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename);
 		while (acquisition_index < local_acquisition_files_list.file_list.size()) {
 			std::string filename_acquisition;
+			float CPULoad = 0;
 			filename =				local_acquisition_files_list.file_list.at(acquisition_index);
 			filename_acquisition =	local_acquisition_files_list.acquisition_file_list.at(acquisition_index);
 			acquisition_index++;
 			if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) opts.maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)opts.DeTeCtQueueFilename);
 			maxinstances_previous = opts.maxinstances;
 			if ((opts.maxinstances > 1) && (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename)))) AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
-			float CPULoad = GetCPULoad(FALSE);
+			if (opts.dynamic_resources) CPULoad = GetCPULoad(FALSE);
 			nb_new_instances = ForksInstances(opts.maxinstances, ASorDeTeCtPID(opts.autostakkert_PID, opts.detect_PID), (CString)opts.DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
-			if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-			else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-
+			if (opts.dynamic_resources) {
+				if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+				else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+			else
+				if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" ("), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+				else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" ("), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+			}
 			/********** Init **********/
 
 			std::vector<cv::Point> cm_list = {};
@@ -1355,9 +1360,9 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 									pROIMat = cv::Mat::zeros(bigROI.size(), pFirstFrameROIMat.type());
 									tempGryMat = cv::Mat::zeros(pFirstFrameROI.size(), pFirstFrameROIMat.type());
 								}
-// ******************************************************************************************************
-// ************************************ Start of frame processing ***************************************
-// ******************************************************************************************************
+// ******************************************************************************************************************************************************************************************************************************************************************************************************************
+// ************************************ Start of frame processing ***************************************************************************************************************************************************************************************************************************************************
+// ******************************************************************************************************************************************************************************************************************************************************************************************************************
 
 								pGryMat.convertTo(pGryMat, CV_8U);
 								if (opts.flat_preparation) pGryFullMat.convertTo(pGryFullMat, CV_8U);
@@ -1637,7 +1642,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 												pADUdtcMat.convertTo(pADUdtcMat, -1, 255.0 / maxLum, 0);
 												strncpy_s(ofilenamemax, sizeof(ofilenamemax), opts.ofilename, strlen(opts.ofilename) - 4);
 												ofilenamemax[std::strlen(opts.ofilename) - 4] = '\0';
-												sprintf(ofilenamemax, "%s_dtc_max_frame%05d.jpg", ofilenamemax, nframe);
+//												sprintf(ofilenamemax, "%s_dtc_max_frame%05d.jpg", ofilenamemax, nframe);
+												sprintf(ofilenamemax, "%s%s% 05d.jpg", ofilenamemax, DTC_MAX_FRAME_PREFIX, nframe);
 												strcat_s(max_folder_path_filename, sizeof(max_folder_path_filename), right(ofilenamemax, strlen(ofilenamemax) - InRstr(ofilenamemax, "\\"), tmpstring));
 												cv::imwrite(max_folder_path_filename, pADUdtcMat, img_save_params);
 //useless as done before?
@@ -1648,7 +1654,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 												// differential accumulated frames image construction
 												strncpy_s(ofilenamediff, sizeof(ofilenamediff), opts.ofilename, strlen(opts.ofilename) - 4);
 												ofilenamediff[std::strlen(opts.ofilename) - 4] = '\0';
-												sprintf(ofilenamediff, "%s_dtc_diff_frame%05d.jpg", ofilenamediff, nframe);
+//												sprintf(ofilenamediff, "%s_dtc_diff_frame%05d.jpg", ofilenamediff, nframe);
+												sprintf(ofilenamediff, "%s%s%05d.jpg", ofilenamediff, DTC_DIFF_FRAME_PREFIX, nframe);
 												strcat_s(diff_folder_path_filename, sizeof(diff_folder_path_filename), right(ofilenamediff, strlen(ofilenamediff) - InRstr(ofilenamediff, "\\"), tmpstring));
 
 												cv::minMaxLoc(pDifMat, &minLum, &maxLum, &minPoint, &maxPoint);
@@ -1660,7 +1667,8 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 												// single frame image construction
 												strncpy_s(ofilenamesingle, sizeof(ofilenamesingle), opts.ofilename, strlen(opts.ofilename) - 4);
 												ofilenamesingle[std::strlen(opts.ofilename) - 4] = '\0';
-												sprintf(ofilenamesingle, "%s_frame%05d.jpg", ofilenamesingle, nframe);
+//												sprintf(ofilenamesingle, "%s_frame%05d.jpg", ofilenamesingle, nframe);
+												sprintf(ofilenamesingle, "%s%s%05d.jpg", ofilenamesingle, SINGLE_FRAME_PREFIX, nframe);
 												strcat_s(single_folder_path_filename, sizeof(single_folder_path_filename), right(ofilenamesingle, strlen(ofilenamesingle) - InRstr(ofilenamesingle, "\\"), tmpstring));
 
 												cv::minMaxLoc(pGryMat, &minLum, &maxLum, &minPoint, &maxPoint);
@@ -1805,45 +1813,82 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 								display_update_duration += clock() - start_update_time;
 							}
 				//
-				//	Regular processing update
+				//	Regular update
 				//
+// overall					400ms
 							if ((opts.parent_instance) && (clock() > check_threshold_time) && ((acquisitions_to_be_processed - acquisitions_processed - acquisition_index_children) > 1)) { //still 1 or more acquisitions being processed by children hence processing update needed
-								//Regular processing update
+								// 1
+ 								//Regular progress display update
+								//
 								update_count++;
 								start_update_time = clock();
 								BOOL ExistsProcessedFiles = FALSE;
 								if ((opts.maxinstances > 1) && (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename)))) {	// Gets other processed files by other instances
+									// filesys::exists			4ms
 									double duration_total_others = 0;
-									int nb_processed_files_fetched = GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, opts.DeTeCtQueueFilename, &computing_threshold_time, &end, computing_refresh_duration, begin, begin_total, nframe, frame_number);
-									if (nb_processed_files_fetched > 0) {
-										if (opts.debug) LogString(L"File(s) processed fetched: " + (CString)std::to_string(nb_processed_files_fetched).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-										duration_total += duration_total_others;
-										CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (" + TotalType() + "): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
-										ExistsProcessedFiles = TRUE;
-									}
-									if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) {  //Update correctly figure if children instances ignore some files
-										acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename) - NbItemFromQueue(_T("file_ko"), (CString)opts.DeTeCtQueueFilename, NULL, TRUE);
-										UpdateProgress(acquisitions_to_be_processed, acquisitions_processed, acquisition_index_children, nframe, frame_number, opts.DeTeCtQueueFilename);
+									// GetOtherProcessedFiles	118ms
+									// * processed *******************	
+									if (IsQueueModified((CString)opts.DeTeCtQueueFilename, TRUE)) {
+										int nb_processed_files_fetched = GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, opts.DeTeCtQueueFilename, &computing_threshold_time, &end, computing_refresh_duration, begin, begin_total, nframe, frame_number);
+										if (nb_processed_files_fetched > 0) {
+											if (opts.debug) LogString(L"File(s) processed fetched: " + (CString)std::to_string(nb_processed_files_fetched).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+											duration_total += duration_total_others;
+											CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (" + TotalType() + "): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
+											ExistsProcessedFiles = TRUE;
+										}
+
+										if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) {  //Update correctly figure if children instances ignore some files
+											// NbFilesFromQueue+
+											// NbItemFromQueue			113ms
+											// * modified  *******************
+											acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename) - NbItemFromQueue(_T("file_ko"), (CString)opts.DeTeCtQueueFilename, NULL, TRUE);
+											// UpdateProgress			128ms
+											// UpdateProgress(acquisitions_to_be_processed, acquisitions_processed, acquisition_index_children, nframe, frame_number, opts.DeTeCtQueueFilename);
+											// DisplayProcessingTime(&computing_threshold_time, &end, computing_refresh_duration, begin, begin_total);
+										}
+
 									}
 								}
 								processing_update_duration += clock() - start_update_time;
-								
+
+								// 2
 								//Regular instances update
+								//
 								start_update_time = clock();
-								maxinstances_previous = opts.maxinstances;
-								if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) opts.maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)opts.DeTeCtQueueFilename);
-								// Forks attempt if more instances possible, maximum # of instances not reached at last check or new files processed (hence child detect process exited)
-								if ((opts.maxinstances > maxinstances_previous) || (nb_instances < opts.maxinstances) || (ExistsProcessedFiles)) {
-									if (opts.debug) LogString(_T("!Debug info: Forks") + (CString)std::to_string(opts.maxinstances).c_str() + _T(" ") + (CString)std::to_string(maxinstances_previous).c_str() + _T(" ") + (CString)std::to_string(nb_instances).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-									if ((opts.maxinstances > 1) && (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename)))) AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
-									nb_new_instances = 0;
-									CPULoad = GetCPULoad(FALSE);
-									nb_new_instances = ForksInstances(opts.maxinstances, ASorDeTeCtPID(opts.autostakkert_PID, opts.detect_PID), (CString)opts.DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
-									if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-									else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-									else if (ExistsProcessedFiles) {
-										nb_instances = 0;
-										DisplayInstanceType(&nb_instances);
+								//maxinstances_previous = opts.maxinstances;
+// GetIntParamFromQueue		58ms
+// * param *******************
+								if (opts.maxinstances_changed) {
+									opts.maxinstances_changed = false;
+						maxinstances_previous = opts.maxinstances;
+									//if (!ExistsProcessedFiles) if (filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) opts.maxinstances = GetIntParamFromQueue(_T("max_instances"), (CString)opts.DeTeCtQueueFilename);
+									// Forks attempt if more instances possible, maximum # of instances not reached at last check or new files processed (hence child detect process exited)
+									if ((opts.maxinstances > maxinstances_previous) || (nb_instances < opts.maxinstances) || (ExistsProcessedFiles)) {
+										if (opts.debug) LogString(_T("!Debug info: Forks") + (CString)std::to_string(opts.maxinstances).c_str() + _T(" ") + (CString)std::to_string(maxinstances_previous).c_str() + _T(" ") + (CString)std::to_string(nb_instances).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+										// AcquisitionFileListToQueue 590ms
+										if ((opts.maxinstances > 1) && (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename)))) AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_processing"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
+										nb_new_instances = 0;
+										if (opts.dynamic_resources) CPULoad = GetCPULoad(FALSE);
+										// ForksInstances 2169ms
+										nb_new_instances = ForksInstances(opts.maxinstances, ASorDeTeCtPID(opts.autostakkert_PID, opts.detect_PID), (CString)opts.DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
+						DisplayInstanceType(&nb_instances);
+										if (opts.dynamic_resources) {
+											if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+											else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+											else if (ExistsProcessedFiles) {
+												//nb_instances = 0;
+												// DisplayInstanceType		1ms
+												// DisplayInstanceType(&nb_instances); already done in ForksInstances
+											}
+											else {
+												if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" ("), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+												else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" ("), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+												else if (ExistsProcessedFiles) {
+													//nb_instances = 0;
+													//DisplayInstanceType(&nb_instances); already done in ForksInstances
+												}
+											}
+										}
 									}
 								}
 								check_threshold_time = clock() + check_threshold_time_inc;
@@ -1854,9 +1899,9 @@ if (opts.debug) LogString(_T("!Debug info: Setting processing file from queue"),
 						}
 					} // end of is_ROI_ok
 
-// *****************************************************************
-// ****************** End of frames processing *********************
-// *****************************************************************
+// ********************************************************************************************************************************************************************************************************************************************************************
+// ****************** End of frames processing ************************************************************************************************************************************************************************************************************************
+// **********************************************************************************************************************************
 										
 
 					char buffer3[MAX_STRING] = { 0 };
@@ -2734,7 +2779,7 @@ if (opts.debug) LogString(_T("!Debug info: Setting processed file from queue"), 
 		sprintf_s(buffer7, MAX_STRING, "detect7:				opts    : %p	opts->ignore	:	%i\n", &opts, opts.ignore);
 		OutputDebugStringA(buffer7);
 
-		if (!opts.parent_instance && !opts.autostakkert && (NbPossibleChildInstances_fromMemoryandCPUUsage()<0)) dlg.OnFileExit(); //exit DeTeCt child instance if memory usage too high
+		if (opts.dynamic_resources && !opts.parent_instance && !opts.autostakkert && (NbPossibleChildInstances_fromMemoryandCPUUsage()<0)) dlg.OnFileExit(); //exit DeTeCt child instance if memory usage too high
 
 // ***********************************************************************
 // ******************** Looks for new job in queue ***********************
@@ -2774,38 +2819,39 @@ if (opts.debug) LogString(_T("!Debug info: Check queue: parent=") + (CString)std
 
 // ****** MAIN WAITING LOOP *** //
 // **************************** //
-		if ((!((!opts.parent_instance) && ((opts.maxinstances - nbChildren - 1) < 0))) && (local_acquisition_files_list.file_list.size() == 0)) do {
+		if ((!((!opts.parent_instance) && ((opts.maxinstances - nbChildren - 1) < 0))) && (local_acquisition_files_list.file_list.size() == 0))
+		do {
 			if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) { // get other processed files by other instances
 
 			// ******************** Looks for other processed files*****************//
 			// *********************************************************************//
 				double duration_total_others = 0;
 				if (opts.maxinstances > 1) {
-//if (opts.parent_instance) LogString(_T("7a: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 					int nb_processed_files = (GetOtherProcessedFiles(acquisitions_processed, &acquisition_index_children, &acquisitions_to_be_processed, &nb_error_impact, &nb_null_impact, &nb_low_impact, &nb_high_impact, &duration_total_others, &log_messages, opts.DeTeCtQueueFilename, &computing_threshold_time, &end, computing_refresh_duration, begin, begin_total, 0, 1));
-if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) {  //Update correctly figure if children instances ignore some files
-	acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename) - NbItemFromQueue(_T("file_ko"), (CString)opts.DeTeCtQueueFilename, NULL, TRUE);
-	//totalProgress_wstring = L"Total\n(" + std::to_wstring(acquisitions_processed + acquisition_index_children) + L"/" + std::to_wstring(acquisitions_to_be_processed) + L")";
-	//CDeTeCtMFCDlg::gettotalProgress()->SetWindowText(totalProgress_wstring.c_str());
-	UpdateProgress(acquisitions_to_be_processed, acquisitions_processed, acquisition_index_children, 0, 0, opts.DeTeCtQueueFilename);
-
-}
-
-//if (opts.parent_instance) LogString(_T("7b: parent / children / done / tobe = ") + (CString)(std::to_string(acquisitions_processed).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_processed + acquisition_index_children).c_str()) + (CString)(" / ") + (CString)(std::to_string(acquisitions_to_be_processed).c_str()), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-
+					if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) {  //Update correctly figure if children instances ignore some files
+						acquisitions_to_be_processed = NbFilesFromQueue((CString)opts.DeTeCtQueueFilename) - NbItemFromQueue(_T("file_ko"), (CString)opts.DeTeCtQueueFilename, NULL, TRUE);
+						UpdateProgress(acquisitions_to_be_processed, acquisitions_processed, acquisition_index_children, 0, 0, opts.DeTeCtQueueFilename);
+					}
 					if (nb_processed_files > 0) {
 						if (opts.debug) LogString(L"File(s) processed fetched: " + (CString)std::to_string(nb_processed_files).c_str(), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 						duration_total += duration_total_others;
 						CDeTeCtMFCDlg::getduration()->SetWindowText((CString)"Duration processed (total): " + std::to_wstring((int)duration_total).c_str() + (CString)"s");
 						if ((opts.maxinstances > 1) && (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))))  AcquisitionFileListToQueue(&local_acquisition_files_list, _T("file_ok"), acquisition_index - 1, (CString)log.c_str(), &acquisitions_to_be_processed);
-						float CPULoad = GetCPULoad(FALSE);
 						nb_new_instances = ForksInstances(opts.maxinstances, ASorDeTeCtPID(opts.autostakkert_PID, opts.detect_PID), (CString)opts.DeTeCtQueueFilename, queue_scan_delay, queue_scan_delay_random_max, &nb_instances);
-						if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-						else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
-						else if (opts.parent_instance) { //&&((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances))) {
-							nb_instances = 0;
-							DisplayInstanceType(&nb_instances);
+						if (opts.dynamic_resources) {
+							float CPULoad = 0.0f;
+							CPULoad = GetCPULoad(FALSE);
+							if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+							else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" (") + (CString)std::to_string((int)(100 - CPULoad * 100)).c_str() + _T("% CPU available)"), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
 						}
+						else {
+							if (nb_new_instances > 1)		LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instances launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" ("), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+							else if (nb_new_instances == 1) LogString((CString)std::to_string(nb_new_instances).c_str() + _T(" new instance launched (") + (CString)std::to_string(nb_instances).c_str() + _T(" in total)") + _T(" ("), output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+							}
+						//if (opts.parent_instance) { //&&((popts->maxinstances > maxinstances_previous) || (nb_instances < popts->maxinstances))) {
+//								int temp = 0;
+//								DisplayInstanceType(&temp);
+						//}
 						if ((opts.parent_instance) && (opts.autostakkert) && (IsProcessRunning(opts.autostakkert_PID))) {		// if no more files to compute while autostakkert still running, message and progress bar update
 							acquisitions_to_be_processed += nb_processed_files;
 							//progress_all_status = MAX_RANGE_PROGRESS * ((float) (acquisitions_processed + acquisition_index_children) / (float) acquisitions_to_be_processed);
@@ -2817,8 +2863,12 @@ if ((opts.parent_instance) && (strlen(opts.DeTeCtQueueFilename) > 0)) {  //Updat
 							UpdateProgress(acquisitions_to_be_processed, acquisitions_processed, acquisition_index_children, 0, 0, opts.DeTeCtQueueFilename);
 						}
 					}
+					else {
+						int temp = 0;
+						DisplayInstanceType(&temp);
+					}
 				}
-			}
+			} // end of parent_instance
 			if (total_sleep_duration > computing_refresh_duration) {
 				sleep_duration = 0;
 				do {
@@ -2971,6 +3021,7 @@ if (opts.debug) LogString(
 				_T(", # of Children=") + (CString)std::to_string(ChildrenProcessesNumber()).c_str() +
 				_T(", exit=") + (CString)std::to_string(opts.autoexit).c_str(),
 				output_log_file.c_str(), &log_counter, TRUE, &wait_count_total);
+		
 		} while		((local_acquisition_files_list.file_list.size() == 0) &&																		// Waiting mode if no file in the list
 						((!QueueListEmpty) ||																										//		and queue still not empty
 							((!((!opts.parent_instance) && (opts.autostakkert) && (opts.autostakkert_PID > 0))) &&									//		or not AutoStakkert child 
@@ -3717,7 +3768,8 @@ void LogString(CString log_cstring,  CString output_filename, int *log_counter, 
 	(*log_counter) = (*log_counter) + 1;
 }
 
-int GetOtherProcessedFiles(const size_t acquisition_index, size_t* pacquisition_index_children, size_t* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* pcomputing_threshold_time, clock_t* plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time, const int nframe, const int frame_number) {
+int GetOtherProcessedFiles(const size_t acquisition_index, size_t* pacquisition_index_children, size_t* pacquisitions_to_be_processed, int* pnb_error_impact, int* pnb_null_impact, int* pnb_low_impact, int* pnb_high_impact, double* pduration_total, std::vector<std::string>* plog_messages, char* DeTeCtQueueFilename, clock_t* pcomputing_threshold_time, clock_t* plast_time, const clock_t refresh_duration, const clock_t single_time, const clock_t total_time, const int nframe, const int frame_number)
+{ // 118ms
 	CString processed_filename;
 	CString processed_filename_acquisition;
 	CString processed_message;
@@ -3938,7 +3990,7 @@ int GetOtherProcessedFiles2(const int acquisitions_processed, int* pacquisition_
 }
 
 int	ForksInstances(const int maxinstances, const int PID, const CString DeTeCtQueueFilename, const int scan_time, const int scan_time_random_max, int *pnbinstances)
-{
+{ // 2169ms
 	int nb_forked_instances = 0;
 	int files_to_be_processed = 0;
 	// Forks other DeTeCt instances if work in queue
@@ -3948,8 +4000,10 @@ int	ForksInstances(const int maxinstances, const int PID, const CString DeTeCtQu
 		if (files_to_be_processed > 0) {
 			(*pnbinstances) = ChildrenProcessesNumber() + 1;
 			if ((*pnbinstances) < maxinstances) { //No instance to fork if maximum is reached!
-				int nb_instances_to_be_forked = MIN(MIN(files_to_be_processed, maxinstances - (*pnbinstances)), NbPossibleChildInstances_fromMemoryandCPUUsage());	// NBItemQueue files to be processed
+				int nb_instances_to_be_forked =0;
+				if (opts.dynamic_resources) nb_instances_to_be_forked = MIN(MIN(files_to_be_processed, maxinstances - (*pnbinstances)), NbPossibleChildInstances_fromMemoryandCPUUsage());	// NBItemQueue files to be processed
 				// Forks DeTeCt.exe -auto
+				else nb_instances_to_be_forked = MIN(files_to_be_processed, maxinstances - (*pnbinstances));
 				nb_forked_instances = 0;
 				CString options = _T(" -auto  -maxinst ") + (CString)std::to_string(maxinstances).c_str();
 				if (opts.debug) options = options + _T(" -debug");
@@ -4037,7 +4091,8 @@ Instance_type InstanceType(CString *pinstance_text) {
 	return instance_type;
 }
 
-Instance_type DisplayInstanceType(int *nbinstances) {
+Instance_type DisplayInstanceType(int *nbinstances)
+{ // 1ms - 2800ms
 	CString			instance_cstring;
 	CString			nbinstances_cstr;
 	CString			max_nbinstances_cstr;
@@ -4200,6 +4255,8 @@ void	WriteIni() {
 	//::WritePrivateProfileString(L"processing", L"debug", str, DeTeCtIniFilename);
 	//str.Format(L"%d", opts.dateonly);
 	//::WritePrivateProfileString(L"processing", L"dateonly", str, DeTeCtIniFilename);
+	str.Format(L"%d", opts.OpenCL);
+	::WritePrivateProfileString(L"processing", L"OpenCL", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.zip);
 	::WritePrivateProfileString(L"processing", L"zip", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.email);
@@ -4211,6 +4268,8 @@ void	WriteIni() {
 	::WritePrivateProfileString(L"processing", L"autoexit", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.shutdown);
 	::WritePrivateProfileString(L"processing", L"autoshutdown", str, DeTeCtIniFilename);
+	str.Format(L"%d", opts.dynamic_resources);
+	::WritePrivateProfileString(L"processing", L"dynamic_resources", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.maxinstances);
 	::WritePrivateProfileString(L"processing", L"maxinstances", str, DeTeCtIniFilename);
 	str.Format(L"%d", opts.reprocessing);
@@ -4222,7 +4281,8 @@ void	WriteIni() {
 	//::WritePrivateProfileString(L"processing", L"OpenCL", str, DeTeCtIniFilename);
 }
 
-void	AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const size_t index_current, const CString out_directory, size_t *pacquisitions_to_be_processed) {
+void	AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const CString tag_current, const size_t index_current, const CString out_directory, size_t *pacquisitions_to_be_processed)
+{ // 590ms
 	CString tmp, tmp2;
 	if (!filesys::exists(CString2string((CString)opts.DeTeCtQueueFilename))) {
 		CreateQueueFileName();
@@ -4267,6 +4327,7 @@ void	AcquisitionFileListToQueue(AcquisitionFilesList *pacquisition_files, const 
 			//index++;
 		}
 	}
+//Sleep(1);
 }
 
 int		rename_replace(const char *src, const char *dest, const char *foldername, const char* function) {

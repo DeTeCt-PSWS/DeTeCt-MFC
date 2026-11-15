@@ -190,8 +190,24 @@ CString DeTeCt_exe_folder()
 * @param	QueueFilename [in,out]	queue filename
 **************************************************************************************************/
 
+BOOL SetQueueModified(const CString QueueFilename) {
+	DWORD	dwBytesWritten = 0;
+	HANDLE 	QueueModificationHandle = INVALID_HANDLE_VALUE;
+
+	OpenWAppendQueueFile(QueueFilename + _T("_modified"), &QueueModificationHandle);
+	WriteFile(QueueModificationHandle, " ", 1, &dwBytesWritten, NULL);
+	ReleaseHandle(&QueueModificationHandle);
+	return TRUE;
+}
+
+BOOL IsQueueModified(const CString QueueFilename, BOOL reset) {
+	BOOL return_value = filesys::exists(CString2string(QueueFilename + _T("_modified")));
+	if (reset) DeleteFile(QueueFilename + _T("_modified"));
+	return return_value;
+}
+
 BOOL PushItemToQueue(const CString line, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok, WA
-{
+{ // modifies queue
 	DWORD	dwBytesWritten = 0;
 	CT2A objectnamechar(tag + _T(": ") + line + _T("\n"));
 
@@ -200,6 +216,8 @@ BOOL PushItemToQueue(const CString line, const CString tag, const CString QueueF
 		if (OpenWAppendQueueFile(QueueFilename, &TempQueueHandle)) {
 			WriteFile(TempQueueHandle, objectnamechar, tag.GetLength() + 2 + line.GetLength() + 1, &dwBytesWritten, NULL);
 			ReleaseHandle(&TempQueueHandle);
+//create modification flag file
+			SetQueueModified(QueueFilename);
 			return TRUE;
 		} else return FALSE;
 	}
@@ -207,6 +225,8 @@ BOOL PushItemToQueue(const CString line, const CString tag, const CString QueueF
 		if (OpenWAppendQueueFile(QueueFilename, pQueueFileHandle)) {
 			WriteFile(*pQueueFileHandle, objectnamechar, tag.GetLength() + 2 + line.GetLength() + 1, &dwBytesWritten, NULL);
 			if (close_handle_at_end) ReleaseHandle(pQueueFileHandle);
+//create modification flag file			
+			SetQueueModified(QueueFilename);
 			return TRUE;
 		} else return FALSE;
 	}
@@ -214,7 +234,7 @@ BOOL PushItemToQueue(const CString line, const CString tag, const CString QueueF
 
 
 BOOL GetItemFromQueue(CString* pObject, const CString search_string, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok, R
-{
+{	
 	CString line = L"";
 	(*pObject) = "";
 
@@ -264,7 +284,9 @@ BOOL GetItemFromQueue(CString* pObject, const CString search_string, const CStri
 * @param	tag [in]						tag
 * @param	QueueFilename [in,out]	queue filename
 **************************************************************************************************/
-void RemoveItemsFromQueue(const CString objectname, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) { //KO / R+Del+WA, could be R+Del+W - check how to keep new created HANDLE, and what to do with close@end
+void RemoveItemsFromQueue(const CString objectname, const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) 
+{	// modifies queue
+	//KO / R+Del+WA, could be R+Del+W - check how to keep new created HANDLE, and what to do with close@end
 
 	BOOL	local_close_handle_at_end = close_handle_at_end;
 
@@ -294,6 +316,9 @@ void RemoveItemsFromQueue(const CString objectname, const CString tag, const CSt
 			CT2A line(cstring_line + _T("\n"));
 			WriteFile(*pQueueFileHandle, line, cstring_line.GetLength() + 1, &dwBytesWritten, NULL);
 			});
+//create modification flag file	
+		SetQueueModified(QueueFilename);
+
 		if (local_close_handle_at_end) ReleaseHandle(pQueueFileHandle);
 	}
 	else if (local_close_handle_at_end) ReleaseHandle(pQueueFileHandle); // Item to be removed not found
@@ -308,7 +333,8 @@ void SetIntParamToQueue(const int param, const CString tag, const CString QueueF
 	PushItemToQueue((CString)std::to_string(param).c_str(), tag, QueueFilename, &QueueFileHandle, TRUE);
 }
 
-int GetIntParamFromQueue(const CString tag, const CString QueueFilename) { //ok, R
+int GetIntParamFromQueue(const CString tag, const CString QueueFilename) 
+{ // 58ms
 	int value = 0;
 	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
 	
@@ -321,7 +347,7 @@ int GetIntParamFromQueue(const CString tag, const CString QueueFilename) { //ok,
 // For Debug
 
 int NbItemFromQueue(const CString tag, const CString QueueFilename, HANDLE* pQueueFileHandle, const BOOL close_handle_at_end) //ok, R
-{
+{ // 50ms
 	int		nbitem		= 0;
 	CString tag_string	= tag + _T(": ");
 	CString line		= L"";
@@ -406,7 +432,7 @@ void RemoveFileFromQueue(const CString objectname, const CString QueueFilename, 
 **************************************************************************************************/
 
 BOOL IsFileAlreadyQueued(const CString objectname, const CString QueueFilename) //ok because of GetItem
-{
+{ // WARNING: does it delete line ?
 	CString	processed_line;
 	HANDLE	QueueFileHandle = INVALID_HANDLE_VALUE;
 
@@ -415,7 +441,7 @@ BOOL IsFileAlreadyQueued(const CString objectname, const CString QueueFilename) 
 
 
 size_t NbFilesFromQueue(const CString QueueFilename) //ok because of NbItem
-{
+{ // 55ms
 	HANDLE QueueFileHandle = INVALID_HANDLE_VALUE;
 
 	int		nbitem = 0;
@@ -824,35 +850,64 @@ int ParentProcessChildren(const DWORD parent_PID, const BOOL kills)
 
 // ************** memory and CPU functions **********
 
-void	Set_ressource_usage(const int resources_usage) {
+void	Set_ressources_usage(const int resources_usage) {
 
-	switch (resources_usage) {
+	if (opts.dynamic_resources) {
+		switch (resources_usage) {
 		case 1:	// low
 			opts.maxinstances = std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 55.0;
-			opts.min_available_cpu_pc		= 70.0;
+			opts.min_free_system_memory_pc = 55.0;
+			opts.min_available_cpu_pc = 70.0;
 			break;
 		case 2: // medium
 			opts.maxinstances = std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 45.0;
-			opts.min_available_cpu_pc		= 50.0;
+			opts.min_free_system_memory_pc = 45.0;
+			opts.min_available_cpu_pc = 50.0;
 			break;
 		case 3: // high
 			opts.maxinstances = std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 35.0;
-			opts.min_available_cpu_pc		= 30.0;
+			opts.min_free_system_memory_pc = 35.0;
+			opts.min_available_cpu_pc = 30.0;
 			break;
 		case 4: // maximum
-			opts.maxinstances				= std::thread::hardware_concurrency();
-			opts.min_free_system_memory_pc	= 30.0;
-			opts.min_available_cpu_pc		= 5.0;
+			opts.maxinstances = std::thread::hardware_concurrency();
+			opts.min_free_system_memory_pc = 30.0;
+			opts.min_available_cpu_pc = 5.0;
 			break;
 		default:
 		case 0:	// minimum
-			opts.maxinstances				= 1;
-			opts.min_free_system_memory_pc	= 0.0;
-			opts.min_available_cpu_pc		= 0.0;
+			opts.maxinstances = 1;
+			opts.min_free_system_memory_pc = 0.0;
+			opts.min_available_cpu_pc = 0.0;
 			break;
+		}
+	} 
+	else {
+		float value_max = (float) std::thread::hardware_concurrency() - 1;
+		float value_min = 1;
+		float index_max = 4;
+
+		switch (resources_usage) {
+		case 0:	// minimum
+			opts.maxinstances = (int) value_min;
+			break;
+		//								(max - min) / (index_max+1 - 1) * (index+1 - 1) + min
+		case 1: // low	
+			opts.maxinstances = (int) round(((value_max - value_min) / (index_max  + 1 - 1) * (2 - 1) + value_min));
+			break;
+		case 2: // medium
+			opts.maxinstances =	(int) round(((value_max - value_min) / (index_max + 1 - 1) * (3 - 1) + value_min));
+			break;
+		case 3: // high
+			opts.maxinstances =	(int) round(((value_max - value_min) / (index_max + 1 - 1) * (4 - 1) + value_min));
+			break;
+		case 4: // maximum
+			opts.maxinstances =	(int) value_max;
+			break;
+		default:
+			opts.maxinstances =	(int) value_min;
+			break;
+		}
 	}
 }
 

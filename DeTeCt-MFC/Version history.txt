@@ -42,14 +42,20 @@ tbd:	E Processing only part of a video (and logs start/end estimated times)
 
 tbd:	E bug ROI: skip empty frames where ROI is not found (V. Pustobaev)
 tbd:	E frames: skip frames too dark or too bright (test min/mean/max value) (see MWa)
-tbd:	E max-mean image: consider as error if too dark or too bright (chek min/mean/max value)
+tbd:	E max-mean image: consider as error if too dark or too bright (check min/mean/max value)
 tbd:	E Pure white band on bottom of individual frame (#7717 ; C. Peyrusse) - fix: white band in frames on the borders should be removed. Corrected image should be used for mean / max calculation
-tbd:	Bug ROI with satelite - cause high bg - peak bg 0.08 => >=0.09 (M. Wong)
-Bugfix:			OpenCV convertTo Mat in UMat should not be used (not supposed to...)? pADUdtcImg2 transformed - tbc pGryImg, pFlatADUmaxMat, pFlatADUmaxImg, pADUmaxMat, image_window
 
+======================================================================================================================================================================================================================
+v4.1.0:			Performance improvement, OpenCL deactivation in User settings, bugfixes
+OpenCL:			save deactivation parameter to avoid having to set it to each time. Parameter moved to user settings for easier access
+Instances:		default resource usage is back to previous model with fixed number of cores, now defined for min (1)/low/medium/high/max(total number of cores - 1). Current dynamic resource usage model made optional as not optimum (option in user settings), 
+General:		Performance improvement by optimizing regular checks for processed files and instances running
+Test:			(not validated) Bug ROI with satelite - cause high bg - fixed by peak bg 0.08 => >=0.09 but generated more false positive (M. Wong)
+Bugfix:			Ignore single frames files for selecting files to be processed
+Bugfix:			Autoupdate downloading cached version of files
 
 v4.0.2:
-Bugfix:			Uses Date/Start/End(UT) time from Firecapture log file (A.Wesley)
+Bugfix:			OpenCV convertTo Mat in UMat should not be used (not supposed to...)? pADUdtcImg2 transformed - tbc pGryImg, pFlatADUmaxMat, pFlatADUmaxImg, pADUmaxMat, image_window
 Bugfix:			Fix files to be processed when reprocessing is deactivated (A.Wesley)
 Bugfix:			OpenCV convertTo Mat in UMat should not be used (not supposed to...)
 Dev:			OpenCV library update to 4.12.0

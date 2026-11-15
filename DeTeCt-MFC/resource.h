@@ -188,6 +188,8 @@
 #define IDC_CHECK_MEAN_IMG              1110
 #define IDC_CHECK_NOOPENCL              1110
 #define IDC_CHECK_DETECTION_IMG         1111
+#define IDC_CHECK_NOOPENCL3             1113
+#define IDC_CHECK_DYNAMIC_RESOURCES     1114
 #define ID_FILE_OPENFOLDER              32771
 #define ID_SETTINGS_PREFERENCES         32772
 #define ID_HELP_EXIT                    32773
@@ -216,7 +218,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        264
 #define _APS_NEXT_COMMAND_VALUE         32794
-#define _APS_NEXT_CONTROL_VALUE         1113
+#define _APS_NEXT_CONTROL_VALUE         1115
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

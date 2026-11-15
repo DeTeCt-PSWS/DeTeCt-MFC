@@ -362,12 +362,15 @@ CDeTeCtMFCDlg::CDeTeCtMFCDlg(CWnd* pParent /*=NULL*/)
 	debug_mode = opts.debug;
 	opts.dateonly =																													FALSE;// deactivated at startup
 	//opts.dateonly =		::GetPrivateProfileInt(L"processing",	L"dateonly",			FALSE, DeTeCtIniFilename);
+	opts.OpenCL =							::GetPrivateProfileInt(L"processing",	 L"OpenCL",										TRUE, DeTeCtIniFilename);
 	opts.zip =								::GetPrivateProfileInt(L"processing",	L"zip",											TRUE, DeTeCtIniFilename);
 	opts.email =							::GetPrivateProfileInt(L"processing",	L"email",										TRUE, DeTeCtIniFilename);
 	// From main window checkboxes
 	opts.interactive =						!::GetPrivateProfileInt(L"processing",	L"autoprocessing",								FALSE, DeTeCtIniFilename);
 	opts.autoexit =							::GetPrivateProfileInt(L"processing",	L"autoexit",									FALSE, DeTeCtIniFilename);
 	opts.shutdown =							::GetPrivateProfileInt(L"processing",	L"autoshutdown",								FALSE, DeTeCtIniFilename);
+	opts.dynamic_resources =				::GetPrivateProfileInt(L"processing",	L"dynamic_resources",							FALSE, DeTeCtIniFilename);
+	
 	opts.maxinstances =						::GetPrivateProfileInt(L"processing",	L"maxinstances",								1, DeTeCtIniFilename);
 	int processor_count = std::thread::hardware_concurrency();
 	if (opts.maxinstances > processor_count) opts.maxinstances = processor_count;
@@ -514,7 +517,7 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	Auto.SetCheck((int) (!opts.interactive));
 	Exit.SetCheck(opts.autoexit);
 	Shutdown.SetCheck(opts.shutdown);
-
+	
 	ResourcesUsageSelect.AddString(L"Minimum");
 	ResourcesUsageSelect.AddString(L"Low");
 	ResourcesUsageSelect.AddString(L"Medium");
@@ -677,9 +680,8 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	MEMORYSTATUS memStatus;
 	GlobalMemoryStatus(&memStatus);
 	ss_tmp.str(std::wstring());
-	ss_tmp << "Total memory = " << memStatus.dwTotalPhys / MEGABYTES << " MB (" << 100 - memStatus.dwMemoryLoad << "% available)";
+	ss_tmp << "Memory (max available)              = " << round((float)memStatus.dwTotalPhys / (float)(GIGABYTES)) << " GB (" << 100 - memStatus.dwMemoryLoad << "% currently available)";
 	impactDetectionLog.AddString(ss_tmp.str().c_str());
-	//ss_tmp << "Available memory = " << memStatus.dwAvailPhys / (1024 * 1024) << " MB (" << 100 - memStatus.dwMemoryLoad << "%)";
 	
 	//PERFORMANCE_INFORMATION PerformanceInformation;
 	//GetPerformanceInfo(&PerformanceInformation, sizeof(PerformanceInformation));
@@ -696,13 +698,16 @@ BOOL CDeTeCtMFCDlg::OnInitDialog()
 	//PdhGetFormattedCounterValue(cpuTotal, PDH_FMT_DOUBLE, NULL, &counterVal);
 	ss_tmp.str(std::wstring());
 	//ss_tmp << "CPU used = " << counterVal.doubleValue;
-	int CPULoad = (int) (GetCPULoad(FALSE) * 100);
-	ss_tmp << "CPU used = " << CPULoad << "% (";
+	if (opts.dynamic_resources) {
+		int CPULoad = (int)(GetCPULoad(FALSE) * 100);
+		ss_tmp << "CPU used = " << CPULoad << "% (";
+	}
 	//ss_tmp << " - " << std::thread::hardware_concurrency() * (100 - MIN_AVAILABLE_CPU_PC - CPULoad) / 100 << " or " << std::thread::hardware_concurrency() * (100 - (100 / std::thread::hardware_concurrency()) - CPULoad) / 100;
 	//impactDetectionLog.AddString(ss_tmp.str().c_str());
 	//ss_tmp.str(std::wstring());
 	maxinstances_cstring.Format(L"%d", opts.maxinstances);
-	ss_tmp << "possible instances = " << NbPossibleChildInstances_fromMemoryandCPUUsage() + 1 << ", max set = " << opts.maxinstances << ")";//<< " (memory " << NbPossibleChildInstances_fromMemoryUsage() << ", CPU " << NbPossibleChildInstances_fromCPUUsage() << ")";
+	if (opts.dynamic_resources) ss_tmp << "possible instances = " << NbPossibleChildInstances_fromMemoryandCPUUsage() + 1 << ", max set = " << opts.maxinstances << ")";//<< " (memory " << NbPossibleChildInstances_fromMemoryUsage() << ", CPU " << NbPossibleChildInstances_fromCPUUsage() << ")";
+	else  ss_tmp << "Cores (max used/max available) = " << opts.maxinstances <<"/"<< std::thread::hardware_concurrency() ; //<< ")";<< " (memory " << NbPossibleChildInstances_fromMemoryUsage() << ", CPU " << NbPossibleChildInstances_fromCPUUsage() << ")";
 	impactDetectionLog.AddString(ss_tmp.str().c_str());
 
 	//if (opts.maxinstances > 1) { // Displays maxinstances if multi instances
@@ -1906,7 +1911,8 @@ void CDeTeCtMFCDlg::OnFileExit()
 void CDeTeCtMFCDlg::OnCbnSelchangeCombo1()
 {
 	opts.resources_usage = ResourcesUsageSelect.GetCurSel();
-	Set_ressource_usage(opts.resources_usage);
+	Set_ressources_usage(opts.resources_usage);
+	opts.maxinstances_changed = true;
 	ValueMaxInstances.SetPos(opts.maxinstances);
 	CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(std::thread::hardware_concurrency()).c_str());
 }
@@ -2065,7 +2071,6 @@ BOOL PrefDialog::OnInitDialog()
 	NoZip.SetCheck((int)(!opts.zip));
 	Debug.SetCheck(opts.debug);
 	CleanDir.SetCheck(opts.clean_dir);
-	NoOpenCL.SetCheck(!opts.OpenCL);
 
 	//ROI
 	sizeFactSpin.SetBuddy(&roiSizeFactor);
@@ -2228,7 +2233,6 @@ void PrefDialog::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK10,			NoZip);
 	DDX_Control(pDX, IDC_CHECK_DEBUG,		Debug);
 	DDX_Control(pDX, IDC_CHECK_CLEAN,		CleanDir);
-	DDX_Control(pDX, IDC_CHECK_NOOPENCL,	NoOpenCL);
 
 	//ROI
 	DDX_Control(pDX, IDC_EDIT12, roiSizeFactor);
@@ -2316,8 +2320,6 @@ void PrefDialog::OnBnClickedOk()
 	opts.debug		= Debug.GetCheck();
 	opts.zip		= !NoZip.GetCheck();
 	opts.clean_dir	= CleanDir.GetCheck();
-	opts.OpenCL		= !NoOpenCL.GetCheck();
-	cv::ocl::setUseOpenCL(opts.OpenCL);
 
 	//Impact detection WARNING STOD or STOF or STOI
 	impactMinBrightnessIncrease.GetWindowTextW(str);
@@ -2458,7 +2460,6 @@ void PrefDialog::OnBnClickedButton1()
 	Debug.SetCheck(false);
 	NoZip.SetCheck(false);
 	CleanDir.SetCheck(false);
-	NoOpenCL.SetCheck(false);
 
 	//Impact
 	std::wstringstream ss;										// only for floating values!
@@ -3096,9 +3097,11 @@ BOOL PrefDialogUser::OnInitDialog()
 
 	ShowDetectImg.SetCheck(opts.show_detect_image);
 	ShowMeanImg.SetCheck(opts.show_mean_image);
-
 	Email.SetCheck(opts.email);
 	Noreprocessing.SetCheck((int)(!opts.reprocessing));
+
+	NoOpenCL.SetCheck(!opts.OpenCL);
+	DynamicResources.SetCheck(opts.dynamic_resources);
 	detailedADUdtc.SetCheck(opts.detail);
 
 	datesOnly.SetCheck(opts.dateonly);
@@ -3124,13 +3127,15 @@ void PrefDialogUser::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
 	
-	DDX_Control(pDX, IDC_CHECK_DETECTION_IMG,	ShowDetectImg);
-	DDX_Control(pDX, IDC_CHECK_MEAN_IMG,		ShowMeanImg);
-	DDX_Control(pDX, IDC_CHECK18,				Email);
-	DDX_Control(pDX, IDC_NOREPROC,				Noreprocessing);
-	DDX_Control(pDX, IDC_CHECK11,				detailedADUdtc);
-	DDX_Control(pDX, IDC_CHECK13,				datesOnly);
-	DDX_Control(pDX, IDC_CHECK_FLAT,			Flat);
+	DDX_Control(pDX, IDC_CHECK_DETECTION_IMG,				ShowDetectImg);
+	DDX_Control(pDX, IDC_CHECK_MEAN_IMG,					ShowMeanImg);
+	DDX_Control(pDX, IDC_CHECK18,							Email);
+	DDX_Control(pDX, IDC_NOREPROC,							Noreprocessing);
+	DDX_Control(pDX, IDC_CHECK_NOOPENCL3,					NoOpenCL);
+	DDX_Control(pDX, IDC_CHECK_DYNAMIC_RESOURCES,	DynamicResources);
+	DDX_Control(pDX, IDC_CHECK11,							detailedADUdtc);
+	DDX_Control(pDX, IDC_CHECK13,							datesOnly);
+	DDX_Control(pDX, IDC_CHECK_FLAT,						Flat);
 }
 
 
@@ -3154,7 +3159,11 @@ void PrefDialogUser::OnBnClickedOk()
 	opts.show_mean_image =		ShowMeanImg.GetCheck();
 
 	opts.email =				Email.GetCheck();
-	opts.reprocessing = !Noreprocessing.GetCheck();
+	opts.reprocessing =			!Noreprocessing.GetCheck();
+
+	opts.OpenCL =				!NoOpenCL.GetCheck();
+	cv::ocl::setUseOpenCL(opts.OpenCL);
+	opts.dynamic_resources = DynamicResources.GetCheck();
 	opts.detail =				detailedADUdtc.GetCheck();
 
 	opts.dateonly =				datesOnly.GetCheck();
@@ -3193,8 +3202,12 @@ void PrefDialogUser::OnBnClickedButton1()
 
 	Email.SetCheck(TRUE);
 	Noreprocessing.SetCheck(FALSE);
+	
+	NoOpenCL.SetCheck(FALSE);
+	cv::ocl::setUseOpenCL(TRUE);
+	DynamicResources.SetCheck(FALSE);
 	detailedADUdtc.SetCheck(FALSE);
-
+	
 	datesOnly.SetCheck(FALSE);
 	Flat.SetCheck(FALSE);
 
@@ -3530,4 +3543,8 @@ void CDeTeCtMFCDlg::OnDeltaposSpinInstances(NMHDR *pNMHDR, LRESULT *pResult)
 	//DisplayInstanceType(); //too long (~1s) due to count of child process number
 	CDeTeCtMFCDlg::getMaxInstances()->SetWindowText(std::to_wstring(opts.maxinstances).c_str() + (CString)"/" + std::to_wstring(processor_count).c_str());
 	*pResult = 0;
+}
+void PrefDialog::OnBnClickedCheckNoopencl()
+{
+	// TODO: ajoutez ici le code de votre gestionnaire de notification de contrôle
 }

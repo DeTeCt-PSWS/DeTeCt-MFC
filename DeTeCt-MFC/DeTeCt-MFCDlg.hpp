@@ -271,7 +271,6 @@ public:
 	CButton NoZip;
 	CButton Debug;
 	CButton CleanDir;
-	CButton NoOpenCL;
 	afx_msg void OnBnClickedClean();
 
 	/* Note: OnDeltaposSpin function only needed for non integer values */
@@ -371,6 +370,7 @@ public:
 
 
 
+	afx_msg void OnBnClickedCheckNoopencl();
 };
 #pragma once
 
@@ -412,6 +412,8 @@ public:
 	CButton Email;
 	//CButton Explorer;
 	CButton Noreprocessing;
+	CButton NoOpenCL;
+	CButton DynamicResources;
 	CButton detailedADUdtc;
 
 	CButton datesOnly;
